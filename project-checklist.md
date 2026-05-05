@@ -58,6 +58,22 @@ Si un cambio modifica base de datos:
 - [x] `rescheduleService`
 - [x] `cancelService`
 
+### Servicios técnicos operativos
+
+- [x] `startService`
+- [x] `completeService`
+- [x] `addServiceNotes`
+- [x] `updateServicePayment`
+- [x] `addPaymentProof`
+- [x] `addServiceEvidence`
+- [x] `listServiceEvidences`
+- [ ] `generateReinforcementService`
+
+Notas:
+
+- [x] `completeService` actualiza el ciclo y prepara fechas de refuerzo usando la lógica existente de completado.
+- [ ] `generateReinforcementService` sigue pendiente como caso de uso explícito.
+
 ### Usuarios
 
 - [x] `createUser`
@@ -94,36 +110,16 @@ Si un cambio modifica base de datos:
 
 ## Próximo paso recomendado
 
-### Módulo técnico operativo de servicios
+### Revisión de cierre del módulo técnico operativo
 
-Flujo objetivo:
+El módulo técnico operativo ya está implementado a nivel de casos de uso principales.
 
-1. Técnico inicia sesión.
-2. Ve su programación.
-3. Inicia un servicio asignado.
-4. Agrega notas.
-5. Sube fotos/evidencias.
-6. Registra método de pago.
-7. Adjunta soporte de pago si aplica.
-8. Completa el servicio.
-9. El sistema actualiza ciclo y prepara/genera refuerzo.
+Pendientes directos del módulo:
 
-Casos de uso pendientes:
-
-- [x] `startService`
-- [x] `completeService`
-- [x] `addServiceNotes`
-- [x] `updateServicePayment`
-- [x] `addPaymentProof`
-- [x] `addServiceEvidence`
-- [x] `listServiceEvidences`
-- [ ] `generateReinforcementService`
-
-Notas:
-
-- [x] Endpoints tecnicos operativos agregados en `services`.
-- [x] Validacion de permisos: admin o tecnico asignado.
-- [x] Evidencias y soporte de pago guardan URL, no binario.
+- [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integración real con Firebase Storage.
+- [ ] Implementar `generateReinforcementService` como caso de uso explícito si se decide crear un servicio de refuerzo real además de actualizar `service_cycles`.
+- [ ] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
+- [ ] Verificar que los endpoints técnicos estén documentados para el frontend.
 
 ---
 
@@ -133,6 +129,7 @@ Notas:
 - [ ] Limpieza de tokens expirados.
 - [ ] Política de contraseña.
 - [ ] Validación de expiraciones JWT.
+- [ ] Reemplazar placeholder de storage por Firebase Storage real.
 
 ---
 
