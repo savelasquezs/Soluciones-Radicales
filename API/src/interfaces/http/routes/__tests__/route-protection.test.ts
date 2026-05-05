@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'node:http';
 import jwt from 'jsonwebtoken';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ForbiddenError, NotFoundError } from '../../../../application/errors';
 import { env } from '../../../../infrastructure/config/env';
 import { signAccessToken } from '../../../../infrastructure/auth/jwt.service';
 import { createAuthController } from '../../controllers/auth.controller';
@@ -19,6 +20,31 @@ import { createSettingsRoutes } from '../settings.routes';
 import { createUserRoutes } from '../user.routes';
 
 const servers = new Set<http.Server>();
+const serviceTechnicalUser = {
+  userId: 'tech-1',
+  role: 'admin' as const,
+  isTechnician: true,
+};
+
+const buildServiceUseCases = () => ({
+  createService: vi.fn(),
+  getServicesByDay: vi.fn(),
+  getServicesByMonth: vi.fn(),
+  getUpcomingServices: vi.fn(),
+  getTechnicianSchedule: vi.fn(),
+  getServiceById: vi.fn(),
+  updateServiceStatus: vi.fn(),
+  rescheduleService: vi.fn(),
+  cancelService: vi.fn(),
+  assignTechniciansToService: vi.fn(),
+  startService: vi.fn(),
+  completeService: vi.fn(),
+  addServiceNotes: vi.fn(),
+  updateServicePayment: vi.fn(),
+  addPaymentProof: vi.fn(),
+  addServiceEvidence: vi.fn(),
+  listServiceEvidences: vi.fn(),
+});
 
 const createRequest = async (app: express.Express) => {
   app.use(notFoundHandler);
@@ -73,6 +99,27 @@ const signNonAdminToken = () =>
       expiresIn: env.auth.jwtAccessExpiresIn as jwt.SignOptions['expiresIn'],
     },
   );
+
+const createServiceRequest = async (
+  useCases = buildServiceUseCases(),
+) => {
+  const app = express();
+  app.use(express.json());
+  app.use(
+    '/api/services',
+    authMiddleware,
+    createServiceRoutes(
+      createServiceController({
+        serviceUseCases: useCases,
+      }),
+    ),
+  );
+
+  return {
+    useCases,
+    request: await createRequest(app),
+  };
+};
 
 afterEach(async () => {
   await Promise.all(
@@ -374,29 +421,7 @@ describe('route protection', () => {
   });
 
   it('GET /api/services/upcoming sin token retorna 401', async () => {
-    const app = express();
-    app.use(express.json());
-    app.use(
-      '/api/services',
-      authMiddleware,
-      createServiceRoutes(
-        createServiceController({
-          serviceUseCases: {
-            createService: vi.fn(),
-            getServicesByDay: vi.fn(),
-            getServicesByMonth: vi.fn(),
-            getUpcomingServices: vi.fn(),
-            getTechnicianSchedule: vi.fn(),
-            getServiceById: vi.fn(),
-            updateServiceStatus: vi.fn(),
-            rescheduleService: vi.fn(),
-            cancelService: vi.fn(),
-            assignTechniciansToService: vi.fn(),
-          },
-        }),
-      ),
-    );
-    const request = await createRequest(app);
+    const { request } = await createServiceRequest();
 
     const response = await request('/api/services/upcoming');
 
@@ -404,33 +429,11 @@ describe('route protection', () => {
   });
 
   it('GET /api/services/upcoming con token valido permite pasar al controller', async () => {
-    const getUpcomingServices = vi.fn().mockResolvedValue({
+    const { request, useCases } = await createServiceRequest();
+    useCases.getUpcomingServices.mockResolvedValue({
       mainServices: [],
       reinforcements: [],
     });
-    const app = express();
-    app.use(express.json());
-    app.use(
-      '/api/services',
-      authMiddleware,
-      createServiceRoutes(
-        createServiceController({
-          serviceUseCases: {
-            createService: vi.fn(),
-            getServicesByDay: vi.fn(),
-            getServicesByMonth: vi.fn(),
-            getUpcomingServices,
-            getTechnicianSchedule: vi.fn(),
-            getServiceById: vi.fn(),
-            updateServiceStatus: vi.fn(),
-            rescheduleService: vi.fn(),
-            cancelService: vi.fn(),
-            assignTechniciansToService: vi.fn(),
-          },
-        }),
-      ),
-    );
-    const request = await createRequest(app);
 
     const response = await request('/api/services/upcoming', {
       headers: {
@@ -443,7 +446,99 @@ describe('route protection', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(getUpcomingServices).toHaveBeenCalled();
+    expect(useCases.getUpcomingServices).toHaveBeenCalled();
+  });
+
+  it.each([
+    ['PATCH', '/api/services/service-1/start', undefined],
+    ['PATCH', '/api/services/service-1/complete', undefined],
+    ['PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
+    ['PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
+    ['POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
+    ['POST', '/api/services/service-1/evidences', { fileName: 'evidence.png', contentBase64: 'abc' }],
+    ['GET', '/api/services/service-1/evidences', undefined],
+  ])('%s %s sin token retorna 401', async (method, path, body) => {
+    const { request } = await createServiceRequest();
+
+    const response = await request(path, {
+      method,
+      body,
+    });
+
+    expect(response.status).toBe(401);
+  });
+
+  it.each([
+    ['startService', 'PATCH', '/api/services/service-1/start', undefined],
+    ['completeService', 'PATCH', '/api/services/service-1/complete', undefined],
+    ['addServiceNotes', 'PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
+    ['updateServicePayment', 'PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
+    ['addPaymentProof', 'POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
+    ['addServiceEvidence', 'POST', '/api/services/service-1/evidences', { fileName: 'evidence.png', contentBase64: 'abc' }],
+    ['listServiceEvidences', 'GET', '/api/services/service-1/evidences', undefined],
+  ] as const)('%s responde 200 en caso exitoso', async (methodName, method, path, body) => {
+    const { request, useCases } = await createServiceRequest();
+    useCases[methodName].mockResolvedValue(methodName === 'listServiceEvidences' ? [{ id: 'ev-1' }] : { id: 'service-1' });
+
+    const response = await request(path, {
+      method,
+      body,
+      headers: {
+        authorization: `Bearer ${signAccessToken(serviceTechnicalUser)}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it.each([
+    ['startService', 'PATCH', '/api/services/service-1/start', undefined],
+    ['completeService', 'PATCH', '/api/services/service-1/complete', undefined],
+    ['addServiceNotes', 'PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
+    ['updateServicePayment', 'PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
+    ['addPaymentProof', 'POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
+    ['addServiceEvidence', 'POST', '/api/services/service-1/evidences', { fileName: 'evidence.png', contentBase64: 'abc' }],
+    ['listServiceEvidences', 'GET', '/api/services/service-1/evidences', undefined],
+  ] as const)('%s responde 403 sin permisos', async (methodName, method, path, body) => {
+    const { request, useCases } = await createServiceRequest();
+    useCases[methodName].mockRejectedValue(new ForbiddenError('Forbidden'));
+
+    const response = await request(path, {
+      method,
+      body,
+      headers: {
+        authorization: `Bearer ${signAccessToken({
+          userId: 'tech-2',
+          role: 'admin',
+          isTechnician: true,
+        })}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it.each([
+    ['startService', 'PATCH', '/api/services/service-1/start', undefined],
+    ['completeService', 'PATCH', '/api/services/service-1/complete', undefined],
+    ['addServiceNotes', 'PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
+    ['updateServicePayment', 'PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
+    ['addPaymentProof', 'POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
+    ['addServiceEvidence', 'POST', '/api/services/service-1/evidences', { fileName: 'evidence.png', contentBase64: 'abc' }],
+    ['listServiceEvidences', 'GET', '/api/services/service-1/evidences', undefined],
+  ] as const)('%s responde 404 si servicio no existe', async (methodName, method, path, body) => {
+    const { request, useCases } = await createServiceRequest();
+    useCases[methodName].mockRejectedValue(new NotFoundError('Service not found: service-1'));
+
+    const response = await request(path, {
+      method,
+      body,
+      headers: {
+        authorization: `Bearer ${signAccessToken(serviceTechnicalUser)}`,
+      },
+    });
+
+    expect(response.status).toBe(404);
   });
 
   it('POST /api/auth/login sigue siendo publico', async () => {

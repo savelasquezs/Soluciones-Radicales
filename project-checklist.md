@@ -124,6 +124,9 @@ Notas:
 - [x] Endpoints tecnicos operativos agregados en `services`.
 - [x] Validacion de permisos: admin o tecnico asignado.
 - [x] Evidencias y soporte de pago guardan URL, no binario.
+- [x] Tests de use cases tecnicos completados para inicio, cierre, notas, pago, soporte y evidencias.
+- [x] Tests de endpoints tecnicos completados con escenarios `200`, `401`, `403` y `404` usando mocks.
+- [ ] Sigue pendiente `generateReinforcementService`; los tests actuales validan actualizacion de ciclo, no generacion automatica.
 
 ---
 
