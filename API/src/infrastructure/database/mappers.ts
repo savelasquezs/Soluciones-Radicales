@@ -3,7 +3,9 @@ import {
   Branch,
   Business,
   Client,
+  PasswordResetToken,
   PaymentMethod,
+  RefreshToken,
   Service,
   ServiceCycle,
   SystemSettings,
@@ -14,7 +16,9 @@ import {
   branchesTable,
   businessesTable,
   clientsTable,
+  passwordResetTokensTable,
   paymentMethodsTable,
+  refreshTokensTable,
   serviceCyclesTable,
   servicesTable,
   systemSettingsTable,
@@ -22,6 +26,8 @@ import {
 } from './schema';
 
 type UserRow = typeof usersTable.$inferSelect;
+type RefreshTokenRow = typeof refreshTokensTable.$inferSelect;
+type PasswordResetTokenRow = typeof passwordResetTokensTable.$inferSelect;
 type ClientRow = typeof clientsTable.$inferSelect;
 type BusinessRow = typeof businessesTable.$inferSelect;
 type BranchRow = typeof branchesTable.$inferSelect;
@@ -38,6 +44,26 @@ export const toUserEntity = (row: UserRow): User => ({
   password: row.password,
   role: row.role as User['role'],
   isTechnician: row.isTechnician ?? false,
+  createdAt: row.createdAt ?? new Date(),
+});
+
+export const toRefreshTokenEntity = (row: RefreshTokenRow): RefreshToken => ({
+  id: row.id,
+  userId: row.userId,
+  tokenHash: row.tokenHash,
+  expiresAt: row.expiresAt,
+  revokedAt: row.revokedAt,
+  createdAt: row.createdAt ?? new Date(),
+});
+
+export const toPasswordResetTokenEntity = (
+  row: PasswordResetTokenRow,
+): PasswordResetToken => ({
+  id: row.id,
+  userId: row.userId,
+  tokenHash: row.tokenHash,
+  expiresAt: row.expiresAt,
+  usedAt: row.usedAt,
   createdAt: row.createdAt ?? new Date(),
 });
 
@@ -122,4 +148,3 @@ export const toActivityLogEntity = (row: ActivityLogRow): ActivityLog => ({
   entityId: row.entityId,
   createdAt: row.createdAt ?? new Date(),
 });
-

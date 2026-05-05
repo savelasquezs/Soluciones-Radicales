@@ -35,12 +35,13 @@ const startServer = async (router: Router, basePath: string) => {
   return {
     request: async <T = unknown>(
       path: string,
-      init?: { method?: string; body?: unknown },
+      init?: { method?: string; body?: unknown; headers?: Record<string, string> },
     ): Promise<TestResponse<T>> => {
       const response = await fetch(`http://127.0.0.1:${address.port}${path}`, {
         method: init?.method ?? 'GET',
         headers: {
           'content-type': 'application/json',
+          ...(init?.headers ?? {}),
         },
         body: init?.body === undefined ? undefined : JSON.stringify(init.body),
       });

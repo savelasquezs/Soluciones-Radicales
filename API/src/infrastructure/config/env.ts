@@ -32,4 +32,15 @@ export const env = {
     user: getEnv('DB_USER'),
     password: getEnv('DB_PASSWORD'),
   },
+  auth: {
+    jwtAccessSecret: getEnv('JWT_ACCESS_SECRET', 'dev-access-secret'),
+    jwtRefreshSecret: getEnv('JWT_REFRESH_SECRET', 'dev-refresh-secret'),
+    jwtAccessExpiresIn: getEnv('JWT_ACCESS_EXPIRES_IN', '15m'),
+    jwtRefreshExpiresIn: getEnv('JWT_REFRESH_EXPIRES_IN', '7d'),
+    passwordResetExpiresMinutes: getNumberEnv('PASSWORD_RESET_EXPIRES_MINUTES', '30'),
+    frontendResetPasswordUrl: getEnv(
+      'FRONTEND_RESET_PASSWORD_URL',
+      'http://localhost:5173/reset-password',
+    ),
+  },
 };

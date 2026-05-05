@@ -521,3 +521,23 @@ Se debe evitar:
 - crear código que no se vaya a utilizar pronto
 
 Ante duda, preferir la implementación simple, explícita y fácil de mantener.
+
+---
+
+## 31. Tokens y recuperacion de contrasena
+
+Los refresh tokens y tokens de recuperacion deben persistirse en base de datos.
+
+Nunca deben guardarse tokens en texto plano; solo hashes.
+
+El login debe devolver access token de corta duracion y refresh token de mayor duracion.
+
+El flujo de refresh debe rotar el refresh token anterior.
+
+Logout debe revocar el refresh token recibido.
+
+El cambio de contrasena autenticado debe requerir contrasena actual valida.
+
+El flujo de recuperacion de contrasena no debe revelar si el email existe o no.
+
+Los tokens de recuperacion deben ser de un solo uso y expirar.

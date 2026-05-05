@@ -17,6 +17,24 @@ export const usersTable = pgTable('users', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 
+export const refreshTokensTable = pgTable('refresh_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
+  tokenHash: text('token_hash').notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  revokedAt: timestamp('revoked_at', { mode: 'date' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
+export const passwordResetTokensTable = pgTable('password_reset_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
+  tokenHash: text('token_hash').notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  usedAt: timestamp('used_at', { mode: 'date' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+});
+
 export const systemSettingsTable = pgTable('system_settings', {
   id: uuid('id').defaultRandom().primaryKey(),
   businessName: text('business_name').notNull(),
@@ -109,4 +127,3 @@ export const activityLogsTable = pgTable('activity_logs', {
   entityId: uuid('entity_id'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
-

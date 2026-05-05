@@ -58,6 +58,18 @@ export class UserDrizzleRepository implements UserRepository {
     return toUserEntity(row);
   }
 
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    const [row] = await drizzleDb
+      .update(usersTable)
+      .set({ password: passwordHash })
+      .where(eq(usersTable.id, id))
+      .returning({ id: usersTable.id });
+
+    if (!row) {
+      throw new Error(`User not found: ${id}`);
+    }
+  }
+
   async listTechnicians(): Promise<User[]> {
     const rows = await drizzleDb
       .select()
@@ -67,4 +79,3 @@ export class UserDrizzleRepository implements UserRepository {
     return rows.map(toUserEntity);
   }
 }
-
