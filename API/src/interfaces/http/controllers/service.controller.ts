@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express';
+import { Request, RequestHandler } from 'express';
 import type { createServiceUseCases } from '../../../application/services/service.usecases';
 import { ValidationError } from '../../../application/errors';
 import {
@@ -26,6 +26,13 @@ interface ServiceController {
   rescheduleService: RequestHandler;
   cancelService: RequestHandler;
   assignTechniciansToService: RequestHandler;
+  startService: RequestHandler;
+  completeService: RequestHandler;
+  addServiceNotes: RequestHandler;
+  updateServicePayment: RequestHandler;
+  addPaymentProof: RequestHandler;
+  addServiceEvidence: RequestHandler;
+  listServiceEvidences: RequestHandler;
 }
 
 export const createServiceController = (deps: {
@@ -41,8 +48,21 @@ export const createServiceController = (deps: {
     | 'rescheduleService'
     | 'cancelService'
     | 'assignTechniciansToService'
+    | 'startService'
+    | 'completeService'
+    | 'addServiceNotes'
+    | 'updateServicePayment'
+    | 'addPaymentProof'
+    | 'addServiceEvidence'
+    | 'listServiceEvidences'
   >;
 }): ServiceController => {
+  const getActor = (request: Request) => ({
+    userId: parseRequiredString(request.user?.userId, 'User id is required'),
+    role: parseRequiredString(request.user?.role, 'User role is required'),
+    isTechnician: Boolean(request.user?.isTechnician),
+  });
+
   const createService = asyncHandler(async (request, response) => {
     const data = await deps.serviceUseCases.createService({
       branchId: parseRequiredString(request.body?.branchId, 'Branch id is required'),
@@ -158,6 +178,92 @@ export const createServiceController = (deps: {
     response.status(200).json({ data: { success: true } });
   });
 
+  const startService = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.startService({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const completeService = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.completeService({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const addServiceNotes = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.addServiceNotes({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+      notes: parseRequiredString(request.body?.notes, 'Notes are required'),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const updateServicePayment = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.updateServicePayment({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+      paymentMethodId: parseRequiredString(
+        request.body?.paymentMethodId,
+        'Payment method id is required',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const addPaymentProof = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.addPaymentProof({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+      fileName: parseRequiredString(request.body?.fileName, 'File name is required'),
+      contentType:
+        typeof request.body?.contentType === 'string'
+          ? request.body.contentType
+          : undefined,
+      contentBase64: parseRequiredString(
+        request.body?.contentBase64,
+        'File content is required',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const addServiceEvidence = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.addServiceEvidence({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+      fileName: parseRequiredString(request.body?.fileName, 'File name is required'),
+      contentType:
+        typeof request.body?.contentType === 'string'
+          ? request.body.contentType
+          : undefined,
+      contentBase64: parseRequiredString(
+        request.body?.contentBase64,
+        'File content is required',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const listServiceEvidences = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.listServiceEvidences({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+    });
+
+    response.status(200).json({ data });
+  });
+
   return {
     createService,
     getServicesByDay,
@@ -169,5 +275,12 @@ export const createServiceController = (deps: {
     rescheduleService,
     cancelService,
     assignTechniciansToService,
+    startService,
+    completeService,
+    addServiceNotes,
+    updateServicePayment,
+    addPaymentProof,
+    addServiceEvidence,
+    listServiceEvidences,
   };
 };

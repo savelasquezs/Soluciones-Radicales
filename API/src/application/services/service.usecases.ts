@@ -1,28 +1,45 @@
 import {
   ActivityLogRepository,
   BranchRepository,
+  PaymentMethodRepository,
   ServiceCycleRepository,
+  ServiceEvidenceRepository,
   ServiceRepository,
   SystemSettingsRepository,
   UserRepository,
 } from '../../domain/repositories';
-import { ConflictError, NotFoundError, ValidationError } from '../errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
 import {
+  AddServiceNotesInput,
   AssignTechniciansInput,
   CreateServiceInput,
   GetTechnicianScheduleInput,
   GetTechnicianScheduleOutput,
+  ServiceActionInput,
+  ServiceActor,
+  ServiceEvidencesOutput,
+  UpdateServicePaymentInput,
   UpcomingServicesOutput,
+  UploadServiceAssetInput,
   UpdateServiceStatusInput,
   RescheduleServiceInput,
 } from './service.types';
 
 interface ServiceUseCasesDeps {
   serviceRepository: ServiceRepository;
+  serviceEvidenceRepository: ServiceEvidenceRepository;
   userRepository: UserRepository;
   branchRepository: BranchRepository;
   serviceCycleRepository: ServiceCycleRepository;
+  paymentMethodRepository: PaymentMethodRepository;
   systemSettingsRepository: SystemSettingsRepository;
+  storageService: {
+    uploadFile(input: {
+      fileName: string;
+      contentType?: string;
+      contentBase64: string;
+    }): Promise<string>;
+  };
   activityLogRepository?: ActivityLogRepository;
 }
 
@@ -69,6 +86,75 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
       reinforcementIsPaid:
         branch.reinforcementIsPaid ?? settings.reinforcementIsPaidDefault,
     };
+  };
+
+  const ensureServiceExists = async (serviceId: string) => {
+    const service = await deps.serviceRepository.findById(serviceId);
+    if (!service) {
+      throw new NotFoundError(`Service not found: ${serviceId}`);
+    }
+
+    return service;
+  };
+
+  const ensureCanOperateService = async (
+    serviceId: string,
+    actor: ServiceActor,
+  ) => {
+    const service = await ensureServiceExists(serviceId);
+
+    if (actor.role === 'admin') {
+      return service;
+    }
+
+    const isAssigned = await deps.serviceRepository.isTechnicianAssigned(
+      serviceId,
+      actor.userId,
+    );
+
+    if (!isAssigned) {
+      throw new ForbiddenError('Forbidden');
+    }
+
+    return service;
+  };
+
+  const applyCompletedServiceEffects = async (serviceId: string) => {
+    const service = await ensureServiceExists(serviceId);
+    const branchSettings = await resolveBranchSettings(service.branchId);
+    const currentCycle = await deps.serviceCycleRepository.findByBranchId(service.branchId);
+
+    if (service.type === 'main') {
+      const nextMainDate = addDays(service.scheduledAt, branchSettings.frequencyDays);
+      const nextReinforcementDate = branchSettings.reinforcementEnabled
+        ? addDays(service.scheduledAt, branchSettings.reinforcementDays)
+        : null;
+
+      if (currentCycle) {
+        await deps.serviceCycleRepository.update(service.branchId, {
+          lastServiceDate: service.scheduledAt,
+          nextMainServiceDate: nextMainDate,
+          nextReinforcementDate,
+          active: true,
+        });
+      } else {
+        await deps.serviceCycleRepository.create({
+          branchId: service.branchId,
+          lastServiceDate: service.scheduledAt,
+          nextMainServiceDate: nextMainDate,
+          nextReinforcementDate,
+          active: true,
+        });
+      }
+    }
+
+    if (service.type === 'reinforcement' && currentCycle) {
+      await deps.serviceCycleRepository.update(service.branchId, {
+        nextReinforcementDate: null,
+      });
+    }
+
+    return service;
   };
 
   const createService = async (input: CreateServiceInput) => {
@@ -139,51 +225,14 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
   };
 
   const updateServiceStatus = async (input: UpdateServiceStatusInput) => {
-    const service = await deps.serviceRepository.findById(input.serviceId);
-    if (!service) {
-      throw new NotFoundError(`Service not found: ${input.serviceId}`);
-    }
+    const service = await ensureServiceExists(input.serviceId);
 
     const updated = await deps.serviceRepository.update(service.id, {
       status: input.status,
     });
 
     if (input.status === 'completed') {
-      const branchSettings = await resolveBranchSettings(service.branchId);
-      const currentCycle = await deps.serviceCycleRepository.findByBranchId(service.branchId);
-
-      if (service.type === 'main') {
-        const nextMainDate = addDays(
-          service.scheduledAt,
-          branchSettings.frequencyDays,
-        );
-        const nextReinforcementDate = branchSettings.reinforcementEnabled
-          ? addDays(service.scheduledAt, branchSettings.reinforcementDays)
-          : null;
-
-        if (currentCycle) {
-          await deps.serviceCycleRepository.update(service.branchId, {
-            lastServiceDate: service.scheduledAt,
-            nextMainServiceDate: nextMainDate,
-            nextReinforcementDate,
-            active: true,
-          });
-        } else {
-          await deps.serviceCycleRepository.create({
-            branchId: service.branchId,
-            lastServiceDate: service.scheduledAt,
-            nextMainServiceDate: nextMainDate,
-            nextReinforcementDate,
-            active: true,
-          });
-        }
-      }
-
-      if (service.type === 'reinforcement' && currentCycle) {
-        await deps.serviceCycleRepository.update(service.branchId, {
-          nextReinforcementDate: null,
-        });
-      }
+      await applyCompletedServiceEffects(service.id);
     }
 
     await logActivity(
@@ -195,11 +244,7 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
   };
 
   const getServiceById = async (id: string) => {
-    const service = await deps.serviceRepository.findById(id);
-    if (!service) {
-      throw new NotFoundError(`Service not found: ${id}`);
-    }
-    return service;
+    return ensureServiceExists(id);
   };
 
   const getServicesByDay = async (day: Date) => deps.serviceRepository.findByScheduledDay(day);
@@ -268,10 +313,7 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
   };
 
   const rescheduleService = async (input: RescheduleServiceInput) => {
-    const service = await deps.serviceRepository.findById(input.serviceId);
-    if (!service) {
-      throw new NotFoundError(`Service not found: ${input.serviceId}`);
-    }
+    const service = await ensureServiceExists(input.serviceId);
 
     const updated = await deps.serviceRepository.update(service.id, {
       scheduledAt: input.scheduledAt,
@@ -283,16 +325,106 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
   };
 
   const cancelService = async (serviceId: string, actorUserId?: string | null) => {
-    const service = await deps.serviceRepository.findById(serviceId);
-    if (!service) {
-      throw new NotFoundError(`Service not found: ${serviceId}`);
-    }
+    const service = await ensureServiceExists(serviceId);
 
     const updated = await deps.serviceRepository.update(service.id, {
       status: 'canceled',
     });
     await logActivity('service_canceled', service.id, actorUserId ?? null);
     return updated;
+  };
+
+  const startService = async (input: ServiceActionInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const updated = await deps.serviceRepository.update(service.id, {
+      status: 'in_progress',
+    });
+
+    await logActivity('service_started', service.id, input.actor.userId);
+    return updated;
+  };
+
+  const completeService = async (input: ServiceActionInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const updated = await deps.serviceRepository.update(service.id, {
+      status: 'completed',
+    });
+
+    await applyCompletedServiceEffects(service.id);
+    await logActivity('service_completed', service.id, input.actor.userId);
+    return updated;
+  };
+
+  const addServiceNotes = async (input: AddServiceNotesInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const updated = await deps.serviceRepository.update(service.id, {
+      notes: input.notes,
+    });
+
+    await logActivity('service_notes_updated', service.id, input.actor.userId);
+    return updated;
+  };
+
+  const updateServicePayment = async (input: UpdateServicePaymentInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const paymentMethods = await deps.paymentMethodRepository.listActive();
+    const paymentMethod = paymentMethods.find(
+      (item) => item.id === input.paymentMethodId,
+    );
+
+    if (!paymentMethod) {
+      throw new ValidationError(`Payment method not found: ${input.paymentMethodId}`);
+    }
+
+    const updated = await deps.serviceRepository.update(service.id, {
+      paymentMethodId: input.paymentMethodId,
+    });
+
+    await logActivity('service_payment_updated', service.id, input.actor.userId);
+    return {
+      ...updated,
+      paymentMethod,
+    };
+  };
+
+  const addPaymentProof = async (input: UploadServiceAssetInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const paymentProofUrl = await deps.storageService.uploadFile({
+      fileName: input.fileName,
+      contentType: input.contentType,
+      contentBase64: input.contentBase64,
+    });
+
+    const updated = await deps.serviceRepository.update(service.id, {
+      paymentProofUrl,
+    });
+
+    await logActivity('service_payment_proof_added', service.id, input.actor.userId);
+    return updated;
+  };
+
+  const addServiceEvidence = async (input: UploadServiceAssetInput) => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    const imageUrl = await deps.storageService.uploadFile({
+      fileName: input.fileName,
+      contentType: input.contentType,
+      contentBase64: input.contentBase64,
+    });
+
+    const evidence = await deps.serviceEvidenceRepository.create({
+      serviceId: service.id,
+      imageUrl,
+    });
+
+    await logActivity('service_evidence_added', service.id, input.actor.userId);
+    return evidence;
+  };
+
+  const listServiceEvidences = async (
+    input: ServiceActionInput,
+  ): Promise<ServiceEvidencesOutput> => {
+    const service = await ensureCanOperateService(input.serviceId, input.actor);
+    return deps.serviceEvidenceRepository.listByServiceId(service.id);
   };
 
   return {
@@ -306,6 +438,12 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
     getUpcomingServices,
     rescheduleService,
     cancelService,
+    startService,
+    completeService,
+    addServiceNotes,
+    updateServicePayment,
+    addPaymentProof,
+    addServiceEvidence,
+    listServiceEvidences,
   };
 };
-

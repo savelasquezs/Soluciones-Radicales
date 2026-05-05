@@ -25,11 +25,13 @@ import {
   DrizzleRefreshTokenRepository,
   PaymentMethodDrizzleRepository,
   ServiceCycleDrizzleRepository,
+  ServiceEvidenceDrizzleRepository,
   ServiceDrizzleRepository,
   SystemSettingsDrizzleRepository,
   UserDrizzleRepository,
 } from '../../infrastructure/database/repositories';
 import { sendPasswordResetEmail } from '../../infrastructure/notifications/email.service';
+import { uploadFile } from '../../infrastructure/storage/storage.service';
 
 export const createHttpDependencies = () => {
   const activityLogRepository = new ActivityLogDrizzleRepository();
@@ -40,6 +42,7 @@ export const createHttpDependencies = () => {
   const paymentMethodRepository = new PaymentMethodDrizzleRepository();
   const refreshTokenRepository = new DrizzleRefreshTokenRepository();
   const serviceCycleRepository = new ServiceCycleDrizzleRepository();
+  const serviceEvidenceRepository = new ServiceEvidenceDrizzleRepository();
   const serviceRepository = new ServiceDrizzleRepository();
   const systemSettingsRepository = new SystemSettingsDrizzleRepository();
   const userRepository = new UserDrizzleRepository();
@@ -54,10 +57,15 @@ export const createHttpDependencies = () => {
     }),
     serviceUseCases: createServiceUseCases({
       serviceRepository,
+      serviceEvidenceRepository,
       userRepository,
       branchRepository,
       serviceCycleRepository,
+      paymentMethodRepository,
       systemSettingsRepository,
+      storageService: {
+        uploadFile,
+      },
       activityLogRepository,
     }),
     userUseCases: createUserUseCases({

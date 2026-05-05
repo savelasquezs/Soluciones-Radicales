@@ -7,6 +7,7 @@ export interface ServiceRepository {
   findByScheduledDay(day: Date): Promise<Service[]>;
   findByMonth(year: number, month: number): Promise<Service[]>;
   findByTechnicianId(technicianId: string): Promise<Service[]>;
+  isTechnicianAssigned(serviceId: string, technicianId: string): Promise<boolean>;
   assignTechnicians(serviceId: string, technicianIds: string[]): Promise<void>;
   findTechnicianScheduleConflict(
     technicianId: string,

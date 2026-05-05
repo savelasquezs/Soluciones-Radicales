@@ -110,14 +110,20 @@ Flujo objetivo:
 
 Casos de uso pendientes:
 
-- [ ] `startService`
-- [ ] `completeService`
-- [ ] `addServiceNotes`
-- [ ] `updateServicePayment`
-- [ ] `addPaymentProof`
-- [ ] `addServiceEvidence`
-- [ ] `listServiceEvidences`
+- [x] `startService`
+- [x] `completeService`
+- [x] `addServiceNotes`
+- [x] `updateServicePayment`
+- [x] `addPaymentProof`
+- [x] `addServiceEvidence`
+- [x] `listServiceEvidences`
 - [ ] `generateReinforcementService`
+
+Notas:
+
+- [x] Endpoints tecnicos operativos agregados en `services`.
+- [x] Validacion de permisos: admin o tecnico asignado.
+- [x] Evidencias y soporte de pago guardan URL, no binario.
 
 ---
 

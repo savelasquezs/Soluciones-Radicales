@@ -1,4 +1,18 @@
-import { Service, ServiceCycle, ServiceStatus, ServiceType, User } from '../../domain/entities';
+import {
+  PaymentMethod,
+  Service,
+  ServiceCycle,
+  ServiceEvidence,
+  ServiceStatus,
+  ServiceType,
+  User,
+} from '../../domain/entities';
+
+export interface ServiceActor {
+  userId: string;
+  role: string;
+  isTechnician: boolean;
+}
 
 export interface CreateServiceInput {
   branchId: string;
@@ -30,6 +44,25 @@ export interface RescheduleServiceInput {
   actorUserId?: string | null;
 }
 
+export interface ServiceActionInput {
+  serviceId: string;
+  actor: ServiceActor;
+}
+
+export interface AddServiceNotesInput extends ServiceActionInput {
+  notes: string;
+}
+
+export interface UpdateServicePaymentInput extends ServiceActionInput {
+  paymentMethodId: string;
+}
+
+export interface UploadServiceAssetInput extends ServiceActionInput {
+  fileName: string;
+  contentType?: string;
+  contentBase64: string;
+}
+
 export interface GetTechnicianScheduleInput {
   technicianId: string;
   from?: Date;
@@ -56,3 +89,8 @@ export interface GetTechnicianScheduleOutput {
   services: Service[];
 }
 
+export interface ServicePaymentOutput extends Service {
+  paymentMethod: PaymentMethod;
+}
+
+export type ServiceEvidencesOutput = ServiceEvidence[];

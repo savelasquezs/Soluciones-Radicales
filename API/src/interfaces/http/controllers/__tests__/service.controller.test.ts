@@ -1,8 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
-import { NotFoundError } from '../../../../application/errors';
+import express from 'express';
+import http from 'node:http';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ForbiddenError, NotFoundError } from '../../../../application/errors';
 import { createServiceController } from '../service.controller';
 import { createServiceRoutes } from '../../routes/service.routes';
 import { startServer } from './http-test.helper';
+import { errorHandler, notFoundHandler } from '../../middlewares/error.middleware';
 
 const buildUseCases = () => ({
   createService: vi.fn(),
@@ -15,6 +18,81 @@ const buildUseCases = () => ({
   rescheduleService: vi.fn(),
   cancelService: vi.fn(),
   assignTechniciansToService: vi.fn(),
+  startService: vi.fn(),
+  completeService: vi.fn(),
+  addServiceNotes: vi.fn(),
+  updateServicePayment: vi.fn(),
+  addPaymentProof: vi.fn(),
+  addServiceEvidence: vi.fn(),
+  listServiceEvidences: vi.fn(),
+});
+
+const servers = new Set<http.Server>();
+
+const startAuthorizedServer = async (
+  controller: ReturnType<typeof createServiceController>,
+  user: { userId: string; role: string; isTechnician: boolean },
+) => {
+  const app = express();
+  app.use(express.json());
+  app.use((request, _response, next) => {
+    request.user = user as typeof request.user;
+    next();
+  });
+  app.use('/api/services', createServiceRoutes(controller));
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  const server = http.createServer(app);
+  servers.add(server);
+
+  await new Promise<void>((resolve) => {
+    server.listen(0, resolve);
+  });
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Unable to resolve test server address');
+  }
+
+  return {
+    request: async (
+      path: string,
+      init?: { method?: string; body?: unknown },
+    ) => {
+      const response = await fetch(`http://127.0.0.1:${address.port}${path}`, {
+        method: init?.method ?? 'GET',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: init?.body === undefined ? undefined : JSON.stringify(init.body),
+      });
+
+      return {
+        status: response.status,
+        body: (await response.json()) as Record<string, unknown>,
+      };
+    },
+  };
+};
+
+afterEach(async () => {
+  await Promise.all(
+    Array.from(servers).map(
+      (server) =>
+        new Promise<void>((resolve, reject) => {
+          server.close((error) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+
+            servers.delete(server);
+            resolve();
+          });
+        }),
+    ),
+  );
 });
 
 describe('service routes', () => {
@@ -181,5 +259,169 @@ describe('service routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ data: { success: true } });
+  });
+
+  it('PATCH /api/services/:id/start responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.startService.mockResolvedValue({ id: 'service-1', status: 'in_progress' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/start', {
+      method: 'PATCH',
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/services/:id/complete responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.completeService.mockResolvedValue({ id: 'service-1', status: 'completed' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/complete', {
+      method: 'PATCH',
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/services/:id/notes responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.addServiceNotes.mockResolvedValue({ id: 'service-1', notes: 'ok' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/notes', {
+      method: 'PATCH',
+      body: { notes: 'ok' },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/services/:id/payment responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateServicePayment.mockResolvedValue({ id: 'service-1' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/payment', {
+      method: 'PATCH',
+      body: { paymentMethodId: 'pm-1' },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('POST /api/services/:id/payment-proof responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.addPaymentProof.mockResolvedValue({ id: 'service-1' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/payment-proof', {
+      method: 'POST',
+      body: { fileName: 'proof.png', contentBase64: 'abc' },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('POST /api/services/:id/evidences responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.addServiceEvidence.mockResolvedValue({ id: 'ev-1' });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/evidences', {
+      method: 'POST',
+      body: { fileName: 'proof.png', contentBase64: 'abc' },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('GET /api/services/:id/evidences responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.listServiceEvidences.mockResolvedValue([{ id: 'ev-1' }]);
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/evidences');
+
+    expect(response.status).toBe(200);
+  });
+
+  it('responde 403 si no tiene permiso', async () => {
+    const useCases = buildUseCases();
+    useCases.startService.mockRejectedValue(new ForbiddenError('Forbidden'));
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-2',
+      role: 'technician',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/start', {
+      method: 'PATCH',
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it('responde 404 si servicio no existe', async () => {
+    const useCases = buildUseCases();
+    useCases.startService.mockRejectedValue(new NotFoundError('Service not found: service-1'));
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/start', {
+      method: 'PATCH',
+    });
+
+    expect(response.status).toBe(404);
   });
 });

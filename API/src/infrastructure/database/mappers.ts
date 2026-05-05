@@ -8,6 +8,7 @@ import {
   RefreshToken,
   Service,
   ServiceCycle,
+  ServiceEvidence,
   SystemSettings,
   User,
 } from '../../domain/entities';
@@ -20,6 +21,7 @@ import {
   paymentMethodsTable,
   refreshTokensTable,
   serviceCyclesTable,
+  serviceEvidencesTable,
   servicesTable,
   systemSettingsTable,
   usersTable,
@@ -33,6 +35,7 @@ type BusinessRow = typeof businessesTable.$inferSelect;
 type BranchRow = typeof branchesTable.$inferSelect;
 type ServiceRow = typeof servicesTable.$inferSelect;
 type ServiceCycleRow = typeof serviceCyclesTable.$inferSelect;
+type ServiceEvidenceRow = typeof serviceEvidencesTable.$inferSelect;
 type PaymentMethodRow = typeof paymentMethodsTable.$inferSelect;
 type SystemSettingsRow = typeof systemSettingsTable.$inferSelect;
 type ActivityLogRow = typeof activityLogsTable.$inferSelect;
@@ -117,6 +120,13 @@ export const toServiceCycleEntity = (row: ServiceCycleRow): ServiceCycle => ({
   nextMainServiceDate: row.nextMainServiceDate,
   nextReinforcementDate: row.nextReinforcementDate,
   active: row.active ?? true,
+});
+
+export const toServiceEvidenceEntity = (row: ServiceEvidenceRow): ServiceEvidence => ({
+  id: row.id,
+  serviceId: row.serviceId,
+  imageUrl: row.imageUrl,
+  createdAt: row.createdAt ?? new Date(),
 });
 
 export const toPaymentMethodEntity = (row: PaymentMethodRow): PaymentMethod => ({

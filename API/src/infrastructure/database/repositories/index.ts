@@ -6,6 +6,7 @@ export * from './DrizzlePasswordResetTokenRepository';
 export * from './DrizzleRefreshTokenRepository';
 export * from './PaymentMethodDrizzleRepository';
 export * from './ServiceCycleDrizzleRepository';
+export * from './ServiceEvidenceDrizzleRepository';
 export * from './ServiceDrizzleRepository';
 export * from './SystemSettingsDrizzleRepository';
 export * from './UserDrizzleRepository';

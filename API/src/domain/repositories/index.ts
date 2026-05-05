@@ -6,6 +6,7 @@ export * from './PasswordResetTokenRepository';
 export * from './PaymentMethodRepository';
 export * from './RefreshTokenRepository';
 export * from './ServiceCycleRepository';
+export * from './ServiceEvidenceRepository';
 export * from './ServiceRepository';
 export * from './SystemSettingsRepository';
 export * from './UserRepository';

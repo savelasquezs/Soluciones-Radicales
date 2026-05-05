@@ -97,6 +97,21 @@ export class ServiceDrizzleRepository implements ServiceRepository {
     return rows.map(toServiceEntity);
   }
 
+  async isTechnicianAssigned(serviceId: string, technicianId: string): Promise<boolean> {
+    const [row] = await drizzleDb
+      .select({ id: serviceTechniciansTable.id })
+      .from(serviceTechniciansTable)
+      .where(
+        and(
+          eq(serviceTechniciansTable.serviceId, serviceId),
+          eq(serviceTechniciansTable.technicianId, technicianId),
+        ),
+      )
+      .limit(1);
+
+    return Boolean(row);
+  }
+
   async assignTechnicians(serviceId: string, technicianIds: string[]): Promise<void> {
     await drizzleDb.transaction(async (tx) => {
       await tx
@@ -139,4 +154,3 @@ export class ServiceDrizzleRepository implements ServiceRepository {
     return row ? toServiceEntity(row.service) : null;
   }
 }
-
