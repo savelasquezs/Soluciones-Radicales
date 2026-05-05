@@ -44,6 +44,20 @@ Si un cambio modifica base de datos:
 - [x] `searchClientsByName`
 - [x] `addBusinessToClient`
 - [x] `addBranchToBusiness`
+- [x] `getClientDetail`
+- [x] `updateClient`
+- [x] `updateBusiness`
+- [x] `updateBranch`
+- [x] `updateBranchConfiguration`
+- [x] `getBranchHistory`
+
+Notas:
+
+- [x] `getClientDetail` retorna cliente, negocios, sucursales y `service_cycles` sin cargar historial completo.
+- [x] `getBranchHistory` retorna historial básico de `services` por sucursal con filtros opcionales.
+- [x] Se mantiene separación entre detalle de cliente e historial para evitar respuestas pesadas.
+- [x] Se mantiene separación entre edición de datos básicos de sucursal y configuración para no mezclar validaciones.
+- [ ] Si luego se requiere historial enriquecido con técnicos, evidencias y método de pago en una sola respuesta, crear un repositorio de lectura específico para esa vista. No armar esa lógica en controllers.
 
 ### Servicios base
 
@@ -113,43 +127,20 @@ Notas:
 
 ## Próximo paso recomendado
 
-### Módulo clientes, negocios, sucursales e historial
+### Documentación mínima de API para frontend
 
-El backend ya tiene autenticación, rutas protegidas, servicios base, operación técnica y refuerzos como servicios reales.
+El backend ya cubre autenticación, clientes, servicios, operación técnica, refuerzos e historial básico.
 
-El siguiente bloque funcional recomendado es completar la gestión detallada de clientes y sucursales, porque será necesario para que el frontend administrativo pueda consultar y editar toda la información comercial sin armar datos manualmente.
+Antes de pasar a dashboard o frontend, conviene documentar los endpoints técnicos y administrativos ya existentes para que el frontend no tenga que inferir contratos desde controllers.
 
-Casos de uso pendientes:
+Pendientes:
 
-- [x] `getClientDetail`
-- [x] `updateClient`
-- [x] `updateBusiness`
-- [x] `updateBranch`
-- [x] `updateBranchConfiguration`
-- [x] `getBranchHistory`
-
-Endpoints sugeridos:
-
-- [x] `GET /api/clients/:id/detail`
-- [x] `PATCH /api/clients/:id`
-- [x] `PATCH /api/clients/businesses/:businessId`
-- [x] `PATCH /api/clients/branches/:branchId`
-- [x] `PATCH /api/clients/branches/:branchId/configuration`
-- [x] `GET /api/clients/branches/:branchId/history`
-
-Reglas clave:
-
-- [x] Mantener precios históricos de servicios.
-- [x] Usar configuración global como fallback cuando la sucursal no tenga valores propios.
-- [x] No recalcular servicios históricos al editar sucursal.
-- [x] Proteger endpoints con auth + admin.
-- [x] Crear tests de use cases y routes/controllers.
-
-Notas de cierre:
-
-- [x] `getClientDetail` retorna cliente, negocios, sucursales y `service_cycles` sin cargar historial completo.
-- [x] `getBranchHistory` retorna historial básico de `services` por sucursal con filtros opcionales.
-- [ ] Si luego se requiere historial enriquecido con técnicos, evidencias y método de pago en una sola respuesta, hará falta ampliar repositorios de lectura sin mover lógica a controllers.
+- [ ] Crear documentación mínima de endpoints administrativos.
+- [ ] Crear documentación mínima de endpoints técnicos.
+- [ ] Documentar payloads principales.
+- [ ] Documentar respuestas `{ data }` y errores `{ message }`.
+- [ ] Documentar permisos por endpoint.
+- [ ] Mantener la documentación simple, preferiblemente en Markdown.
 
 ---
 
