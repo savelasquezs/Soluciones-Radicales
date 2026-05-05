@@ -20,6 +20,12 @@ const clientUseCases = {
   listClients: vi.fn(),
   searchClientsByName: vi.fn(),
   getClientById: vi.fn(),
+  getClientDetail: vi.fn(),
+  updateClient: vi.fn(),
+  updateBusiness: vi.fn(),
+  updateBranch: vi.fn(),
+  updateBranchConfiguration: vi.fn(),
+  getBranchHistory: vi.fn(),
   addBusinessToClient: vi.fn(),
   addBranchToBusiness: vi.fn(),
 };

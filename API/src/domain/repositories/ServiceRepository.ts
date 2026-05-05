@@ -3,6 +3,15 @@ import { Service } from '../entities';
 export interface ServiceRepository {
   create(data: Omit<Service, 'id' | 'createdAt'>): Promise<Service>;
   findById(id: string): Promise<Service | null>;
+  findByBranchId(
+    branchId: string,
+    filters?: {
+      from?: Date;
+      to?: Date;
+      status?: Service['status'];
+      type?: Service['type'];
+    },
+  ): Promise<Service[]>;
   findByBranchAndScheduledAtAndType(
     branchId: string,
     scheduledAt: Date,

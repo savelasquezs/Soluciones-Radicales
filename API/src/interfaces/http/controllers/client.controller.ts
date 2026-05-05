@@ -5,6 +5,9 @@ import {
   parseOptionalBoolean,
   parseOptionalDate,
   parseOptionalNumber,
+  parseOptionalServiceStatus,
+  parseOptionalServiceType,
+  parseOptionalString,
   parseRequiredString,
 } from '../request.utils';
 
@@ -15,6 +18,12 @@ interface ClientController {
   listClients: RequestHandler;
   searchClientsByName: RequestHandler;
   getClientById: RequestHandler;
+  getClientDetail: RequestHandler;
+  updateClient: RequestHandler;
+  updateBusiness: RequestHandler;
+  updateBranch: RequestHandler;
+  updateBranchConfiguration: RequestHandler;
+  getBranchHistory: RequestHandler;
   addBusinessToClient: RequestHandler;
   addBranchToBusiness: RequestHandler;
 }
@@ -26,6 +35,12 @@ export const createClientController = (deps: {
     | 'listClients'
     | 'searchClientsByName'
     | 'getClientById'
+    | 'getClientDetail'
+    | 'updateClient'
+    | 'updateBusiness'
+    | 'updateBranch'
+    | 'updateBranchConfiguration'
+    | 'getBranchHistory'
     | 'addBusinessToClient'
     | 'addBranchToBusiness'
   >;
@@ -110,6 +125,88 @@ export const createClientController = (deps: {
     response.status(200).json({ data });
   });
 
+  const getClientDetail = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.getClientDetail(
+      parseRequiredString(request.params.id, 'Client id is required'),
+    );
+    response.status(200).json({ data });
+  });
+
+  const updateClient = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.updateClient({
+      clientId: parseRequiredString(request.params.id, 'Client id is required'),
+      name: parseRequiredString(request.body?.name, 'Client name is required'),
+      contactName: parseOptionalString(request.body?.contactName),
+      phone: parseOptionalString(request.body?.phone),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const updateBusiness = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.updateBusiness({
+      businessId: parseRequiredString(request.params.businessId, 'Business id is required'),
+      name: parseRequiredString(request.body?.name, 'Business name is required'),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const updateBranch = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.updateBranch({
+      branchId: parseRequiredString(request.params.branchId, 'Branch id is required'),
+      address: parseRequiredString(request.body?.address, 'Branch address is required'),
+      phone: parseOptionalString(request.body?.phone),
+      city: parseOptionalString(request.body?.city),
+      pricePerM2: parseOptionalNumber(
+        request.body?.pricePerM2,
+        'Branch pricePerM2 must be a number',
+      ),
+      fixedPrice: parseOptionalNumber(
+        request.body?.fixedPrice,
+        'Branch fixedPrice must be a number',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const updateBranchConfiguration = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.updateBranchConfiguration({
+      branchId: parseRequiredString(request.params.branchId, 'Branch id is required'),
+      frequencyDays: parseOptionalNumber(
+        request.body?.frequencyDays,
+        'Branch frequencyDays must be a number',
+      ),
+      reinforcementDays: parseOptionalNumber(
+        request.body?.reinforcementDays,
+        'Branch reinforcementDays must be a number',
+      ),
+      reinforcementEnabled: parseOptionalBoolean(
+        request.body?.reinforcementEnabled,
+        'Branch reinforcementEnabled must be a boolean',
+      ),
+      reinforcementIsPaid: parseOptionalBoolean(
+        request.body?.reinforcementIsPaid,
+        'Branch reinforcementIsPaid must be a boolean',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
+  const getBranchHistory = asyncHandler(async (request, response) => {
+    const data = await deps.clientUseCases.getBranchHistory({
+      branchId: parseRequiredString(request.params.branchId, 'Branch id is required'),
+      from: parseOptionalDate(request.query.from, 'From query is invalid'),
+      to: parseOptionalDate(request.query.to, 'To query is invalid'),
+      status: parseOptionalServiceStatus(request.query.status),
+      type: parseOptionalServiceType(request.query.type),
+    });
+
+    response.status(200).json({ data });
+  });
+
   const addBusinessToClient = asyncHandler(async (request, response) => {
     const data = await deps.clientUseCases.addBusinessToClient({
       clientId: parseRequiredString(request.params.clientId, 'Client id is required'),
@@ -168,6 +265,12 @@ export const createClientController = (deps: {
     listClients,
     searchClientsByName,
     getClientById,
+    getClientDetail,
+    updateClient,
+    updateBusiness,
+    updateBranch,
+    updateBranchConfiguration,
+    getBranchHistory,
     addBusinessToClient,
     addBranchToBusiness,
   };

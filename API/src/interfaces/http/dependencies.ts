@@ -52,6 +52,7 @@ export const createHttpDependencies = () => {
       clientRepository,
       businessRepository,
       branchRepository,
+      serviceRepository,
       serviceCycleRepository,
       systemSettingsRepository,
     }),

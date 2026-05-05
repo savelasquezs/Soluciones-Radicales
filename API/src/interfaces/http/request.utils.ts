@@ -116,6 +116,14 @@ export const parseServiceType = (value: unknown): ServiceType => {
   return parsed as ServiceType;
 };
 
+export const parseOptionalServiceType = (value: unknown): ServiceType | undefined => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  return parseServiceType(value);
+};
+
 export const parseServiceStatus = (value: unknown): ServiceStatus => {
   const parsed = parseRequiredString(value, 'Service status is required');
   if (!serviceStatuses.has(parsed as ServiceStatus)) {

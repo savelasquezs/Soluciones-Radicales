@@ -340,6 +340,12 @@ describe('route protection', () => {
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
             getClientById: vi.fn(),
+            getClientDetail: vi.fn(),
+            updateClient: vi.fn(),
+            updateBusiness: vi.fn(),
+            updateBranch: vi.fn(),
+            updateBranchConfiguration: vi.fn(),
+            getBranchHistory: vi.fn(),
             addBusinessToClient: vi.fn(),
             addBranchToBusiness: vi.fn(),
           },
@@ -367,6 +373,12 @@ describe('route protection', () => {
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
             getClientById: vi.fn(),
+            getClientDetail: vi.fn(),
+            updateClient: vi.fn(),
+            updateBusiness: vi.fn(),
+            updateBranch: vi.fn(),
+            updateBranchConfiguration: vi.fn(),
+            getBranchHistory: vi.fn(),
             addBusinessToClient: vi.fn(),
             addBranchToBusiness: vi.fn(),
           },
@@ -399,6 +411,12 @@ describe('route protection', () => {
             listClients,
             searchClientsByName: vi.fn(),
             getClientById: vi.fn(),
+            getClientDetail: vi.fn(),
+            updateClient: vi.fn(),
+            updateBusiness: vi.fn(),
+            updateBranch: vi.fn(),
+            updateBranchConfiguration: vi.fn(),
+            getBranchHistory: vi.fn(),
             addBusinessToClient: vi.fn(),
             addBranchToBusiness: vi.fn(),
           },
@@ -419,6 +437,91 @@ describe('route protection', () => {
 
     expect(response.status).toBe(200);
     expect(listClients).toHaveBeenCalled();
+  });
+
+  it.each([
+    ['GET', '/api/clients/client-1/detail'],
+    ['PATCH', '/api/clients/client-1'],
+    ['PATCH', '/api/clients/businesses/business-1'],
+    ['PATCH', '/api/clients/branches/branch-1'],
+    ['PATCH', '/api/clients/branches/branch-1/configuration'],
+    ['GET', '/api/clients/branches/branch-1/history'],
+  ])('%s %s sin token retorna 401', async (method, path) => {
+    const app = express();
+    app.use(express.json());
+    app.use(
+      '/api/clients',
+      authMiddleware,
+      requireRole('admin'),
+      createClientRoutes(
+        createClientController({
+          clientUseCases: {
+            createInitialClient: vi.fn(),
+            listClients: vi.fn(),
+            searchClientsByName: vi.fn(),
+            getClientById: vi.fn(),
+            getClientDetail: vi.fn(),
+            updateClient: vi.fn(),
+            updateBusiness: vi.fn(),
+            updateBranch: vi.fn(),
+            updateBranchConfiguration: vi.fn(),
+            getBranchHistory: vi.fn(),
+            addBusinessToClient: vi.fn(),
+            addBranchToBusiness: vi.fn(),
+          },
+        }),
+      ),
+    );
+    const request = await createRequest(app);
+
+    const response = await request(path, { method });
+
+    expect(response.status).toBe(401);
+  });
+
+  it.each([
+    ['GET', '/api/clients/client-1/detail'],
+    ['PATCH', '/api/clients/client-1'],
+    ['PATCH', '/api/clients/businesses/business-1'],
+    ['PATCH', '/api/clients/branches/branch-1'],
+    ['PATCH', '/api/clients/branches/branch-1/configuration'],
+    ['GET', '/api/clients/branches/branch-1/history'],
+  ])('%s %s con usuario no admin retorna 403', async (method, path) => {
+    const app = express();
+    app.use(express.json());
+    app.use(
+      '/api/clients',
+      authMiddleware,
+      requireRole('admin'),
+      createClientRoutes(
+        createClientController({
+          clientUseCases: {
+            createInitialClient: vi.fn(),
+            listClients: vi.fn(),
+            searchClientsByName: vi.fn(),
+            getClientById: vi.fn(),
+            getClientDetail: vi.fn(),
+            updateClient: vi.fn(),
+            updateBusiness: vi.fn(),
+            updateBranch: vi.fn(),
+            updateBranchConfiguration: vi.fn(),
+            getBranchHistory: vi.fn(),
+            addBusinessToClient: vi.fn(),
+            addBranchToBusiness: vi.fn(),
+          },
+        }),
+      ),
+    );
+    const request = await createRequest(app);
+
+    const response = await request(path, {
+      method,
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
   });
 
   it('GET /api/services/upcoming sin token retorna 401', async () => {

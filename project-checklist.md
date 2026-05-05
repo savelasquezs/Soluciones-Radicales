@@ -121,29 +121,35 @@ El siguiente bloque funcional recomendado es completar la gestión detallada de 
 
 Casos de uso pendientes:
 
-- [ ] `getClientDetail`
-- [ ] `updateClient`
-- [ ] `updateBusiness`
-- [ ] `updateBranch`
-- [ ] `updateBranchConfiguration`
-- [ ] `getBranchHistory`
+- [x] `getClientDetail`
+- [x] `updateClient`
+- [x] `updateBusiness`
+- [x] `updateBranch`
+- [x] `updateBranchConfiguration`
+- [x] `getBranchHistory`
 
 Endpoints sugeridos:
 
-- [ ] `GET /api/clients/:id/detail`
-- [ ] `PATCH /api/clients/:id`
-- [ ] `PATCH /api/clients/businesses/:businessId`
-- [ ] `PATCH /api/clients/branches/:branchId`
-- [ ] `PATCH /api/clients/branches/:branchId/configuration`
-- [ ] `GET /api/clients/branches/:branchId/history`
+- [x] `GET /api/clients/:id/detail`
+- [x] `PATCH /api/clients/:id`
+- [x] `PATCH /api/clients/businesses/:businessId`
+- [x] `PATCH /api/clients/branches/:branchId`
+- [x] `PATCH /api/clients/branches/:branchId/configuration`
+- [x] `GET /api/clients/branches/:branchId/history`
 
 Reglas clave:
 
-- [ ] Mantener precios históricos de servicios.
-- [ ] Usar configuración global como fallback cuando la sucursal no tenga valores propios.
-- [ ] No recalcular servicios históricos al editar sucursal.
-- [ ] Proteger endpoints con auth + admin.
-- [ ] Crear tests de use cases y routes/controllers.
+- [x] Mantener precios históricos de servicios.
+- [x] Usar configuración global como fallback cuando la sucursal no tenga valores propios.
+- [x] No recalcular servicios históricos al editar sucursal.
+- [x] Proteger endpoints con auth + admin.
+- [x] Crear tests de use cases y routes/controllers.
+
+Notas de cierre:
+
+- [x] `getClientDetail` retorna cliente, negocios, sucursales y `service_cycles` sin cargar historial completo.
+- [x] `getBranchHistory` retorna historial básico de `services` por sucursal con filtros opcionales.
+- [ ] Si luego se requiere historial enriquecido con técnicos, evidencias y método de pago en una sola respuesta, hará falta ampliar repositorios de lectura sin mover lógica a controllers.
 
 ---
 

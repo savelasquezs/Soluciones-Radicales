@@ -35,6 +35,41 @@ export class ServiceDrizzleRepository implements ServiceRepository {
     return row ? toServiceEntity(row) : null;
   }
 
+  async findByBranchId(
+    branchId: string,
+    filters?: {
+      from?: Date;
+      to?: Date;
+      status?: Service['status'];
+      type?: Service['type'];
+    },
+  ): Promise<Service[]> {
+    const conditions = [eq(servicesTable.branchId, branchId)];
+
+    if (filters?.from) {
+      conditions.push(gte(servicesTable.scheduledAt, filters.from));
+    }
+
+    if (filters?.to) {
+      conditions.push(lt(servicesTable.scheduledAt, filters.to));
+    }
+
+    if (filters?.status) {
+      conditions.push(eq(servicesTable.status, filters.status));
+    }
+
+    if (filters?.type) {
+      conditions.push(eq(servicesTable.type, filters.type));
+    }
+
+    const rows = await drizzleDb
+      .select()
+      .from(servicesTable)
+      .where(and(...conditions));
+
+    return rows.map(toServiceEntity);
+  }
+
   async findByBranchAndScheduledAtAndType(
     branchId: string,
     scheduledAt: Date,

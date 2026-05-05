@@ -1,4 +1,12 @@
-import { Branch, Business, Client, ServiceCycle } from '../../domain/entities';
+import {
+  Branch,
+  Business,
+  Client,
+  Service,
+  ServiceCycle,
+  ServiceStatus,
+  ServiceType,
+} from '../../domain/entities';
 
 export interface CreateInitialClientInput {
   client: {
@@ -50,3 +58,55 @@ export interface AddBranchToBusinessInput {
   createService?: boolean;
 }
 
+export interface GetClientDetailOutput {
+  client: Client;
+  businesses: Array<{
+    business: Business;
+    branches: Array<{
+      branch: Branch;
+      serviceCycle: ServiceCycle | null;
+    }>;
+  }>;
+}
+
+export interface UpdateClientInput {
+  clientId: string;
+  name: string;
+  contactName?: string | null;
+  phone?: string | null;
+}
+
+export interface UpdateBusinessInput {
+  businessId: string;
+  name: string;
+}
+
+export interface UpdateBranchInput {
+  branchId: string;
+  address: string;
+  phone?: string | null;
+  city?: string | null;
+  pricePerM2?: number | null;
+  fixedPrice?: number | null;
+}
+
+export interface UpdateBranchConfigurationInput {
+  branchId: string;
+  frequencyDays?: number | null;
+  reinforcementDays?: number | null;
+  reinforcementEnabled?: boolean | null;
+  reinforcementIsPaid?: boolean | null;
+}
+
+export interface GetBranchHistoryInput {
+  branchId: string;
+  from?: Date;
+  to?: Date;
+  status?: ServiceStatus;
+  type?: ServiceType;
+}
+
+export interface GetBranchHistoryOutput {
+  branch: Branch;
+  services: Service[];
+}

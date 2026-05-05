@@ -29,6 +29,23 @@ export class ClientDrizzleRepository implements ClientRepository {
     return row ? toClientEntity(row) : null;
   }
 
+  async update(
+    id: string,
+    data: Partial<Omit<Client, 'id' | 'createdAt'>>,
+  ): Promise<Client> {
+    const [row] = await drizzleDb
+      .update(clientsTable)
+      .set(data)
+      .where(eq(clientsTable.id, id))
+      .returning();
+
+    if (!row) {
+      throw new Error(`Client not found: ${id}`);
+    }
+
+    return toClientEntity(row);
+  }
+
   async list(): Promise<Client[]> {
     const rows = await drizzleDb.select().from(clientsTable);
     return rows.map(toClientEntity);
@@ -43,4 +60,3 @@ export class ClientDrizzleRepository implements ClientRepository {
     return rows.map(toClientEntity);
   }
 }
-

@@ -9,6 +9,12 @@ const buildUseCases = () => ({
   listClients: vi.fn(),
   searchClientsByName: vi.fn(),
   getClientById: vi.fn(),
+  getClientDetail: vi.fn(),
+  updateClient: vi.fn(),
+  updateBusiness: vi.fn(),
+  updateBranch: vi.fn(),
+  updateBranchConfiguration: vi.fn(),
+  getBranchHistory: vi.fn(),
   addBusinessToClient: vi.fn(),
   addBranchToBusiness: vi.fn(),
 });
@@ -73,6 +79,109 @@ describe('client routes', () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ message: 'Client not found: client-1' });
+  });
+
+  it('GET /api/clients/:id/detail responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.getClientDetail.mockResolvedValue({ client: { id: 'client-1' }, businesses: [] });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/client-1/detail');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ data: { client: { id: 'client-1' }, businesses: [] } });
+  });
+
+  it('PATCH /api/clients/:id responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateClient.mockResolvedValue({ id: 'client-1', name: 'Cliente editado' });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/client-1', {
+      method: 'PATCH',
+      body: {
+        name: 'Cliente editado',
+        contactName: 'Maria',
+        phone: '3110000000',
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/clients/businesses/:businessId responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateBusiness.mockResolvedValue({ id: 'business-1', name: 'Negocio editado' });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/businesses/business-1', {
+      method: 'PATCH',
+      body: {
+        name: 'Negocio editado',
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/clients/branches/:branchId responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateBranch.mockResolvedValue({ id: 'branch-1', address: 'Nueva direccion' });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/branch-1', {
+      method: 'PATCH',
+      body: {
+        address: 'Nueva direccion',
+        phone: '3110000000',
+        city: 'Medellin',
+        pricePerM2: 20,
+        fixedPrice: 200,
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/clients/branches/:branchId/configuration responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateBranchConfiguration.mockResolvedValue({ id: 'branch-1', frequencyDays: 90 });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/branch-1/configuration', {
+      method: 'PATCH',
+      body: {
+        frequencyDays: 90,
+        reinforcementDays: 20,
+        reinforcementEnabled: false,
+        reinforcementIsPaid: true,
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('GET /api/clients/branches/:branchId/history responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.getBranchHistory.mockResolvedValue({ branch: { id: 'branch-1' }, services: [] });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/branch-1/history');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ data: { branch: { id: 'branch-1' }, services: [] } });
   });
 
   it('POST /api/clients/:clientId/businesses responde 201', async () => {
