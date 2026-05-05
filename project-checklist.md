@@ -113,14 +113,44 @@ Notas:
 
 ## Próximo paso recomendado
 
-### Revisión de cierre del módulo técnico operativo
+### Módulo clientes, negocios, sucursales e historial
 
-El módulo técnico operativo ya está implementado a nivel de casos de uso principales.
+El backend ya tiene autenticación, rutas protegidas, servicios base, operación técnica y refuerzos como servicios reales.
 
-Pendientes directos del módulo:
+El siguiente bloque funcional recomendado es completar la gestión detallada de clientes y sucursales, porque será necesario para que el frontend administrativo pueda consultar y editar toda la información comercial sin armar datos manualmente.
+
+Casos de uso pendientes:
+
+- [ ] `getClientDetail`
+- [ ] `updateClient`
+- [ ] `updateBusiness`
+- [ ] `updateBranch`
+- [ ] `updateBranchConfiguration`
+- [ ] `getBranchHistory`
+
+Endpoints sugeridos:
+
+- [ ] `GET /api/clients/:id/detail`
+- [ ] `PATCH /api/clients/:id`
+- [ ] `PATCH /api/clients/businesses/:businessId`
+- [ ] `PATCH /api/clients/branches/:branchId`
+- [ ] `PATCH /api/clients/branches/:branchId/configuration`
+- [ ] `GET /api/clients/branches/:branchId/history`
+
+Reglas clave:
+
+- [ ] Mantener precios históricos de servicios.
+- [ ] Usar configuración global como fallback cuando la sucursal no tenga valores propios.
+- [ ] No recalcular servicios históricos al editar sucursal.
+- [ ] Proteger endpoints con auth + admin.
+- [ ] Crear tests de use cases y routes/controllers.
+
+---
+
+## Pendientes directos del módulo técnico operativo
 
 - [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integración real con Firebase Storage.
-- [x] Implementar `generateReinforcementService` como caso de uso explícito si se decide crear un servicio de refuerzo real además de actualizar `service_cycles`.
+- [x] Implementar `generateReinforcementService` como caso de uso explícito.
 - [x] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
 - [ ] Verificar que los endpoints técnicos estén documentados para el frontend.
 
@@ -133,6 +163,40 @@ Pendientes directos del módulo:
 - [ ] Política de contraseña.
 - [ ] Validación de expiraciones JWT.
 - [ ] Reemplazar placeholder de storage por Firebase Storage real.
+
+---
+
+## Pendientes futuros
+
+### Dashboard
+
+- [ ] `getDashboardSummary`
+- [ ] Ventas del mes.
+- [ ] Servicios realizados.
+- [ ] Servicios pendientes.
+- [ ] Clientes activos.
+- [ ] Próximos servicios.
+- [ ] Servicios cancelados o reprogramados.
+- [ ] Métricas basadas en precio histórico.
+
+### WhatsApp
+
+- [ ] `buildWhatsappLink`.
+- [ ] `buildUpcomingServiceMessage`.
+- [ ] Usar nombre de empresa desde `system_settings`.
+- [ ] Usar fecha próxima formateada.
+- [ ] Usar teléfono cliente/sucursal.
+- [ ] Construir URL con `https://wa.me/` y `encodeURIComponent`.
+
+### Frontend
+
+- [ ] Vue 3 con Script Setup y TypeScript.
+- [ ] Tailwind con variables CSS.
+- [ ] Modo claro / oscuro.
+- [ ] Pinia.
+- [ ] Componentes base reutilizables.
+- [ ] Pantallas administrativas.
+- [ ] Pantallas técnicas mobile.
 
 ---
 
