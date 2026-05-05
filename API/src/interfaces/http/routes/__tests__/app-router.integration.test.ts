@@ -1,5 +1,7 @@
 import http from 'node:http';
+import jwt from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { env } from '../../../../infrastructure/config/env';
 
 const servers = new Set<http.Server>();
 
@@ -50,6 +52,29 @@ const settingsUseCases = {
   updatePaymentMethod: vi.fn(),
   disablePaymentMethod: vi.fn(),
 };
+
+const signAdminToken = async () => {
+  const { signAccessToken } = await import('../../../../infrastructure/auth/jwt.service');
+  return signAccessToken({
+    userId: 'user-1',
+    role: 'admin',
+    isTechnician: true,
+  });
+};
+
+const signNonAdminToken = () =>
+  jwt.sign(
+    {
+      userId: 'user-2',
+      role: 'operator',
+      isTechnician: false,
+      type: 'access',
+    },
+    env.auth.jwtAccessSecret,
+    {
+      expiresIn: env.auth.jwtAccessExpiresIn as jwt.SignOptions['expiresIn'],
+    },
+  );
 
 vi.mock('../../dependencies', () => ({
   createHttpDependencies: () => ({
@@ -159,19 +184,95 @@ describe('app router integration', () => {
       reinforcements: [],
     });
     const request = await startApp();
-    const { signAccessToken } = await import('../../../../infrastructure/auth/jwt.service');
 
     const response = await request('/api/services/upcoming', {
       headers: {
-        authorization: `Bearer ${signAccessToken({
-          userId: 'tech-1',
-          role: 'admin',
-          isTechnician: true,
-        })}`,
+        authorization: `Bearer ${await signAdminToken()}`,
       },
     });
 
     expect(response.status).toBe(200);
     expect(serviceUseCases.getUpcomingServices).toHaveBeenCalled();
+  });
+
+  it('retorna 403 en /api/users/technicians con usuario no admin', async () => {
+    const request = await startApp();
+
+    const response = await request('/api/users/technicians', {
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
+    expect(userUseCases.listTechnicians).not.toHaveBeenCalled();
+  });
+
+  it('permite /api/users/technicians con admin', async () => {
+    userUseCases.listTechnicians.mockResolvedValue([{ id: 'tech-1' }]);
+    const request = await startApp();
+
+    const response = await request('/api/users/technicians', {
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(userUseCases.listTechnicians).toHaveBeenCalled();
+  });
+
+  it('retorna 403 en /api/settings con usuario no admin', async () => {
+    const request = await startApp();
+
+    const response = await request('/api/settings', {
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
+    expect(settingsUseCases.getSystemSettings).not.toHaveBeenCalled();
+  });
+
+  it('permite /api/settings con admin', async () => {
+    settingsUseCases.getSystemSettings.mockResolvedValue({ id: 'settings-1' });
+    const request = await startApp();
+
+    const response = await request('/api/settings', {
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(settingsUseCases.getSystemSettings).toHaveBeenCalled();
+  });
+
+  it('retorna 403 en /api/clients con usuario no admin', async () => {
+    const request = await startApp();
+
+    const response = await request('/api/clients', {
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
+    expect(clientUseCases.listClients).not.toHaveBeenCalled();
+  });
+
+  it('permite /api/clients con admin', async () => {
+    clientUseCases.listClients.mockResolvedValue([{ id: 'client-1' }]);
+    const request = await startApp();
+
+    const response = await request('/api/clients', {
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(clientUseCases.listClients).toHaveBeenCalled();
   });
 });
