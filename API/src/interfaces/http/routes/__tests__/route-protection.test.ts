@@ -39,6 +39,7 @@ const buildServiceUseCases = () => ({
   assignTechniciansToService: vi.fn(),
   startService: vi.fn(),
   completeService: vi.fn(),
+  generateReinforcementService: vi.fn(),
   addServiceNotes: vi.fn(),
   updateServicePayment: vi.fn(),
   addPaymentProof: vi.fn(),
@@ -452,6 +453,7 @@ describe('route protection', () => {
   it.each([
     ['PATCH', '/api/services/service-1/start', undefined],
     ['PATCH', '/api/services/service-1/complete', undefined],
+    ['POST', '/api/services/service-1/generate-reinforcement', {}],
     ['PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
     ['PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
     ['POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
@@ -491,9 +493,25 @@ describe('route protection', () => {
     expect(response.status).toBe(200);
   });
 
+  it('generateReinforcementService responde 201 en caso exitoso', async () => {
+    const { request, useCases } = await createServiceRequest();
+    useCases.generateReinforcementService.mockResolvedValue({ id: 'service-2' });
+
+    const response = await request('/api/services/service-1/generate-reinforcement', {
+      method: 'POST',
+      body: {},
+      headers: {
+        authorization: `Bearer ${signAccessToken(serviceTechnicalUser)}`,
+      },
+    });
+
+    expect(response.status).toBe(201);
+  });
+
   it.each([
     ['startService', 'PATCH', '/api/services/service-1/start', undefined],
     ['completeService', 'PATCH', '/api/services/service-1/complete', undefined],
+    ['generateReinforcementService', 'POST', '/api/services/service-1/generate-reinforcement', {}],
     ['addServiceNotes', 'PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
     ['updateServicePayment', 'PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
     ['addPaymentProof', 'POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],
@@ -521,6 +539,7 @@ describe('route protection', () => {
   it.each([
     ['startService', 'PATCH', '/api/services/service-1/start', undefined],
     ['completeService', 'PATCH', '/api/services/service-1/complete', undefined],
+    ['generateReinforcementService', 'POST', '/api/services/service-1/generate-reinforcement', {}],
     ['addServiceNotes', 'PATCH', '/api/services/service-1/notes', { notes: 'ok' }],
     ['updateServicePayment', 'PATCH', '/api/services/service-1/payment', { paymentMethodId: 'pm-1' }],
     ['addPaymentProof', 'POST', '/api/services/service-1/payment-proof', { fileName: 'proof.png', contentBase64: 'abc' }],

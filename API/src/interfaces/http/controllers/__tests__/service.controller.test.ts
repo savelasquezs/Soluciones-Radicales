@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'node:http';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ForbiddenError, NotFoundError } from '../../../../application/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '../../../../application/errors';
 import { createServiceController } from '../service.controller';
 import { createServiceRoutes } from '../../routes/service.routes';
 import { startServer } from './http-test.helper';
@@ -20,6 +20,7 @@ const buildUseCases = () => ({
   assignTechniciansToService: vi.fn(),
   startService: vi.fn(),
   completeService: vi.fn(),
+  generateReinforcementService: vi.fn(),
   addServiceNotes: vi.fn(),
   updateServicePayment: vi.fn(),
   addPaymentProof: vi.fn(),
@@ -297,6 +298,36 @@ describe('service routes', () => {
     expect(response.status).toBe(200);
   });
 
+  it('POST /api/services/:id/generate-reinforcement responde 201', async () => {
+    const useCases = buildUseCases();
+    useCases.generateReinforcementService.mockResolvedValue({
+      id: 'service-2',
+      type: 'reinforcement',
+      status: 'pending',
+    });
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/generate-reinforcement', {
+      method: 'POST',
+      body: { price: 250 },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      data: {
+        id: 'service-2',
+        type: 'reinforcement',
+        status: 'pending',
+      },
+    });
+  });
+
   it('PATCH /api/services/:id/notes responde 200', async () => {
     const useCases = buildUseCases();
     useCases.addServiceNotes.mockResolvedValue({ id: 'service-1', notes: 'ok' });
@@ -423,5 +454,47 @@ describe('service routes', () => {
     });
 
     expect(response.status).toBe(404);
+  });
+
+  it('POST /api/services/:id/generate-reinforcement responde 404 si servicio no existe', async () => {
+    const useCases = buildUseCases();
+    useCases.generateReinforcementService.mockRejectedValue(
+      new NotFoundError('Service not found: service-1'),
+    );
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/generate-reinforcement', {
+      method: 'POST',
+      body: {},
+    });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('POST /api/services/:id/generate-reinforcement responde 409 si ya existe refuerzo', async () => {
+    const useCases = buildUseCases();
+    useCases.generateReinforcementService.mockRejectedValue(
+      new ConflictError('Reinforcement service already exists for this branch and date'),
+    );
+
+    const controller = createServiceController({ serviceUseCases: useCases });
+    const server = await startAuthorizedServer(controller, {
+      userId: 'user-1',
+      role: 'admin',
+      isTechnician: true,
+    });
+
+    const response = await server.request('/api/services/service-1/generate-reinforcement', {
+      method: 'POST',
+      body: {},
+    });
+
+    expect(response.status).toBe(409);
   });
 });

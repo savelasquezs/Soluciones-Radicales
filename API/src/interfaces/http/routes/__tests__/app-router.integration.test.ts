@@ -35,6 +35,14 @@ const serviceUseCases = {
   rescheduleService: vi.fn(),
   cancelService: vi.fn(),
   assignTechniciansToService: vi.fn(),
+  startService: vi.fn(),
+  completeService: vi.fn(),
+  generateReinforcementService: vi.fn(),
+  addServiceNotes: vi.fn(),
+  updateServicePayment: vi.fn(),
+  addPaymentProof: vi.fn(),
+  addServiceEvidence: vi.fn(),
+  listServiceEvidences: vi.fn(),
 };
 
 const userUseCases = {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ForbiddenError, NotFoundError, ValidationError } from '../../errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../errors';
 import { createServiceUseCases } from '../service.usecases';
 
 const baseService = {
@@ -72,6 +72,7 @@ const buildDeps = () => ({
   serviceRepository: {
     create: vi.fn(),
     findById: vi.fn(),
+    findByBranchAndScheduledAtAndType: vi.fn(),
     update: vi.fn(),
     findByScheduledDay: vi.fn(),
     findByMonth: vi.fn(),
@@ -468,6 +469,310 @@ describe('service technical usecases', () => {
           notes: 'done',
         }),
       ).rejects.toBeInstanceOf(ForbiddenError);
+    });
+  });
+
+  describe('generateReinforcementService', () => {
+    it('genera refuerzo exitosamente para servicio main completado', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue(baseBranch);
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue(null);
+      deps.serviceRepository.create.mockResolvedValue({
+        ...reinforcementService,
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+        status: 'pending',
+        createdBy: adminActor.userId,
+        price: 0,
+      });
+      deps.serviceCycleRepository.findByBranchId.mockResolvedValue({
+        id: 'cycle-1',
+        branchId: baseService.branchId,
+        lastServiceDate: baseService.scheduledAt,
+        nextMainServiceDate: new Date('2026-07-04T10:00:00.000Z'),
+        nextReinforcementDate: null,
+        active: true,
+      });
+      const useCases = createServiceUseCases(deps);
+
+      const result = await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+      });
+
+      expect(result.type).toBe('reinforcement');
+      expect(result.status).toBe('pending');
+      expect(result.scheduledAt).toEqual(new Date('2026-05-20T10:00:00.000Z'));
+      expect(deps.serviceRepository.create).toHaveBeenCalledWith({
+        branchId: baseService.branchId,
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+        type: 'reinforcement',
+        status: 'pending',
+        createdBy: adminActor.userId,
+        notes: null,
+        paymentMethodId: null,
+        paymentProofUrl: null,
+        price: 0,
+      });
+    });
+
+    it('falla si servicio no existe', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue(null);
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: baseService.id,
+          actor: adminActor,
+        }),
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it('falla si el actor no es admin', async () => {
+      const deps = buildDeps();
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: baseService.id,
+          actor: assignedTechnicianActor,
+        }),
+      ).rejects.toBeInstanceOf(ForbiddenError);
+    });
+
+    it('falla si servicio no es main', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...reinforcementService,
+        status: 'completed',
+      });
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: reinforcementService.id,
+          actor: adminActor,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it('falla si servicio no esta completed', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue(baseService);
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: baseService.id,
+          actor: adminActor,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it('falla si refuerzo esta deshabilitado', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue({
+        ...baseBranch,
+        reinforcementEnabled: false,
+      });
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: baseService.id,
+          actor: adminActor,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it('precio es 0 si refuerzo no es pago', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue(baseBranch);
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue(null);
+      deps.serviceRepository.create.mockResolvedValue({
+        ...reinforcementService,
+        status: 'pending',
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+        price: 0,
+      });
+      deps.serviceCycleRepository.findByBranchId.mockResolvedValue(null);
+      deps.serviceCycleRepository.create.mockResolvedValue({
+        id: 'cycle-1',
+        branchId: baseService.branchId,
+        lastServiceDate: baseService.scheduledAt,
+        nextMainServiceDate: null,
+        nextReinforcementDate: new Date('2026-05-20T10:00:00.000Z'),
+        active: true,
+      });
+      const useCases = createServiceUseCases(deps);
+
+      const result = await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+      });
+
+      expect(result.price).toBe(0);
+    });
+
+    it('usa precio indicado o de sucursal si refuerzo es pago', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue({
+        ...baseBranch,
+        fixedPrice: 150,
+        reinforcementIsPaid: true,
+      });
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue(null);
+      deps.serviceRepository.create
+        .mockResolvedValueOnce({
+          ...reinforcementService,
+          status: 'pending',
+          scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+          price: 250,
+        })
+        .mockResolvedValueOnce({
+          ...reinforcementService,
+          id: 'service-3',
+          status: 'pending',
+          scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+          price: 150,
+        });
+      deps.serviceCycleRepository.findByBranchId.mockResolvedValue({
+        id: 'cycle-1',
+        branchId: baseService.branchId,
+        lastServiceDate: baseService.scheduledAt,
+        nextMainServiceDate: null,
+        nextReinforcementDate: null,
+        active: true,
+      });
+      const useCases = createServiceUseCases(deps);
+
+      const withInputPrice = await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+        price: 250,
+      });
+      const withBranchPrice = await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+      });
+
+      expect(withInputPrice.price).toBe(250);
+      expect(withBranchPrice.price).toBe(150);
+    });
+
+    it('actualiza service_cycle.nextReinforcementDate', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue(baseBranch);
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue(null);
+      deps.serviceRepository.create.mockResolvedValue({
+        ...reinforcementService,
+        status: 'pending',
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+        price: 0,
+      });
+      deps.serviceCycleRepository.findByBranchId.mockResolvedValue({
+        id: 'cycle-1',
+        branchId: baseService.branchId,
+        lastServiceDate: baseService.scheduledAt,
+        nextMainServiceDate: new Date('2026-07-04T10:00:00.000Z'),
+        nextReinforcementDate: null,
+        active: true,
+      });
+      const useCases = createServiceUseCases(deps);
+
+      await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+      });
+
+      expect(deps.serviceCycleRepository.update).toHaveBeenCalledWith(baseService.branchId, {
+        nextReinforcementDate: new Date('2026-05-20T10:00:00.000Z'),
+      });
+    });
+
+    it('evita duplicado si ya existe refuerzo en misma sucursal y fecha', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue(baseBranch);
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue({
+        ...reinforcementService,
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+      });
+      const useCases = createServiceUseCases(deps);
+
+      await expect(
+        useCases.generateReinforcementService({
+          serviceId: baseService.id,
+          actor: adminActor,
+        }),
+      ).rejects.toBeInstanceOf(ConflictError);
+    });
+
+    it('registra activity log', async () => {
+      const deps = buildDeps();
+      deps.serviceRepository.findById.mockResolvedValue({
+        ...baseService,
+        status: 'completed',
+      });
+      deps.branchRepository.findById.mockResolvedValue(baseBranch);
+      deps.systemSettingsRepository.get.mockResolvedValue(baseSettings);
+      deps.serviceRepository.findByBranchAndScheduledAtAndType.mockResolvedValue(null);
+      deps.serviceRepository.create.mockResolvedValue({
+        ...reinforcementService,
+        status: 'pending',
+        scheduledAt: new Date('2026-05-20T10:00:00.000Z'),
+        price: 0,
+      });
+      deps.serviceCycleRepository.findByBranchId.mockResolvedValue({
+        id: 'cycle-1',
+        branchId: baseService.branchId,
+        lastServiceDate: baseService.scheduledAt,
+        nextMainServiceDate: null,
+        nextReinforcementDate: null,
+        active: true,
+      });
+      const useCases = createServiceUseCases(deps);
+
+      await useCases.generateReinforcementService({
+        serviceId: baseService.id,
+        actor: adminActor,
+      });
+
+      expect(deps.activityLogRepository.create).toHaveBeenCalledWith({
+        userId: adminActor.userId,
+        action: 'service_reinforcement_generated',
+        entity: 'service',
+        entityId: reinforcementService.id,
+      });
     });
   });
 

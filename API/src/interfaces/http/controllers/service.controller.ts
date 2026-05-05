@@ -28,6 +28,7 @@ interface ServiceController {
   assignTechniciansToService: RequestHandler;
   startService: RequestHandler;
   completeService: RequestHandler;
+  generateReinforcementService: RequestHandler;
   addServiceNotes: RequestHandler;
   updateServicePayment: RequestHandler;
   addPaymentProof: RequestHandler;
@@ -50,6 +51,7 @@ export const createServiceController = (deps: {
     | 'assignTechniciansToService'
     | 'startService'
     | 'completeService'
+    | 'generateReinforcementService'
     | 'addServiceNotes'
     | 'updateServicePayment'
     | 'addPaymentProof'
@@ -206,6 +208,16 @@ export const createServiceController = (deps: {
     response.status(200).json({ data });
   });
 
+  const generateReinforcementService = asyncHandler(async (request, response) => {
+    const data = await deps.serviceUseCases.generateReinforcementService({
+      serviceId: parseRequiredString(request.params.id, 'Service id is required'),
+      actor: getActor(request),
+      price: parseOptionalNumber(request.body?.price, 'Price must be a number'),
+    });
+
+    response.status(201).json({ data });
+  });
+
   const updateServicePayment = asyncHandler(async (request, response) => {
     const data = await deps.serviceUseCases.updateServicePayment({
       serviceId: parseRequiredString(request.params.id, 'Service id is required'),
@@ -277,6 +289,7 @@ export const createServiceController = (deps: {
     assignTechniciansToService,
     startService,
     completeService,
+    generateReinforcementService,
     addServiceNotes,
     updateServicePayment,
     addPaymentProof,

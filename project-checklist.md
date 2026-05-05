@@ -67,12 +67,15 @@ Si un cambio modifica base de datos:
 - [x] `addPaymentProof`
 - [x] `addServiceEvidence`
 - [x] `listServiceEvidences`
-- [ ] `generateReinforcementService`
+- [x] `generateReinforcementService`
 
 Notas:
 
 - [x] `completeService` actualiza el ciclo y prepara fechas de refuerzo usando la lógica existente de completado.
-- [ ] `generateReinforcementService` sigue pendiente como caso de uso explícito.
+- [x] El refuerzo se crea como servicio real en `services`.
+- [x] `generateReinforcementService` evita duplicados por sucursal + fecha del refuerzo.
+- [x] `completeService` solo actualiza `service_cycles`; no crea refuerzos automáticamente.
+- [ ] Evaluar si `generateReinforcementService` debe abrirse a técnicos asignados; por ahora queda restringido a `admin`.
 
 ### Usuarios
 
@@ -117,8 +120,8 @@ El módulo técnico operativo ya está implementado a nivel de casos de uso prin
 Pendientes directos del módulo:
 
 - [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integración real con Firebase Storage.
-- [ ] Implementar `generateReinforcementService` como caso de uso explícito si se decide crear un servicio de refuerzo real además de actualizar `service_cycles`.
-- [ ] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
+- [x] Implementar `generateReinforcementService` como caso de uso explícito si se decide crear un servicio de refuerzo real además de actualizar `service_cycles`.
+- [x] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
 - [ ] Verificar que los endpoints técnicos estén documentados para el frontend.
 
 ---

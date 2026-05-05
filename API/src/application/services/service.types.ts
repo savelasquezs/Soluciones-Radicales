@@ -49,6 +49,10 @@ export interface ServiceActionInput {
   actor: ServiceActor;
 }
 
+export interface GenerateReinforcementServiceInput extends ServiceActionInput {
+  price?: number | null;
+}
+
 export interface AddServiceNotesInput extends ServiceActionInput {
   notes: string;
 }

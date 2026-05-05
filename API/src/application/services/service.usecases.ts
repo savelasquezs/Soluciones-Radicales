@@ -13,6 +13,7 @@ import {
   AddServiceNotesInput,
   AssignTechniciansInput,
   CreateServiceInput,
+  GenerateReinforcementServiceInput,
   GetTechnicianScheduleInput,
   GetTechnicianScheduleOutput,
   ServiceActionInput,
@@ -117,6 +118,37 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
     }
 
     return service;
+  };
+
+  const ensureCanGenerateReinforcement = async (
+    serviceId: string,
+    actor: ServiceActor,
+  ) => {
+    if (actor.role !== 'admin') {
+      throw new ForbiddenError('Forbidden');
+    }
+
+    return ensureServiceExists(serviceId);
+  };
+
+  const resolveReinforcementPrice = (
+    input: GenerateReinforcementServiceInput,
+    branch: Awaited<ReturnType<typeof resolveBranchSettings>>['branch'],
+    reinforcementIsPaid: boolean,
+  ) => {
+    if (!reinforcementIsPaid) {
+      return 0;
+    }
+
+    if (input.price !== undefined) {
+      return input.price;
+    }
+
+    if (branch.fixedPrice !== null) {
+      return branch.fixedPrice;
+    }
+
+    return null;
   };
 
   const applyCompletedServiceEffects = async (serviceId: string) => {
@@ -355,6 +387,79 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
     return updated;
   };
 
+  const generateReinforcementService = async (
+    input: GenerateReinforcementServiceInput,
+  ) => {
+    const mainService = await ensureCanGenerateReinforcement(input.serviceId, input.actor);
+
+    if (mainService.type !== 'main') {
+      throw new ValidationError('Only main services can generate reinforcement');
+    }
+
+    if (mainService.status !== 'completed') {
+      throw new ValidationError('Service must be completed before generating reinforcement');
+    }
+
+    const branchSettings = await resolveBranchSettings(mainService.branchId);
+    if (!branchSettings.reinforcementEnabled) {
+      throw new ValidationError('Reinforcement is disabled for this branch');
+    }
+
+    const reinforcementDate = addDays(
+      mainService.scheduledAt,
+      branchSettings.reinforcementDays,
+    );
+    const duplicatedReinforcement =
+      await deps.serviceRepository.findByBranchAndScheduledAtAndType(
+        mainService.branchId,
+        reinforcementDate,
+        'reinforcement',
+      );
+
+    if (duplicatedReinforcement) {
+      throw new ConflictError('Reinforcement service already exists for this branch and date');
+    }
+
+    const reinforcementService = await deps.serviceRepository.create({
+      branchId: mainService.branchId,
+      scheduledAt: reinforcementDate,
+      type: 'reinforcement',
+      status: 'pending',
+      createdBy: input.actor.userId,
+      notes: null,
+      paymentMethodId: null,
+      paymentProofUrl: null,
+      price: resolveReinforcementPrice(
+        input,
+        branchSettings.branch,
+        branchSettings.reinforcementIsPaid,
+      ),
+    });
+
+    const currentCycle = await deps.serviceCycleRepository.findByBranchId(mainService.branchId);
+    if (currentCycle) {
+      await deps.serviceCycleRepository.update(mainService.branchId, {
+        nextReinforcementDate: reinforcementDate,
+      });
+    } else {
+      await deps.serviceCycleRepository.create({
+        branchId: mainService.branchId,
+        lastServiceDate: mainService.scheduledAt,
+        nextMainServiceDate: null,
+        nextReinforcementDate: reinforcementDate,
+        active: true,
+      });
+    }
+
+    await logActivity(
+      'service_reinforcement_generated',
+      reinforcementService.id,
+      input.actor.userId,
+    );
+
+    return reinforcementService;
+  };
+
   const addServiceNotes = async (input: AddServiceNotesInput) => {
     const service = await ensureCanOperateService(input.serviceId, input.actor);
     const updated = await deps.serviceRepository.update(service.id, {
@@ -440,6 +545,7 @@ export const createServiceUseCases = (deps: ServiceUseCasesDeps) => {
     cancelService,
     startService,
     completeService,
+    generateReinforcementService,
     addServiceNotes,
     updateServicePayment,
     addPaymentProof,

@@ -15,6 +15,7 @@ export const createServiceRoutes = (
   router.get('/:id/evidences', controller.listServiceEvidences);
   router.patch('/:id/start', controller.startService);
   router.patch('/:id/complete', controller.completeService);
+  router.post('/:id/generate-reinforcement', controller.generateReinforcementService);
   router.patch('/:id/notes', controller.addServiceNotes);
   router.patch('/:id/payment', controller.updateServicePayment);
   router.patch('/:id/status', controller.updateServiceStatus);
