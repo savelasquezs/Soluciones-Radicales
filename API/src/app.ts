@@ -3,7 +3,7 @@ import { router } from './interfaces/http/routes';
 import {
   errorHandler,
   notFoundHandler,
-} from './interfaces/http/middlewares/error-handler';
+} from './interfaces/http/middlewares/error.middleware';
 
 export const createApp = () => {
   const app = express();
