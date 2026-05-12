@@ -135,12 +135,16 @@ Antes de pasar a dashboard o frontend, conviene documentar los endpoints técnic
 
 Pendientes:
 
-- [ ] Crear documentación mínima de endpoints administrativos.
-- [ ] Crear documentación mínima de endpoints técnicos.
-- [ ] Documentar payloads principales.
-- [ ] Documentar respuestas `{ data }` y errores `{ message }`.
-- [ ] Documentar permisos por endpoint.
-- [ ] Mantener la documentación simple, preferiblemente en Markdown.
+- [x] Crear documentación mínima de endpoints administrativos.
+- [x] Crear documentación mínima de endpoints técnicos.
+- [x] Documentar payloads principales.
+- [x] Documentar respuestas `{ data }` y errores `{ message }`.
+- [x] Documentar permisos por endpoint.
+- [x] Mantener la documentación simple, preferiblemente en Markdown.
+
+Notas:
+
+- [x] Documentación creada en `/docs/api.md`.
 
 ---
 
@@ -149,7 +153,7 @@ Pendientes:
 - [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integración real con Firebase Storage.
 - [x] Implementar `generateReinforcementService` como caso de uso explícito.
 - [x] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
-- [ ] Verificar que los endpoints técnicos estén documentados para el frontend.
+- [x] Verificar que los endpoints técnicos estén documentados para el frontend.
 
 ---
 

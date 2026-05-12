@@ -73,7 +73,7 @@ export const createAuthController = (deps: {
       email: parseRequiredString(request.body?.email, 'Email is required'),
     });
 
-    response.status(200).json(data);
+    response.status(200).json({ data });
   });
 
   const resetPassword = asyncHandler(async (request, response) => {

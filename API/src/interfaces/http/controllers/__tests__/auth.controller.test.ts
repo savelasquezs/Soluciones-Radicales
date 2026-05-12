@@ -141,7 +141,9 @@ describe('auth routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      message: 'If the email exists, password reset instructions were sent',
+      data: {
+        message: 'If the email exists, password reset instructions were sent',
+      },
     });
   });
 
