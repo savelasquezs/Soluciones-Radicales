@@ -4,6 +4,7 @@
 			:value="props.modelValue"
 			:type="inputType"
 			:placeholder="props.placeholder"
+			v-bind="attrs"
 			class="w-full rounded-xl border border-border bg-card px-3 py-2 pr-10 text-sm text-foreground outline-none ring-primary focus:ring-2"
 			@input="
 				$emit('update:modelValue', ($event.target as HTMLInputElement).value)
@@ -43,13 +44,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useAttrs } from 'vue';
 
 const props = defineProps<{
 	modelValue?: string;
 	type?: string;
 	placeholder?: string;
 }>();
+const attrs = useAttrs();
 defineEmits<{ 'update:modelValue': [value: string] }>();
 const showPassword = ref(false);
 

@@ -98,7 +98,7 @@ Notas:
 - [x] `listTechnicians`
 - [x] `updateUser`
 
-### ConfiguraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n
+### Configuración
 
 - [x] `getSystemSettings`
 - [x] `updateSystemSettings`
@@ -106,8 +106,29 @@ Notas:
 - [x] `listActivePaymentMethods`
 - [x] `updatePaymentMethod`
 - [x] `disablePaymentMethod`
+- [x] módulo configuración implementado parcialmente
+- [x] /settings implementado como índice
+- [x] /settings/company implementado
+- [x] /settings/payment-methods implementado
+- [x] configuración general conectada
+- [x] businessName conectado
+- [x] logoUrl conectado sin subida de archivo
+- [x] frecuencia por defecto conectada
+- [x] refuerzo por defecto conectado
+- [x] métodos de pago activos conectados
+- [x] crear método de pago conectado
+- [x] editar método de pago conectado
+- [x] desactivar método de pago conectado
+- [x] usuarios/técnicos pendiente para siguiente fase
+- [x] logo upload/storage pendiente para fase futura si aplica
+- [x] tests de settings agregados
 
-### AutenticaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n
+Notas:
+
+- [ ] Faltaría endpoint para listar métodos inactivos si se requiere histórico completo.
+- [ ] Faltaría endpoint para subir logo como archivo si se desea soporte real de upload.
+
+### Autenticación
 
 - [x] `login`
 - [x] `refreshToken`
