@@ -21,9 +21,9 @@
 			/>
 			<SettingsCard
 				title="Usuarios y técnicos"
-				description="Gestión de usuarios y técnicos estará disponible en la siguiente fase."
-				disabled
-				badge="Próximamente"
+				description="Administra la creación y edición de usuarios/técnicos con la API disponible actualmente."
+				to="/settings/users"
+				badge="Académico"
 			/>
 		</div>
 	</div>

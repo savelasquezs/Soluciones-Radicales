@@ -28,6 +28,8 @@ const CompanySettingsPage = () =>
 	import('@/modules/settings/pages/CompanySettingsPage.vue');
 const PaymentMethodsPage = () =>
 	import('@/modules/settings/pages/PaymentMethodsPage.vue');
+const UsersSettingsPage = () =>
+	import('@/modules/settings/pages/UsersSettingsPage.vue');
 
 const TechnicianSchedulePage = () =>
 	import('@/modules/technician/pages/TechnicianSchedulePage.vue');
@@ -57,6 +59,7 @@ export const router = createRouter({
 				{ path: 'settings', component: SettingsPage },
 				{ path: 'settings/company', component: CompanySettingsPage },
 				{ path: 'settings/payment-methods', component: PaymentMethodsPage },
+				{ path: 'settings/users', component: UsersSettingsPage },
 			],
 		},
 		{

@@ -302,3 +302,28 @@ Notas:
 - [ ] TODO real: backend de detalle de servicio no retorna payload enriquecido de sucursal/negocio/técnicos en el mismo endpoint.
 - [ ] TODO real: carga/subida de evidencias sigue dependiendo de storage real (Firebase) pendiente en backend.
 - [ ] TODO real: soporte visual de pago puede requerir endpoint/metadata adicional para vista administrativa enriquecida.
+
+## Frontend - Usuarios y tecnicos (Fase 9)
+
+- [x] /settings/users implementado
+- [x] CRUD usuarios/tecnicos implementado en frontend (segun contrato actual)
+- [x] pantalla academica Vue creada
+- [x] HTML semantico aplicado
+- [x] CSS scoped puro aplicado
+- [x] codigo comentado en funciones principales
+- [x] formulario creacion/edicion implementado
+- [x] campo hidden id implementado
+- [x] @submit.prevent usado para evitar recarga
+- [x] CRUD crear conectado
+- [x] CRUD listar conectado (listado de tecnicos + admin autenticado visible)
+- [x] CRUD editar conectado
+- [ ] CRUD eliminar/desactivar conectado (pendiente por falta de endpoint backend)
+- [x] persistencia via API existente
+- [x] tests frontend usuarios agregados
+- [x] README actualizado
+
+TODOs reales:
+- [ ] Falta endpoint para listar todos los usuarios (`GET /api/users`).
+- [ ] Falta endpoint para eliminar/desactivar usuarios (`DELETE /api/users/:id` o `PATCH /api/users/:id/disable`).
+- [ ] Falta reset password desde admin.
+- [ ] Falta estrategia de soft delete en usuarios.

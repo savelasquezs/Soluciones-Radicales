@@ -125,3 +125,16 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Esta vista administrativa no reemplaza la experiencia técnico mobile.
 - `getTechnicianSchedule` se normaliza en frontend porque backend retorna `{ technician, services }`.
 - La creación de servicio usa selector/buscador de sucursal con `GET /api/clients/branches/search`.
+
+## Users and technicians CRUD
+
+- Ruta: `/settings/users`.
+- Pantalla Vue normal integrada al modulo Settings.
+- UI principal construida con HTML semantico en el template.
+- Estilos de la pantalla en CSS puro dentro de `style scoped`.
+- No usa Tailwind ni componentes UI base para la UI principal de esta vista.
+- Implementa CRUD disponible sobre usuarios/tecnicos consumiendo `usersService`.
+- Persistencia por backend existente (Node.js + Express + PostgreSQL).
+- Evita recargas completas de pagina con `@submit.prevent` y estado reactivo.
+- Password se usa solo en creacion; en edicion no se solicita ni se muestra.
+- Limite de contrato actual: backend no expone `GET /users` ni endpoint de eliminar/desactivar usuarios.
