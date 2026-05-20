@@ -1,7 +1,16 @@
-export interface ApiResponse<T> {
+export type ApiResponse<T> = {
   data: T;
-}
+};
 
-export interface ApiError {
+export type ApiError = {
   message: string;
-}
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  meta?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+  };
+};

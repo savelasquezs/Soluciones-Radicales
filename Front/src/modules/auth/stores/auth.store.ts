@@ -29,13 +29,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (email: string, password: string) => {
     const data = await authService.login({ email, password });
-    setSession(data.user, data.tokens.accessToken, data.tokens.refreshToken);
+    setSession(data.user, data.accessToken, data.refreshToken);
   };
 
   const logout = async () => {
     if (refreshToken.value) {
-      await authService.logout(refreshToken.value).catch(() => undefined);
+      await authService.logout({ refreshToken: refreshToken.value }).catch(() => undefined);
     }
+
     user.value = null;
     accessToken.value = null;
     refreshToken.value = null;
@@ -46,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshSession = async () => {
     if (!refreshToken.value) return;
-    const data = await authService.refresh(refreshToken.value);
+    const data = await authService.refresh({ refreshToken: refreshToken.value });
     accessToken.value = data.accessToken;
     refreshToken.value = data.refreshToken;
     localStorage.setItem(TOKEN_KEYS.accessToken, data.accessToken);

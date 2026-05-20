@@ -1,10 +1,10 @@
 <template>
   <main class="flex min-h-screen items-center justify-center bg-muted p-4">
     <AppCard class="w-full max-w-md space-y-4">
-      <h1 class="text-2xl font-semibold">Restablecer contraseña</h1>
+      <h1 class="text-2xl font-semibold">Restablecer contraseÃ±a</h1>
       <AppInput v-model="token" placeholder="Token" />
-      <AppInput v-model="newPassword" type="password" placeholder="Nueva contraseña" />
-      <AppButton @click="reset">Actualizar contraseña</AppButton>
+      <AppInput v-model="newPassword" type="password" placeholder="Nueva contraseÃ±a" />
+      <AppButton @click="reset">Actualizar contraseÃ±a</AppButton>
       <p v-if="message" class="text-sm text-primary">{{ message }}</p>
     </AppCard>
   </main>
@@ -22,7 +22,7 @@ const newPassword = ref('');
 const message = ref('');
 
 const reset = async () => {
-  await authService.resetPassword(token.value, newPassword.value);
-  message.value = 'Contraseña actualizada correctamente.';
+  await authService.resetPassword({ token: token.value, newPassword: newPassword.value });
+  message.value = 'ContraseÃ±a actualizada correctamente.';
 };
 </script>

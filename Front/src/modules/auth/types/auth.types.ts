@@ -1,16 +1,45 @@
 import type { AppUser } from '@/shared/types/common';
 
-export interface LoginInput {
+export type AuthUser = AppUser;
+
+export type LoginPayload = {
   email: string;
   password: string;
-}
+};
 
-export interface AuthTokens {
+export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
-}
+  user: AuthUser;
+};
 
-export interface LoginResponse {
-  user: AppUser;
-  tokens: AuthTokens;
-}
+export type RefreshPayload = {
+  refreshToken: string;
+};
+
+export type RefreshResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export type ForgotPasswordResponse = {
+  success: boolean;
+};
+
+export type ResetPasswordPayload = {
+  token: string;
+  newPassword: string;
+};
+
+export type ResetPasswordResponse = {
+  success: boolean;
+};

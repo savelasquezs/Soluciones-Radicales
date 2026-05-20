@@ -1,35 +1,38 @@
 import { http } from '@/shared/api/http';
-import { API_ENDPOINTS } from '@/shared/api/endpoints';
-import type { ApiResponse } from '@/shared/types/api';
+import { endpoints } from '@/shared/api/endpoints';
 import type { AppUser } from '@/shared/types/common';
-import type { LoginInput, LoginResponse } from '../types/auth.types';
+import type {
+  ChangePasswordPayload,
+  ForgotPasswordPayload,
+  ForgotPasswordResponse,
+  LoginPayload,
+  LoginResponse,
+  RefreshPayload,
+  RefreshResponse,
+  ResetPasswordPayload,
+  ResetPasswordResponse,
+} from '../types/auth.types';
 
 export const authService = {
-  async login(payload: LoginInput) {
-    const { data } = await http.post<ApiResponse<LoginResponse>>(API_ENDPOINTS.auth.login, payload);
-    return data.data;
+  login(payload: LoginPayload) {
+    return http.post<LoginResponse>(endpoints.auth.login, payload);
   },
-  async refresh(refreshToken: string) {
-    const { data } = await http.post<ApiResponse<{ accessToken: string; refreshToken: string }>>(
-      API_ENDPOINTS.auth.refresh,
-      { refreshToken },
-    );
-    return data.data;
+  refresh(payload: RefreshPayload) {
+    return http.post<RefreshResponse>(endpoints.auth.refresh, payload);
   },
-  async logout(refreshToken: string) {
-    await http.post(API_ENDPOINTS.auth.logout, { refreshToken });
+  logout(payload: RefreshPayload) {
+    return http.post<{ success: boolean }>(endpoints.auth.logout, payload);
   },
-  async me() {
-    const { data } = await http.get<ApiResponse<AppUser>>(API_ENDPOINTS.auth.me);
-    return data.data;
+  me() {
+    return http.get<AppUser>(endpoints.auth.me);
   },
-  async changePassword(currentPassword: string, newPassword: string) {
-    await http.patch(API_ENDPOINTS.auth.changePassword, { currentPassword, newPassword });
+  changePassword(payload: ChangePasswordPayload) {
+    return http.patch<{ success: boolean }>(endpoints.auth.changePassword, payload);
   },
-  async forgotPassword(email: string) {
-    await http.post(API_ENDPOINTS.auth.forgotPassword, { email });
+  forgotPassword(payload: ForgotPasswordPayload) {
+    return http.post<ForgotPasswordResponse>(endpoints.auth.forgotPassword, payload);
   },
-  async resetPassword(token: string, newPassword: string) {
-    await http.post(API_ENDPOINTS.auth.resetPassword, { token, newPassword });
+  resetPassword(payload: ResetPasswordPayload) {
+    return http.post<ResetPasswordResponse>(endpoints.auth.resetPassword, payload);
   },
 };

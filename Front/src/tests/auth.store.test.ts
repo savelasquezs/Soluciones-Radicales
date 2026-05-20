@@ -19,7 +19,7 @@ describe('auth.store', () => {
 
     (authService.login as any).mockResolvedValue({
       user: { id: 'u1', name: 'Admin', email: 'a@a.com', role: 'admin', isTechnician: true },
-      tokens: { accessToken: 'a1', refreshToken: 'r1' },
+      accessToken: 'a1', refreshToken: 'r1',
     });
 
     await store.login('a@a.com', '123');
@@ -29,7 +29,7 @@ describe('auth.store', () => {
     expect(store.user?.id).toBe('u1');
   });
 
-  it('logout limpia sesión', async () => {
+  it('logout limpia sesiÃ³n', async () => {
     setActivePinia(createPinia());
     const store = useAuthStore();
     store.$patch({
@@ -47,3 +47,4 @@ describe('auth.store', () => {
     expect(store.refreshToken).toBeNull();
   });
 });
+

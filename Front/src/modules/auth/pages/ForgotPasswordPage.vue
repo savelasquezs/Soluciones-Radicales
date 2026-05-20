@@ -1,7 +1,7 @@
 <template>
   <main class="flex min-h-screen items-center justify-center bg-muted p-4">
     <AppCard class="w-full max-w-md space-y-4">
-      <h1 class="text-2xl font-semibold">Recuperar contraseña</h1>
+      <h1 class="text-2xl font-semibold">Recuperar contraseÃ±a</h1>
       <AppInput v-model="email" type="email" placeholder="Correo" />
       <AppButton @click="send">Enviar enlace</AppButton>
       <p v-if="message" class="text-sm text-primary">{{ message }}</p>
@@ -20,7 +20,7 @@ const email = ref('');
 const message = ref('');
 
 const send = async () => {
-  await authService.forgotPassword(email.value);
-  message.value = 'Si el correo existe, recibirás instrucciones.';
+  await authService.forgotPassword({ email: email.value });
+  message.value = 'Si el correo existe, recibirÃ¡s instrucciones.';
 };
 </script>
