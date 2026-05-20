@@ -12,11 +12,11 @@
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="space-y-2">
           <p class="text-sm font-medium text-foreground">Desde</p>
-          <AppInput v-model="filters.from" type="date" />
+          <AppDatePicker v-model="filters.from" placeholder="Fecha inicial" />
         </div>
         <div class="space-y-2">
           <p class="text-sm font-medium text-foreground">Hasta</p>
-          <AppInput v-model="filters.to" type="date" />
+          <AppDatePicker v-model="filters.to" placeholder="Fecha final" />
         </div>
         <div class="space-y-2">
           <p class="text-sm font-medium text-foreground">Estado</p>
@@ -74,7 +74,7 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AppButton from '@/shared/components/ui/AppButton.vue';
 import AppCard from '@/shared/components/ui/AppCard.vue';
-import AppInput from '@/shared/components/ui/AppInput.vue';
+import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 import AppSelect from '@/shared/components/ui/AppSelect.vue';
 import AppSpinner from '@/shared/components/ui/AppSpinner.vue';
 import BranchHistoryTable from '../components/BranchHistoryTable.vue';
@@ -91,8 +91,8 @@ const history = ref<BranchHistoryResponse | null>(null);
 const isLoading = ref(false);
 const error = ref('');
 const filters = reactive({
-  from: '',
-  to: '',
+  from: null as Date | null,
+  to: null as Date | null,
   status: '',
   type: '',
 });
@@ -117,11 +117,14 @@ const buildQuery = (): BranchHistoryQuery => {
   const query: BranchHistoryQuery = {};
 
   if (filters.from) {
-    query.from = new Date(`${filters.from}T00:00:00`).toISOString();
+    const from = new Date(filters.from);
+    from.setHours(0, 0, 0, 0);
+    query.from = from.toISOString();
   }
 
   if (filters.to) {
-    const endDate = new Date(`${filters.to}T23:59:59`);
+    const endDate = new Date(filters.to);
+    endDate.setHours(23, 59, 59, 999);
     query.to = endDate.toISOString();
   }
 
@@ -150,8 +153,8 @@ const loadHistory = async () => {
 };
 
 const clearFilters = () => {
-  filters.from = '';
-  filters.to = '';
+  filters.from = null;
+  filters.to = null;
   filters.status = '';
   filters.type = '';
   void loadHistory();

@@ -11,9 +11,8 @@ describe('DateRangeFilter', () => {
       },
     });
 
-    const inputs = wrapper.findAll('input');
-    await inputs[0].setValue('2026-02-01');
-    await inputs[1].setValue('2026-02-28');
+    const input = wrapper.find('input');
+    await input.setValue('2026-02-01,2026-02-28');
 
     await wrapper.findAll('button')[0].trigger('click');
 

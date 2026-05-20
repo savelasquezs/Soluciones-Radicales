@@ -18,12 +18,22 @@
 
       <div class="space-y-2 sm:col-span-2">
         <p class="text-sm font-medium text-foreground">Proximo servicio principal</p>
-        <AppInput v-model="form.nextMainServiceDate" type="datetime-local" :min="minDateTime" />
+        <AppDatePicker
+          v-model="form.nextMainServiceDate"
+          enableTimePicker
+          :minDate="minDateTime"
+          placeholder="Selecciona fecha y hora"
+        />
       </div>
 
       <div class="space-y-2 sm:col-span-2">
         <p class="text-sm font-medium text-foreground">Proximo refuerzo (calculado)</p>
-        <AppInput :model-value="nextReinforcementDateDisplay" type="datetime-local" disabled />
+        <AppDatePicker
+          :model-value="nextReinforcementDateDisplay"
+          enableTimePicker
+          disabled
+          placeholder="Calculado automaticamente"
+        />
       </div>
 
       <div class="space-y-2 sm:col-span-2">
@@ -74,10 +84,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import AppButton from '@/shared/components/ui/AppButton.vue';
+import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 import AppInput from '@/shared/components/ui/AppInput.vue';
 import AppSelect from '@/shared/components/ui/AppSelect.vue';
 import { BRANCH_CITIES, PRICING_MODES, type PricingMode } from '../constants/branch';
-import { addDaysToIsoDate, toDatetimeLocalValue, toIsoFromDatetimeLocal } from '../helpers/scheduling';
+import { addDaysToIsoDate } from '../helpers/scheduling';
 
 type BranchFormValue = {
   address: string;
@@ -87,7 +98,7 @@ type BranchFormValue = {
   fixedPrice: string;
   squareMeters: string;
   pricingMode: PricingMode;
-  nextMainServiceDate: string;
+  nextMainServiceDate: Date | null;
 };
 
 const props = withDefaults(
@@ -145,7 +156,7 @@ const form = reactive<BranchFormValue>({
   fixedPrice: props.initialValue?.fixedPrice?.toString() ?? '',
   squareMeters: '',
   pricingMode: inferPricingMode(),
-  nextMainServiceDate: toDatetimeLocalValue(props.initialValue?.nextMainServiceDate ?? null),
+  nextMainServiceDate: props.initialValue?.nextMainServiceDate ? new Date(props.initialValue.nextMainServiceDate) : null,
 });
 
 const error = ref('');
@@ -160,11 +171,7 @@ const pricingModeOptions = [
   { label: 'Precio por m2', value: PRICING_MODES.squareMeter },
 ];
 
-const minDateTime = computed(() => {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
-});
+const minDateTime = computed(() => new Date());
 
 const parseNumber = (value: string) => {
   if (!value.trim()) {
@@ -191,14 +198,18 @@ const calculatedFixedPrice = computed(() => {
 });
 
 const nextReinforcementDateDisplay = computed(() => {
-  const nextMain = toIsoFromDatetimeLocal(form.nextMainServiceDate);
+  if (!form.nextMainServiceDate) {
+    return null;
+  }
+
+  const nextMain = form.nextMainServiceDate.toISOString();
   if (!nextMain) {
-    return '';
+    return null;
   }
 
   const reinforcementDays = props.initialValue?.reinforcementDays ?? 0;
   const nextReinforcement = addDaysToIsoDate(nextMain, reinforcementDays);
-  return toDatetimeLocalValue(nextReinforcement ?? null);
+  return nextReinforcement ? new Date(nextReinforcement) : null;
 });
 
 watch(
@@ -211,7 +222,7 @@ watch(
     form.fixedPrice = value?.fixedPrice?.toString() ?? '';
     form.squareMeters = '';
     form.pricingMode = value?.pricePerM2 ? PRICING_MODES.squareMeter : PRICING_MODES.fixed;
-    form.nextMainServiceDate = toDatetimeLocalValue(value?.nextMainServiceDate ?? null);
+    form.nextMainServiceDate = value?.nextMainServiceDate ? new Date(value.nextMainServiceDate) : null;
     error.value = '';
   },
   { deep: true },
@@ -250,7 +261,7 @@ const handleSubmit = () => {
     return;
   }
 
-  const nextMainServiceDate = toIsoFromDatetimeLocal(form.nextMainServiceDate);
+  const nextMainServiceDate = form.nextMainServiceDate?.toISOString();
   if (!nextMainServiceDate) {
     error.value = 'La fecha del proximo servicio es obligatoria.';
     return;

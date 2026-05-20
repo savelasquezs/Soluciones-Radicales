@@ -85,3 +85,9 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Las respuestas del backend se normalizan en `src/modules/clients/services/clients.service.ts` cuando la forma real no coincide con la semantica interna del frontend.
 - El detalle del cliente y el historial de sucursal se mantienen separados para evitar respuestas pesadas.
 - El historial de sucursal vive en una pantalla independiente y hoy consume el historial basico expuesto por backend.
+
+## Date picker estandar
+
+- Seleccion de fecha/hora/rango: usar siempre `src/shared/components/ui/AppDatePicker.vue` (`@vuepic/vue-datepicker`).
+- Evitar `input` nativo de fecha/hora (`date`, `time`, `datetime-local`) salvo excepcion tecnica justificada.
+- Para filtros `from/to`, preferir modo `range` y mapear a payload API en el modulo correspondiente.

@@ -25,6 +25,7 @@ const clientUseCases = {
   updateBusiness: vi.fn(),
   updateBranch: vi.fn(),
   updateBranchConfiguration: vi.fn(),
+  updateBranchServiceCycle: vi.fn(),
   getBranchHistory: vi.fn(),
   addBusinessToClient: vi.fn(),
   addBranchToBusiness: vi.fn(),
@@ -324,5 +325,66 @@ describe('app router integration', () => {
 
     expect(response.status).toBe(200);
     expect(clientUseCases.listClients).toHaveBeenCalled();
+  });
+
+  it('bloquea PATCH /api/clients/branches/:branchId/cycle sin token', async () => {
+    const request = await startApp();
+
+    const response = await request('/api/clients/branches/branch-1/cycle', {
+      method: 'PATCH',
+      body: {
+        nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+      },
+    });
+
+    expect(response.status).toBe(401);
+    expect(clientUseCases.updateBranchServiceCycle).not.toHaveBeenCalled();
+  });
+
+  it('retorna 403 en PATCH /api/clients/branches/:branchId/cycle con usuario no admin', async () => {
+    const request = await startApp();
+
+    const response = await request('/api/clients/branches/branch-1/cycle', {
+      method: 'PATCH',
+      body: {
+        nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+      },
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(403);
+    expect(clientUseCases.updateBranchServiceCycle).not.toHaveBeenCalled();
+  });
+
+  it('permite PATCH /api/clients/branches/:branchId/cycle con admin', async () => {
+    clientUseCases.updateBranchServiceCycle.mockResolvedValue({
+      id: 'cycle-1',
+      branchId: 'branch-1',
+      lastServiceDate: null,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+      active: true,
+    });
+    const request = await startApp();
+
+    const response = await request('/api/clients/branches/branch-1/cycle', {
+      method: 'PATCH',
+      body: {
+        nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+        nextReinforcementDate: '2026-06-30T10:00:00.000Z',
+      },
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(clientUseCases.updateBranchServiceCycle).toHaveBeenCalledWith({
+      branchId: 'branch-1',
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+    });
   });
 });

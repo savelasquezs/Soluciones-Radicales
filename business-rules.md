@@ -591,3 +591,14 @@ Si hay diferencias:
 - mantener camelCase en tipos internos del frontend
 - actualizar `/docs/api.md` si el contrato documentado cambio
 - registrar TODO real en `/project-checklist.md` cuando falte informacion o endpoint
+
+## 35. Estandar de fechas en frontend
+
+Cuando un usuario deba seleccionar fecha, hora o fecha con hora en frontend, se debe usar el componente reutilizable `AppDatePicker` basado en `@vuepic/vue-datepicker`.
+
+No usar directamente:
+- `<input type="date">`
+- `<input type="time">`
+- `<input type="datetime-local">`
+
+Solo se permite excepcion con justificacion tecnica explicita.

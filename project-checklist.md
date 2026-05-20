@@ -209,6 +209,7 @@ Notas:
 - [ ] No duplicar lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica.
 - [ ] No lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica de negocio en controllers.
 - [ ] No modificar BD sin script SQL.
+- [x] Regla frontend de fechas/horas: usar `AppDatePicker` (`@vuepic/vue-datepicker`) como estandar en formularios y filtros.
 
 - [x] ConfiguraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n por sucursal `technicianRevenueMode` (split/full) implementada en contrato y persistencia.
 - [x] Dashboard base implementado: /api/dashboard/summary, /api/dashboard/analytics, /api/dashboard/alerts.

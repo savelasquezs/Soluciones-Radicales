@@ -2,12 +2,8 @@
   <AppCard>
     <div class="flex flex-col gap-3 md:flex-row md:items-end">
       <div class="w-full">
-        <label class="mb-1 block text-xs text-foreground/70" for="from-date">Desde</label>
-        <AppInput id="from-date" v-model="localFrom" type="date" />
-      </div>
-      <div class="w-full">
-        <label class="mb-1 block text-xs text-foreground/70" for="to-date">Hasta</label>
-        <AppInput id="to-date" v-model="localTo" type="date" />
+        <label class="mb-1 block text-xs text-foreground/70">Rango de fechas</label>
+        <AppDatePicker v-model="localRange" range placeholder="Selecciona un rango" />
       </div>
       <div class="flex gap-2 md:pb-0.5">
         <AppButton :disabled="loading" @click="onApply">Aplicar</AppButton>
@@ -20,8 +16,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import AppCard from '@/shared/components/ui/AppCard.vue';
-import AppInput from '@/shared/components/ui/AppInput.vue';
 import AppButton from '@/shared/components/ui/AppButton.vue';
+import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -39,19 +35,35 @@ const emit = defineEmits<{
   reset: [];
 }>();
 
-const localFrom = ref(props.from);
-const localTo = ref(props.to);
+const toDateOrNull = (value: string) => (value ? new Date(`${value}T00:00:00`) : null);
+const initialFrom = toDateOrNull(props.from);
+const initialTo = toDateOrNull(props.to);
+const localRange = ref<[Date, Date] | null>(initialFrom && initialTo ? [initialFrom, initialTo] : null);
 
 watch(
   () => [props.from, props.to],
   ([nextFrom, nextTo]) => {
-    localFrom.value = nextFrom;
-    localTo.value = nextTo;
+    const from = toDateOrNull(nextFrom);
+    const to = toDateOrNull(nextTo);
+    localRange.value = from && to ? [from, to] : null;
   },
 );
 
+const toDateString = (value: Date) => {
+  const localDate = new Date(value.getTime() - value.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
 const onApply = () => {
-  emit('apply', { from: localFrom.value, to: localTo.value });
+  if (!localRange.value) {
+    emit('apply', { from: '', to: '' });
+    return;
+  }
+
+  emit('apply', {
+    from: toDateString(localRange.value[0]),
+    to: toDateString(localRange.value[1]),
+  });
 };
 
 const onReset = () => {

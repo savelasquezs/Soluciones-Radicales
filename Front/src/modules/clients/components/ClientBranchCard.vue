@@ -75,12 +75,12 @@
         <div class="space-y-4">
           <div class="space-y-2">
             <p class="text-sm font-medium text-foreground">Proximo servicio principal</p>
-            <AppInput v-model="nextMainDate" type="datetime-local" />
+            <AppDatePicker v-model="nextMainDate" enableTimePicker placeholder="Selecciona fecha y hora" />
           </div>
 
           <div class="space-y-2">
             <p class="text-sm font-medium text-foreground">Proximo refuerzo</p>
-            <AppInput v-model="nextReinforcementDate" type="datetime-local" />
+            <AppDatePicker v-model="nextReinforcementDate" enableTimePicker placeholder="Selecciona fecha y hora" />
           </div>
         </div>
 
@@ -99,7 +99,7 @@
 import { ref, watch } from 'vue';
 import AppBadge from '@/shared/components/ui/AppBadge.vue';
 import AppButton from '@/shared/components/ui/AppButton.vue';
-import AppInput from '@/shared/components/ui/AppInput.vue';
+import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 import AppModal from '@/shared/components/ui/AppModal.vue';
 import { formatCurrencyCOP } from '@/shared/helpers/currency';
 import { formatDate } from '@/shared/helpers/dates';
@@ -124,30 +124,27 @@ const emit = defineEmits<{
 }>();
 
 const isCycleModalOpen = ref(false);
-const nextMainDate = ref('');
-const nextReinforcementDate = ref('');
+const nextMainDate = ref<Date | null>(null);
+const nextReinforcementDate = ref<Date | null>(null);
 const modalError = ref('');
 let reinforcementTouched = false;
 let isAutoSettingReinforcement = false;
 
 const toInputDateTime = (value: string | null) => {
-  if (!value) return '';
-  const date = new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
-};
-
-const toIsoOrNull = (value: string) => {
   if (!value) return null;
-  return new Date(value).toISOString();
+  return new Date(value);
 };
 
-const addDays = (baseDateInput: string, days: number) => {
+const toIsoOrNull = (value: Date | null) => {
+  if (!value) return null;
+  return value.toISOString();
+};
+
+const addDays = (baseDateInput: Date, days: number) => {
   const date = new Date(baseDateInput);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return null;
   date.setDate(date.getDate() + days);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+  return new Date(date);
 };
 
 watch(nextMainDate, (value) => {
@@ -156,7 +153,7 @@ watch(nextMainDate, (value) => {
   const reinforcementDays = props.item.branch.reinforcementDays ?? 0;
   if (!value) {
     isAutoSettingReinforcement = true;
-    nextReinforcementDate.value = '';
+    nextReinforcementDate.value = null;
     isAutoSettingReinforcement = false;
     return;
   }

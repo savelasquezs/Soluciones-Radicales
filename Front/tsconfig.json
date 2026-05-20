@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
     "types": ["vite/client", "vitest/globals"],
     "baseUrl": ".",
