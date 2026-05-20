@@ -26,7 +26,22 @@
   @apply border-border;
 }
 
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
 body {
   @apply bg-background text-foreground antialiased;
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+::selection {
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
 }

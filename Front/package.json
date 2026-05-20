@@ -1,5 +1,5 @@
 {
-  "name": "front",
+  "name": "soluciones-radicales-front",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -32,3 +32,4 @@
     "vue-tsc": "^3.1.1"
   }
 }
+
