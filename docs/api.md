@@ -58,6 +58,32 @@ Error
 ```
 - Errores: `401`.
 
+### `POST /api/auth/forgot-password`
+- Descripción: solicita recuperación de contraseña sin revelar existencia del email.
+- Permisos: público.
+- Body:
+```json
+{ "email": "admin@demo.com" }
+```
+- Respuesta:
+```json
+{ "data": { "success": true } }
+```
+- Errores: `400`.
+
+### `POST /api/auth/reset-password`
+- Descripción: restablece contraseña usando token de recuperación.
+- Permisos: público.
+- Body:
+```json
+{ "token": "...", "newPassword": "Secret123" }
+```
+- Respuesta:
+```json
+{ "data": { "success": true } }
+```
+- Errores: `400`, `404`.
+
 Uso de token:
 ```http
 Authorization: Bearer <accessToken>
@@ -303,4 +329,4 @@ Permiso para todos los endpoints: `admin` + token.
 
 ## Inconsistencias actuales detectadas
 
-- `POST /api/auth/forgot-password` responde `200` con `data` directo (sin wrapper `{ "data": ... }`), distinto al resto de endpoints.
+- No se detectan inconsistencias activas en formato de respuesta estándar.

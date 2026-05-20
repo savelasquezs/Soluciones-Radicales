@@ -701,9 +701,7 @@ describe('route protection', () => {
   });
 
   it('POST /api/auth/forgot-password sigue siendo publico', async () => {
-    const requestPasswordReset = vi.fn().mockResolvedValue({
-      message: 'If the email exists, password reset instructions were sent',
-    });
+    const requestPasswordReset = vi.fn().mockResolvedValue({ success: true });
     const app = express();
     app.use(express.json());
     app.use(

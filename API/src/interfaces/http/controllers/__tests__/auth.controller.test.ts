@@ -142,8 +142,26 @@ describe('auth routes', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       data: {
-        message: 'If the email exists, password reset instructions were sent',
+        success: true,
       },
+    });
+  });
+
+  it('POST /api/auth/forgot-password responde 400 con formato estandar de error', async () => {
+    const useCases = buildUseCases();
+    const server = await startServer(
+      createAuthRoutes(createAuthController({ authUseCases: useCases })),
+      '/api/auth',
+    );
+
+    const response = await server.request('/api/auth/forgot-password', {
+      method: 'POST',
+      body: {},
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: 'Email is required',
     });
   });
 

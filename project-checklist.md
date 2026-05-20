@@ -122,6 +122,7 @@ Notas:
 - [x] Middleware de rol.
 - [x] Middleware de técnico.
 - [x] Rutas protegidas.
+- [x] Contrato HTTP de `POST /api/auth/forgot-password` alineado al estándar `{ "data": ... }` con `data.success`.
 
 ---
 

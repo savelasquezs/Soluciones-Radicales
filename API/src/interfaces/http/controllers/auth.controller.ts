@@ -69,11 +69,11 @@ export const createAuthController = (deps: {
   });
 
   const forgotPassword = asyncHandler(async (request, response) => {
-    const data = await deps.authUseCases.requestPasswordReset({
+    await deps.authUseCases.requestPasswordReset({
       email: parseRequiredString(request.body?.email, 'Email is required'),
     });
 
-    response.status(200).json({ data });
+    response.status(200).json({ data: { success: true } });
   });
 
   const resetPassword = asyncHandler(async (request, response) => {
