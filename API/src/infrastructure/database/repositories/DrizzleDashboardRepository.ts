@@ -21,8 +21,29 @@ import {
   usersTable,
 } from '../schema';
 
+type ServiceRow = {
+  serviceId: string;
+  scheduledAt: Date;
+  status: string;
+  type: string;
+  price: number | null;
+  paymentMethodId: string | null;
+  paymentMethodName: string | null;
+  paymentMethodType: string | null;
+  paymentProofUrl: string | null;
+  branchId: string;
+  branchLabel: string;
+  businessId: string;
+  businessLabel: string;
+  clientId: string;
+  clientLabel: string;
+  technicianId: string | null;
+  technicianLabel: string | null;
+  technicianRevenueMode: string;
+};
+
 const withServiceFilters = (filters: DashboardFilters) => {
-  const conditions = [] as Array<ReturnType<typeof eq>>;
+  const conditions = [] as ReturnType<typeof eq>[];
 
   if (filters.from) {
     conditions.push(gte(servicesTable.scheduledAt, filters.from));
@@ -46,86 +67,67 @@ const withServiceFilters = (filters: DashboardFilters) => {
   return conditions;
 };
 
-export class DrizzleDashboardRepository implements DashboardRepository {
-  async getSummary(filters: DashboardFilters): Promise<DashboardSummary> {
-    const conditions = withServiceFilters(filters);
-    if (filters.businessId || filters.clientId || filters.technicianId) {
-      // no-op; handled below via joins
-    }
+const buildPeriod = (groupBy: NonNullable<DashboardAnalyticsQuery['groupBy']>, date: Date) => {
+  const year = date.getUTCFullYear();
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getUTCDate()}`.padStart(2, '0');
+  if (groupBy === 'day') return `${year}-${month}-${day}`;
+  if (groupBy === 'week') {
+    const first = new Date(Date.UTC(year, 0, 1));
+    const diff = Math.floor((date.getTime() - first.getTime()) / (1000 * 60 * 60 * 24));
+    const week = `${Math.floor(diff / 7) + 1}`.padStart(2, '0');
+    return `${year}-W${week}`;
+  }
+  if (groupBy === 'month') return `${year}-${month}`;
+  if (groupBy === 'quarter') return `${year}-Q${Math.floor(date.getUTCMonth() / 3) + 1}`;
+  return `${year}`;
+};
 
-    const rows = await drizzleDb
-      .select({
-        id: servicesTable.id,
-        status: servicesTable.status,
-        scheduledAt: servicesTable.scheduledAt,
-        price: servicesTable.price,
-        clientId: clientsTable.id,
-        branchId: branchesTable.id,
-      })
-      .from(servicesTable)
-      .innerJoin(branchesTable, eq(servicesTable.branchId, branchesTable.id))
-      .innerJoin(businessesTable, eq(branchesTable.businessId, businessesTable.id))
-      .innerJoin(clientsTable, eq(businessesTable.clientId, clientsTable.id))
-      .leftJoin(
-        serviceTechniciansTable,
-        eq(serviceTechniciansTable.serviceId, servicesTable.id),
-      )
-      .where(
-        and(
-          ...conditions,
-          filters.businessId ? eq(businessesTable.id, filters.businessId) : undefined,
-          filters.clientId ? eq(clientsTable.id, filters.clientId) : undefined,
-          filters.technicianId
-            ? eq(serviceTechniciansTable.technicianId, filters.technicianId)
-            : undefined,
-        ),
-      );
-
-    const uniqueByService = new Map<string, (typeof rows)[number]>();
-    for (const row of rows) {
-      if (!uniqueByService.has(row.id)) {
-        uniqueByService.set(row.id, row);
-      }
-    }
-
-    const now = Date.now();
-    const services = Array.from(uniqueByService.values());
-    const servicesTotal = services.length;
-    const servicesCompleted = services.filter((item) => item.status === 'completed').length;
-    const servicesPending = services.filter((item) => item.status === 'pending').length;
-    const servicesCanceled = services.filter((item) => item.status === 'canceled').length;
-    const servicesRescheduled = services.filter((item) => item.status === 'rescheduled').length;
-    const overdueServices = services.filter(
-      (item) =>
-        item.scheduledAt.getTime() < now &&
-        item.status !== 'completed' &&
-        item.status !== 'canceled',
-    ).length;
-    const salesTotal = services.reduce((acc, item) => acc + (item.price ?? 0), 0);
-    const activeClients = new Set(services.map((item) => item.clientId)).size;
-    const activeBranches = new Set(services.map((item) => item.branchId)).size;
-    const completionRate = servicesTotal > 0 ? (servicesCompleted / servicesTotal) * 100 : 0;
-
+const resolveDimension = (
+  dimension: NonNullable<DashboardAnalyticsQuery['dimension']>,
+  row: ServiceRow,
+): DashboardAnalyticsDimensionPoint | null => {
+  if (dimension === 'status') {
+    return { id: row.status, key: row.status, label: row.status, value: 0 };
+  }
+  if (dimension === 'serviceType') {
+    return { id: row.type, key: row.type, label: row.type, value: 0 };
+  }
+  if (dimension === 'paymentMethod') {
+    const id = row.paymentMethodId ?? 'none';
+    const label = row.paymentMethodName ?? 'Sin método';
+    return { id, key: id, label, value: 0 };
+  }
+  if (dimension === 'technician') {
+    if (!row.technicianId) return null;
     return {
-      salesTotal,
-      servicesTotal,
-      servicesCompleted,
-      servicesPending,
-      servicesCanceled,
-      servicesRescheduled,
-      overdueServices,
-      activeClients,
-      activeBranches,
-      completionRate,
+      id: row.technicianId,
+      key: row.technicianId,
+      label: row.technicianLabel ?? row.technicianId,
+      value: 0,
     };
   }
+  if (dimension === 'client') {
+    return { id: row.clientId, key: row.clientId, label: row.clientLabel, value: 0 };
+  }
+  if (dimension === 'business') {
+    return { id: row.businessId, key: row.businessId, label: row.businessLabel, value: 0 };
+  }
+  if (dimension === 'branch') {
+    return { id: row.branchId, key: row.branchId, label: row.branchLabel, value: 0 };
+  }
+  if (dimension === 'paidStatus') {
+    const isPaid = row.paymentMethodId ? 'paid' : 'unpaid';
+    return { id: isPaid, key: isPaid, label: isPaid, value: 0 };
+  }
+  return null;
+};
 
-  async getAnalytics(
-    query: DashboardAnalyticsQuery & { sort: 'asc' | 'desc'; limit: number },
-  ): Promise<Array<DashboardAnalyticsGroupPoint | DashboardAnalyticsDimensionPoint>> {
-    const conditions = withServiceFilters(query);
+export class DrizzleDashboardRepository implements DashboardRepository {
+  private async fetchServiceRows(filters: DashboardFilters): Promise<ServiceRow[]> {
+    const conditions = withServiceFilters(filters);
 
-    const baseRows = await drizzleDb
+    const rows = await drizzleDb
       .select({
         serviceId: servicesTable.id,
         scheduledAt: servicesTable.scheduledAt,
@@ -162,31 +164,67 @@ export class DrizzleDashboardRepository implements DashboardRepository {
       .where(
         and(
           ...conditions,
-          query.businessId ? eq(businessesTable.id, query.businessId) : undefined,
-          query.clientId ? eq(clientsTable.id, query.clientId) : undefined,
-          query.technicianId
-            ? eq(serviceTechniciansTable.technicianId, query.technicianId)
+          filters.businessId ? eq(businessesTable.id, filters.businessId) : undefined,
+          filters.clientId ? eq(clientsTable.id, filters.clientId) : undefined,
+          filters.technicianId
+            ? eq(serviceTechniciansTable.technicianId, filters.technicianId)
             : undefined,
         ),
       );
 
-    const evidenceRows = await drizzleDb
-      .select({
-        serviceId: serviceEvidencesTable.serviceId,
-      })
-      .from(serviceEvidencesTable);
+    return rows as ServiceRow[];
+  }
 
-    const evidenceCountByService = new Map<string, number>();
-    for (const row of evidenceRows) {
-      evidenceCountByService.set(
-        row.serviceId,
-        (evidenceCountByService.get(row.serviceId) ?? 0) + 1,
-      );
+  async getSummary(filters: DashboardFilters): Promise<DashboardSummary> {
+    const rows = await this.fetchServiceRows(filters);
+
+    const uniqueByService = new Map<string, ServiceRow>();
+    for (const row of rows) {
+      if (!uniqueByService.has(row.serviceId)) {
+        uniqueByService.set(row.serviceId, row);
+      }
     }
 
-    const uniqueByService = new Map<string, (typeof baseRows)[number]>();
+    const services = Array.from(uniqueByService.values());
+    const now = Date.now();
+    const servicesTotal = services.length;
+    const servicesCompleted = services.filter((item) => item.status === 'completed').length;
+    const servicesPending = services.filter((item) => item.status === 'pending').length;
+    const servicesCanceled = services.filter((item) => item.status === 'canceled').length;
+    const servicesRescheduled = services.filter((item) => item.status === 'rescheduled').length;
+    const overdueServices = services.filter(
+      (item) =>
+        item.scheduledAt.getTime() < now &&
+        item.status !== 'completed' &&
+        item.status !== 'canceled',
+    ).length;
+    const salesTotal = services.reduce((acc, item) => acc + (item.price ?? 0), 0);
+    const activeClients = new Set(services.map((item) => item.clientId)).size;
+    const activeBranches = new Set(services.map((item) => item.branchId)).size;
+    const completionRate = servicesTotal > 0 ? (servicesCompleted / servicesTotal) * 100 : 0;
+
+    return {
+      salesTotal,
+      servicesTotal,
+      servicesCompleted,
+      servicesPending,
+      servicesCanceled,
+      servicesRescheduled,
+      overdueServices,
+      activeClients,
+      activeBranches,
+      completionRate,
+    };
+  }
+
+  async getAnalytics(
+    query: DashboardAnalyticsQuery & { sort: 'asc' | 'desc'; limit: number },
+  ): Promise<Array<DashboardAnalyticsGroupPoint | DashboardAnalyticsDimensionPoint>> {
+    const rows = await this.fetchServiceRows(query);
+
+    const uniqueByService = new Map<string, ServiceRow>();
     const technicianCountByService = new Map<string, number>();
-    for (const row of baseRows) {
+    for (const row of rows) {
       if (!uniqueByService.has(row.serviceId)) {
         uniqueByService.set(row.serviceId, row);
       }
@@ -198,42 +236,33 @@ export class DrizzleDashboardRepository implements DashboardRepository {
       }
     }
 
-    const resolveMetricValue = (row: (typeof baseRows)[number]): number => {
-      if (query.metric === 'sales') {
-        return row.price ?? 0;
-      }
-      if (query.metric === 'services') {
-        return 1;
-      }
-      if (query.metric === 'completedServices') {
-        return row.status === 'completed' ? 1 : 0;
-      }
-      if (query.metric === 'pendingServices') {
-        return row.status === 'pending' ? 1 : 0;
-      }
-      if (query.metric === 'canceledServices') {
-        return row.status === 'canceled' ? 1 : 0;
-      }
-      if (query.metric === 'rescheduledServices') {
-        return row.status === 'rescheduled' ? 1 : 0;
-      }
-      if (query.metric === 'reinforcements') {
-        return row.type === 'reinforcement' ? 1 : 0;
-      }
-      if (query.metric === 'evidences') {
-        return evidenceCountByService.get(row.serviceId) ?? 0;
-      }
-      if (query.metric === 'completionRate') {
-        return row.status === 'completed' ? 1 : 0;
-      }
+    const evidenceRows = await drizzleDb
+      .select({
+        serviceId: serviceEvidencesTable.serviceId,
+      })
+      .from(serviceEvidencesTable);
+    const evidenceCountByService = new Map<string, number>();
+    for (const row of evidenceRows) {
+      evidenceCountByService.set(
+        row.serviceId,
+        (evidenceCountByService.get(row.serviceId) ?? 0) + 1,
+      );
+    }
+
+    const resolveMetricValue = (row: ServiceRow): number => {
+      if (query.metric === 'sales') return row.price ?? 0;
+      if (query.metric === 'services') return 1;
+      if (query.metric === 'completedServices') return row.status === 'completed' ? 1 : 0;
+      if (query.metric === 'pendingServices') return row.status === 'pending' ? 1 : 0;
+      if (query.metric === 'canceledServices') return row.status === 'canceled' ? 1 : 0;
+      if (query.metric === 'rescheduledServices') return row.status === 'rescheduled' ? 1 : 0;
+      if (query.metric === 'reinforcements') return row.type === 'reinforcement' ? 1 : 0;
+      if (query.metric === 'evidences') return evidenceCountByService.get(row.serviceId) ?? 0;
+      if (query.metric === 'completionRate') return row.status === 'completed' ? 1 : 0;
       if (query.metric === 'attributedSales') {
-        if (!row.technicianId) {
-          return 0;
-        }
+        if (!row.technicianId) return 0;
         const price = row.price ?? 0;
-        if (row.technicianRevenueMode === 'full') {
-          return price;
-        }
+        if (row.technicianRevenueMode === 'full') return price;
         const count = technicianCountByService.get(row.serviceId) ?? 0;
         return count > 0 ? price / count : 0;
       }
@@ -241,97 +270,140 @@ export class DrizzleDashboardRepository implements DashboardRepository {
     };
 
     if (query.groupBy) {
-      const totals = new Map<string, number>();
-      const services = query.metric === 'attributedSales' ? baseRows : Array.from(uniqueByService.values());
-      for (const row of services) {
-        const period = this.groupPeriod(query.groupBy, row.scheduledAt);
-        const value = resolveMetricValue(row);
-        totals.set(period, (totals.get(period) ?? 0) + value);
+      const source = query.metric === 'attributedSales' ? rows : Array.from(uniqueByService.values());
+      const totals = new Map<string, { total: number; completed: number }>();
+
+      for (const row of source) {
+        const period = buildPeriod(query.groupBy, row.scheduledAt);
+        const current = totals.get(period) ?? { total: 0, completed: 0 };
+
+        if (query.metric === 'completionRate') {
+          current.total += 1;
+          if (row.status === 'completed') {
+            current.completed += 1;
+          }
+        } else {
+          current.total += resolveMetricValue(row);
+        }
+
+        totals.set(period, current);
       }
 
-      const result = Array.from(totals.entries()).map(([period, value]) => ({
+      const result = Array.from(totals.entries()).map(([period, item]) => ({
         period,
-        value:
-          query.metric === 'completionRate'
-            ? (value / Math.max(Array.from(uniqueByService.values()).length, 1)) * 100
-            : value,
+        value: query.metric === 'completionRate' ? (item.completed / Math.max(item.total, 1)) * 100 : item.total,
       }));
+
       result.sort((a, b) => (query.sort === 'asc' ? a.value - b.value : b.value - a.value));
       return result.slice(0, query.limit);
     }
 
     if (query.dimension) {
-      const totals = new Map<string, DashboardAnalyticsDimensionPoint>();
-      const services = query.metric === 'attributedSales' ? baseRows : Array.from(uniqueByService.values());
-      for (const row of services) {
-        const dimension = this.resolveDimension(query.dimension, row);
-        if (!dimension) {
+      const source = query.metric === 'attributedSales' ? rows : Array.from(uniqueByService.values());
+      const totals = new Map<string, { point: DashboardAnalyticsDimensionPoint; total: number; completed: number }>();
+
+      for (const row of source) {
+        const point = resolveDimension(query.dimension, row);
+        if (!point) {
           continue;
         }
-        const value = resolveMetricValue(row);
-        const current = totals.get(dimension.key);
-        if (!current) {
-          totals.set(dimension.key, { ...dimension, value });
-          continue;
+
+        const current = totals.get(point.key) ?? { point, total: 0, completed: 0 };
+        if (query.metric === 'completionRate') {
+          current.total += 1;
+          if (row.status === 'completed') {
+            current.completed += 1;
+          }
+        } else {
+          current.total += resolveMetricValue(row);
         }
-        current.value += value;
+        totals.set(point.key, current);
       }
 
-      const result = Array.from(totals.values());
+      const result = Array.from(totals.values()).map((item) => ({
+        ...item.point,
+        value:
+          query.metric === 'completionRate'
+            ? (item.completed / Math.max(item.total, 1)) * 100
+            : item.total,
+      }));
       result.sort((a, b) => (query.sort === 'asc' ? a.value - b.value : b.value - a.value));
       return result.slice(0, query.limit);
     }
 
     const uniqueServices = Array.from(uniqueByService.values());
+    if (query.metric === 'completionRate') {
+      const completed = uniqueServices.filter((item) => item.status === 'completed').length;
+      return [{ period: 'total', value: (completed / Math.max(uniqueServices.length, 1)) * 100 }];
+    }
+
     const total =
       query.metric === 'attributedSales'
-        ? baseRows.reduce((acc, row) => acc + resolveMetricValue(row), 0)
+        ? rows.reduce((acc, row) => acc + resolveMetricValue(row), 0)
         : uniqueServices.reduce((acc, row) => acc + resolveMetricValue(row), 0);
 
-    return [
-      {
-        period: 'total',
-        value:
-          query.metric === 'completionRate'
-            ? (uniqueServices.filter((item) => item.status === 'completed').length /
-                Math.max(uniqueServices.length, 1)) *
-              100
-            : total,
-      },
-    ];
+    return [{ period: 'total', value: total }];
   }
 
   async getAlerts(filters: DashboardFilters): Promise<DashboardAlerts> {
-    const now = new Date();
-    const conditions = withServiceFilters(filters);
+    const now = Date.now();
+    const rows = await this.fetchServiceRows(filters);
 
-    const overdueServices = await drizzleDb
-      .select()
-      .from(servicesTable)
-      .where(
-        and(
-          ...conditions,
-          lt(servicesTable.scheduledAt, now),
-          sql`${servicesTable.status} not in ('completed', 'canceled')`,
-        ),
-      );
+    const uniqueByService = new Map<string, ServiceRow>();
+    for (const row of rows) {
+      if (!uniqueByService.has(row.serviceId)) {
+        uniqueByService.set(row.serviceId, row);
+      }
+    }
+    const services = Array.from(uniqueByService.values());
+    const branchIds = new Set(services.map((item) => item.branchId));
 
-    const overdueCycles = await drizzleDb
-      .select()
+    const overdueServices = services.filter(
+      (item) =>
+        item.scheduledAt.getTime() < now &&
+        item.status !== 'completed' &&
+        item.status !== 'canceled',
+    );
+
+    const cycleRows = await drizzleDb
+      .select({
+        id: serviceCyclesTable.id,
+        branchId: serviceCyclesTable.branchId,
+        nextMainServiceDate: serviceCyclesTable.nextMainServiceDate,
+        active: serviceCyclesTable.active,
+        businessId: businessesTable.id,
+        clientId: clientsTable.id,
+      })
       .from(serviceCyclesTable)
+      .innerJoin(branchesTable, eq(serviceCyclesTable.branchId, branchesTable.id))
+      .innerJoin(businessesTable, eq(branchesTable.businessId, businessesTable.id))
+      .innerJoin(clientsTable, eq(businessesTable.clientId, clientsTable.id))
       .where(
         and(
           eq(serviceCyclesTable.active, true),
-          lt(serviceCyclesTable.nextMainServiceDate, now),
+          lt(serviceCyclesTable.nextMainServiceDate, new Date()),
           filters.branchId ? eq(serviceCyclesTable.branchId, filters.branchId) : undefined,
+          filters.businessId ? eq(businessesTable.id, filters.businessId) : undefined,
+          filters.clientId ? eq(clientsTable.id, filters.clientId) : undefined,
         ),
       );
 
-    const pendingReinforcements = await drizzleDb.execute(sql`
-      SELECT s.id AS "mainServiceId", s.branch_id AS "branchId", s.scheduled_at AS "scheduledAt", sc.next_reinforcement_date AS "nextReinforcementDate"
+    const overdueCycles = cycleRows.filter(
+      (item) => item.nextMainServiceDate && item.nextMainServiceDate.getTime() < now,
+    );
+
+    const pendingReinforcementsRaw = await drizzleDb.execute(sql`
+      SELECT
+        s.id AS "mainServiceId",
+        s.branch_id AS "branchId",
+        s.scheduled_at AS "scheduledAt",
+        sc.next_reinforcement_date AS "nextReinforcementDate"
       FROM services s
       INNER JOIN branches b ON b.id = s.branch_id
+      INNER JOIN businesses bs ON bs.id = b.business_id
+      INNER JOIN clients c ON c.id = bs.client_id
       INNER JOIN service_cycles sc ON sc.branch_id = b.id
+      LEFT JOIN service_technicians st ON st.service_id = s.id
       WHERE s.type = 'main'
         AND s.status = 'completed'
         AND COALESCE(b.reinforcement_enabled, true) = true
@@ -342,98 +414,38 @@ export class DrizzleDashboardRepository implements DashboardRepository {
             AND sr.type = 'reinforcement'
             AND sr.scheduled_at = sc.next_reinforcement_date
         )
+        ${filters.from ? sql`AND s.scheduled_at >= ${filters.from}` : sql``}
+        ${filters.to ? sql`AND s.scheduled_at < ${filters.to}` : sql``}
+        ${filters.branchId ? sql`AND s.branch_id = ${filters.branchId}` : sql``}
+        ${filters.businessId ? sql`AND bs.id = ${filters.businessId}` : sql``}
+        ${filters.clientId ? sql`AND c.id = ${filters.clientId}` : sql``}
+        ${filters.technicianId ? sql`AND st.technician_id = ${filters.technicianId}` : sql``}
     `);
 
-    const transfersWithoutProof = await drizzleDb
-      .select({
-        id: servicesTable.id,
-        paymentMethodId: servicesTable.paymentMethodId,
-        paymentProofUrl: servicesTable.paymentProofUrl,
-      })
-      .from(servicesTable)
-      .leftJoin(paymentMethodsTable, eq(servicesTable.paymentMethodId, paymentMethodsTable.id))
-      .where(
-        and(
-          eq(servicesTable.status, 'completed'),
-          sql`${paymentMethodsTable.type} in ('bank', 'transfer')`,
-          sql`${servicesTable.paymentProofUrl} is null`,
-        ),
-      );
+    const transfersWithoutProof = services.filter(
+      (item) =>
+        item.status === 'completed' &&
+        (item.paymentMethodType === 'bank' || item.paymentMethodType === 'transfer') &&
+        !item.paymentProofUrl,
+    );
 
-    const completedWithoutEvidence = await drizzleDb.execute(sql`
-      SELECT s.id
-      FROM services s
-      LEFT JOIN service_evidences se ON se.service_id = s.id
-      WHERE s.status = 'completed'
-      GROUP BY s.id
-      HAVING COUNT(se.id) = 0
-    `);
+    const evidenceRows = await drizzleDb
+      .select({ serviceId: serviceEvidencesTable.serviceId })
+      .from(serviceEvidencesTable);
+    const evidenceServiceIds = new Set(evidenceRows.map((item) => item.serviceId));
+
+    const completedWithoutEvidence = services.filter(
+      (item) => item.status === 'completed' && !evidenceServiceIds.has(item.serviceId),
+    );
 
     return {
       overdueServices,
       overdueCycles,
-      pendingReinforcements: pendingReinforcements.rows as Array<Record<string, unknown>>,
+      pendingReinforcements: (pendingReinforcementsRaw.rows as Array<Record<string, unknown>>).filter(
+        (item) => !filters.branchId || branchIds.has(String(item.branchId)),
+      ),
       transfersWithoutProof,
-      completedWithoutEvidence:
-        completedWithoutEvidence.rows as Array<Record<string, unknown>>,
+      completedWithoutEvidence,
     };
-  }
-
-  private groupPeriod(groupBy: DashboardAnalyticsQuery['groupBy'], date: Date): string {
-    const year = date.getUTCFullYear();
-    const month = `${date.getUTCMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getUTCDate()}`.padStart(2, '0');
-    if (groupBy === 'day') return `${year}-${month}-${day}`;
-    if (groupBy === 'week') {
-      const first = new Date(Date.UTC(year, 0, 1));
-      const diff = Math.floor((date.getTime() - first.getTime()) / (1000 * 60 * 60 * 24));
-      const week = `${Math.floor(diff / 7) + 1}`.padStart(2, '0');
-      return `${year}-W${week}`;
-    }
-    if (groupBy === 'month') return `${year}-${month}`;
-    if (groupBy === 'quarter') return `${year}-Q${Math.floor(date.getUTCMonth() / 3) + 1}`;
-    return `${year}`;
-  }
-
-  private resolveDimension(
-    dimension: NonNullable<DashboardAnalyticsQuery['dimension']>,
-    row: Awaited<ReturnType<DrizzleDashboardRepository['getAnalytics']>> extends Array<infer _T>
-      ? any
-      : never,
-  ): DashboardAnalyticsDimensionPoint | null {
-    if (dimension === 'status') {
-      return { id: row.status, key: row.status, label: row.status, value: 0 };
-    }
-    if (dimension === 'serviceType') {
-      return { id: row.type, key: row.type, label: row.type, value: 0 };
-    }
-    if (dimension === 'paymentMethod') {
-      const id = row.paymentMethodId ?? 'none';
-      const label = row.paymentMethodName ?? 'Sin método';
-      return { id, key: id, label, value: 0 };
-    }
-    if (dimension === 'technician') {
-      if (!row.technicianId) return null;
-      return {
-        id: row.technicianId,
-        key: row.technicianId,
-        label: row.technicianLabel ?? row.technicianId,
-        value: 0,
-      };
-    }
-    if (dimension === 'client') {
-      return { id: row.clientId, key: row.clientId, label: row.clientLabel, value: 0 };
-    }
-    if (dimension === 'business') {
-      return { id: row.businessId, key: row.businessId, label: row.businessLabel, value: 0 };
-    }
-    if (dimension === 'branch') {
-      return { id: row.branchId, key: row.branchId, label: row.branchLabel, value: 0 };
-    }
-    if (dimension === 'paidStatus') {
-      const isPaid = row.paymentMethodId ? 'paid' : 'unpaid';
-      return { id: isPaid, key: isPaid, label: isPaid, value: 0 };
-    }
-    return null;
   }
 }

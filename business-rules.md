@@ -553,3 +553,21 @@ Reglas:
 - En modo ull, cada tecnico asignado recibe el valor completo del servicio.
 - La atribucion usa services.price historico y no recalcula precios historicos.
 
+
+## 33. Dashboard hardening
+
+Reglas de completionRate:
+- Sin dimension ni groupBy: tasa global.
+- Con groupBy: tasa por periodo usando denominador del mismo periodo.
+- Con dimension solo se permite: technician, client, business, branch.
+
+Reglas de alertas:
+- overdueServices debe respetar filtros: from, to, technicianId, clientId, businessId, branchId.
+- overdueCycles debe respetar filtros: branchId, businessId, clientId.
+- pendingReinforcements debe respetar filtros: from, to, branchId, businessId, clientId, technicianId cuando aplique.
+- transfersWithoutProof debe respetar filtros: from, to, technicianId, clientId, businessId, branchId.
+- completedWithoutEvidence debe respetar filtros: from, to, technicianId, clientId, businessId, branchId.
+
+Nota de trazabilidad:
+- Actualmente attributedSales usa technicianRevenueMode actual de la sucursal.
+- Si se requiere trazabilidad historica exacta, se debe guardar snapshot en services o service_technicians.

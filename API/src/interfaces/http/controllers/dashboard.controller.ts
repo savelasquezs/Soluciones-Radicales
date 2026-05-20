@@ -51,6 +51,14 @@ export const createDashboardController = (deps: {
     type: parseOptionalServiceType(query.type),
     paymentMethodId: parseOptionalString(query.paymentMethodId),
   });
+  const parseAlertFilters = (query: Record<string, unknown>) => ({
+    from: parseOptionalDate(query.from, 'From query is invalid'),
+    to: parseOptionalDate(query.to, 'To query is invalid'),
+    technicianId: parseOptionalString(query.technicianId),
+    clientId: parseOptionalString(query.clientId),
+    businessId: parseOptionalString(query.businessId),
+    branchId: parseOptionalString(query.branchId),
+  });
 
   const getSummary = asyncHandler(async (request, response) => {
     const data = await deps.dashboardUseCases.getSummary(
@@ -94,7 +102,7 @@ export const createDashboardController = (deps: {
 
   const getAlerts = asyncHandler(async (request, response) => {
     const data = await deps.dashboardUseCases.getAlerts(
-      parseFilters(request.query as Record<string, unknown>),
+      parseAlertFilters(request.query as Record<string, unknown>),
     );
     response.status(200).json({ data });
   });

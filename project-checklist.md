@@ -213,3 +213,5 @@ Notas:
 - [x] Configuracion por sucursal 	echnicianRevenueMode (split/full) implementada en contrato y persistencia.
 - [x] Dashboard base implementado: /api/dashboard/summary, /api/dashboard/analytics, /api/dashboard/alerts.
 
+- [x] Hardening dashboard aplicado (completionRate por periodo, validaciones de dimension y filtros en alerts).
+- [ ] Pendiente futuro: snapshot historico de technicianRevenueMode para trazabilidad exacta de attributedSales.

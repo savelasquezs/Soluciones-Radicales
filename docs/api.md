@@ -395,3 +395,10 @@ Respuesta:
 - `sales`: ventas reales del negocio (cada servicio cuenta una sola vez).
 - `attributedSales`: ventas atribuidas a tecnicos segun `technicianRevenueMode` de la sucursal.
 - En modo `full`, `attributedSales` puede superar `sales`.
+
+## 10. Hardening dashboard y technicianRevenueMode
+
+- completionRate endurecido: validacion de dimensiones permitidas y calculo por periodo correcto.
+- alerts endurecido: aplica filtros solicitados por query para evitar resultados globales no filtrados.
+- technicianRevenueMode documentado con regla actual basada en configuracion vigente de sucursal.
+- pendiente futuro: snapshot historico de technicianRevenueMode para trazabilidad exacta de attributedSales.

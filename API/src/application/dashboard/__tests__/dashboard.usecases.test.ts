@@ -161,6 +161,75 @@ describe('dashboard usecases', () => {
     );
   });
 
+  it('completionRate con dimension=technician es valido', async () => {
+    const repository = buildRepository();
+    repository.getAnalytics.mockResolvedValue([]);
+    const useCases = createDashboardUseCases({ dashboardRepository: repository });
+
+    await useCases.getAnalytics({
+      metric: 'completionRate',
+      dimension: 'technician',
+    });
+
+    expect(repository.getAnalytics).toHaveBeenCalled();
+  });
+
+  it('completionRate rechaza dimension=status', async () => {
+    const repository = buildRepository();
+    const useCases = createDashboardUseCases({ dashboardRepository: repository });
+
+    await expect(
+      useCases.getAnalytics({
+        metric: 'completionRate',
+        dimension: 'status',
+      }),
+    ).rejects.toThrow(
+      'completionRate only allows dimension=technician|client|business|branch',
+    );
+  });
+
+  it('completionRate rechaza dimension=serviceType', async () => {
+    const repository = buildRepository();
+    const useCases = createDashboardUseCases({ dashboardRepository: repository });
+
+    await expect(
+      useCases.getAnalytics({
+        metric: 'completionRate',
+        dimension: 'serviceType',
+      }),
+    ).rejects.toThrow(
+      'completionRate only allows dimension=technician|client|business|branch',
+    );
+  });
+
+  it('completionRate rechaza dimension=paymentMethod', async () => {
+    const repository = buildRepository();
+    const useCases = createDashboardUseCases({ dashboardRepository: repository });
+
+    await expect(
+      useCases.getAnalytics({
+        metric: 'completionRate',
+        dimension: 'paymentMethod',
+      }),
+    ).rejects.toThrow(
+      'completionRate only allows dimension=technician|client|business|branch',
+    );
+  });
+
+  it('completionRate rechaza dimension=paidStatus', async () => {
+    const repository = buildRepository();
+    const useCases = createDashboardUseCases({ dashboardRepository: repository });
+
+    await expect(
+      useCases.getAnalytics({
+        metric: 'completionRate',
+        dimension: 'paidStatus',
+      }),
+    ).rejects.toThrow(
+      'completionRate only allows dimension=technician|client|business|branch',
+    );
+  });
+
   it('alerts overdueServices retorna servicios vencidos', async () => {
     const repository = buildRepository();
     repository.getAlerts.mockResolvedValue({

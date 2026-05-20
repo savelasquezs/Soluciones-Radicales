@@ -38,6 +38,12 @@ const dimensions = new Set<DashboardDimension>([
   'paidStatus',
 ]);
 const sorts = new Set<DashboardSort>(['asc', 'desc']);
+const completionRateAllowedDimensions = new Set<DashboardDimension>([
+  'technician',
+  'client',
+  'business',
+  'branch',
+]);
 
 export const createDashboardUseCases = (deps: DashboardUseCasesDeps) => {
   const getSummary = async (filters: DashboardFilters) => deps.dashboardRepository.getSummary(filters);
@@ -57,6 +63,16 @@ export const createDashboardUseCases = (deps: DashboardUseCasesDeps) => {
 
     if (query.groupBy && query.dimension) {
       throw new ValidationError('groupBy and dimension cannot be used together');
+    }
+
+    if (
+      query.metric === 'completionRate' &&
+      query.dimension &&
+      !completionRateAllowedDimensions.has(query.dimension)
+    ) {
+      throw new ValidationError(
+        'completionRate only allows dimension=technician|client|business|branch',
+      );
     }
 
     if (
