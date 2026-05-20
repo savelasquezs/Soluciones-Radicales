@@ -13,6 +13,14 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
+export type BackendLoginResponse = {
+  user: AuthUser;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+};
+
 export type RefreshPayload = {
   refreshToken: string;
 };

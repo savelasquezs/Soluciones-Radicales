@@ -57,8 +57,24 @@ const onSubmit = async () => {
   try {
     await auth.login(email.value, password.value);
 
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : auth.resolveHomePath();
-    await router.push(redirect);
+    const rawRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : '';
+    const forbidden = ['/login', '/forgot-password', '/reset-password'];
+
+    const isValidRedirect = (r: string) => {
+      if (!r) return false;
+      try {
+        // only allow internal paths
+        if (!r.startsWith('/')) return false;
+        // ignore forbidden targets
+        if (forbidden.includes(r)) return false;
+        return true;
+      } catch (_e) {
+        return false;
+      }
+    };
+
+    const destination = isValidRedirect(rawRedirect) ? rawRedirect : auth.resolveHomePath();
+    await router.replace(destination);
   } catch (error) {
     const message = (error as { message?: string }).message ?? 'Error de autenticación.';
     errorMessage.value = message;

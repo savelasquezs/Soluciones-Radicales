@@ -91,6 +91,7 @@ CREATE TABLE businesses (
 -- BRANCHES
 -- =========================
 
+
 CREATE TABLE branches (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
@@ -100,6 +101,7 @@ CREATE TABLE branches (
   city TEXT,
 
 -- configuración propia
+
 price_per_m2 NUMERIC,
   fixed_price NUMERIC,
 
@@ -252,7 +254,7 @@ INSERT INTO
 VALUES (
         'Santaigo',
         'admin@admin.com',
-        '123456',
+        '$2b$10$9DQnz.wtj55.SEE.GE87t.aHcQMakT2NuXFBOuZysFQFcVCmcqwuO',
         'admin',
         true
     );

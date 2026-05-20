@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 import { authService } from '@/modules/auth/services/auth.service';
+import { TOKEN_KEYS } from '@/shared/api/http';
 
 vi.mock('@/modules/auth/services/auth.service', () => ({
   authService: {
@@ -39,6 +40,9 @@ describe('auth.store', () => {
     expect(store.refreshToken).toBe('r1');
     expect(store.user?.id).toBe('u1');
     expect(store.error).toBeNull();
+    expect(localStorage.getItem(TOKEN_KEYS.accessToken)).toBe('a1');
+    expect(localStorage.getItem(TOKEN_KEYS.refreshToken)).toBe('r1');
+    expect(localStorage.getItem('sr_user')).toBe(JSON.stringify({ id: 'u1', name: 'Admin', email: 'a@a.com', role: 'admin', isTechnician: true }));
   });
 
   it('login fallido setea error y no deja sesion autenticada', async () => {

@@ -7,6 +7,7 @@ import type {
   ForgotPasswordResponse,
   LoginPayload,
   LoginResponse,
+  BackendLoginResponse,
   RefreshPayload,
   RefreshResponse,
   ResetPasswordPayload,
@@ -14,8 +15,26 @@ import type {
 } from '../types/auth.types';
 
 export const authService = {
-  login(payload: LoginPayload) {
-    return http.post<LoginResponse>(endpoints.auth.login, payload);
+  async login(payload: LoginPayload) {
+    const resp = await http.post<BackendLoginResponse>(endpoints.auth.login, payload);
+
+    if (
+      !resp ||
+      !resp.user ||
+      !resp.tokens ||
+      !resp.tokens.accessToken ||
+      !resp.tokens.refreshToken
+    ) {
+      throw new Error('Invalid login response');
+    }
+
+    const normalized: LoginResponse = {
+      user: resp.user,
+      accessToken: resp.tokens.accessToken,
+      refreshToken: resp.tokens.refreshToken,
+    };
+
+    return normalized;
   },
   refresh(payload: RefreshPayload) {
     return http.post<RefreshResponse>(endpoints.auth.refresh, payload);

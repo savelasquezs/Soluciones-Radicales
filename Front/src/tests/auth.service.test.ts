@@ -18,13 +18,23 @@ describe('auth.service', () => {
   });
 
   it('llama endpoint login correcto', async () => {
-    vi.mocked(http.post).mockResolvedValue({ accessToken: 'a', refreshToken: 'r', user: {} as any });
+    vi.mocked(http.post).mockResolvedValue({ user: {} as any, tokens: { accessToken: 'a', refreshToken: 'r' } });
 
-    await authService.login({ email: 'admin@demo.com', password: 'Secret123' });
+    const res = await authService.login({ email: 'admin@demo.com', password: 'Secret123' });
 
     expect(http.post).toHaveBeenCalledWith(endpoints.auth.login, {
       email: 'admin@demo.com',
       password: 'Secret123',
     });
+
+    expect(res).toEqual({ user: {}, accessToken: 'a', refreshToken: 'r' });
+  });
+
+  it('lanza error si tokens faltan', async () => {
+    vi.mocked(http.post).mockResolvedValue({ user: {} as any } as any);
+
+    await expect(
+      authService.login({ email: 'x', password: 'y' }),
+    ).rejects.toThrow('Invalid login response');
   });
 });
