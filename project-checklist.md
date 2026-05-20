@@ -1,4 +1,4 @@
-# Project Checklist ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Soluciones Radicales
+# Project Checklist ÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â¢ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â‚Â¬Ã…Â¡ÃƒÂ‚Ã‚Â¬ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â€ÂšÃ‚Â¬ÃƒÂ‚Ã‚Â Soluciones Radicales
 
 Este documento sirve para hacer seguimiento funcional del sistema interno de fumigaciones B2B.
 
@@ -22,9 +22,9 @@ Si un cambio modifica base de datos:
 ### Base del proyecto
 
 - [x] Backend en carpeta `API`.
-- [x] `agents.md` en raÃƒÆ’Ã‚Â­z.
-- [x] `business-rules.md` en raÃƒÆ’Ã‚Â­z.
-- [x] `init.sql` en raÃƒÆ’Ã‚Â­z.
+- [x] `agents.md` en raÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­z.
+- [x] `business-rules.md` en raÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­z.
+- [x] `init.sql` en raÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­z.
 - [x] Scripts SQL definidos para `/Scripts`.
 - [x] Backend con Clean Architecture.
 - [x] Drizzle usado en infraestructura.
@@ -34,7 +34,7 @@ Si un cambio modifica base de datos:
 
 ---
 
-## Backend ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Casos de uso implementados
+## Backend ÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â¢ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â‚Â¬Ã…Â¡ÃƒÂ‚Ã‚Â¬ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â€ÂšÃ‚Â¬ÃƒÂ‚Ã‚Â Casos de uso implementados
 
 ### Clientes
 
@@ -54,10 +54,10 @@ Si un cambio modifica base de datos:
 Notas:
 
 - [x] `getClientDetail` retorna cliente, negocios, sucursales y `service_cycles` sin cargar historial completo.
-- [x] `getBranchHistory` retorna historial bÃƒÆ’Ã‚Â¡sico de `services` por sucursal con filtros opcionales.
-- [x] Se mantiene separaciÃƒÆ’Ã‚Â³n entre detalle de cliente e historial para evitar respuestas pesadas.
-- [x] Se mantiene separaciÃƒÆ’Ã‚Â³n entre ediciÃƒÆ’Ã‚Â³n de datos bÃƒÆ’Ã‚Â¡sicos de sucursal y configuraciÃƒÆ’Ã‚Â³n para no mezclar validaciones.
-- [ ] Si luego se requiere historial enriquecido con tÃƒÆ’Ã‚Â©cnicos, evidencias y mÃƒÆ’Ã‚Â©todo de pago en una sola respuesta, crear un repositorio de lectura especÃƒÆ’Ã‚Â­fico para esa vista. No armar esa lÃƒÆ’Ã‚Â³gica en controllers.
+- [x] `getBranchHistory` retorna historial bÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â¡sico de `services` por sucursal con filtros opcionales.
+- [x] Se mantiene separaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n entre detalle de cliente e historial para evitar respuestas pesadas.
+- [x] Se mantiene separaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n entre ediciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n de datos bÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â¡sicos de sucursal y configuraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n para no mezclar validaciones.
+- [ ] Si luego se requiere historial enriquecido con tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos, evidencias y mÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©todo de pago en una sola respuesta, crear un repositorio de lectura especÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­fico para esa vista. No armar esa lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica en controllers.
 
 ### Servicios base
 
@@ -72,7 +72,7 @@ Notas:
 - [x] `rescheduleService`
 - [x] `cancelService`
 
-### Servicios tÃƒÆ’Ã‚Â©cnicos operativos
+### Servicios tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos operativos
 
 - [x] `startService`
 - [x] `completeService`
@@ -85,11 +85,11 @@ Notas:
 
 Notas:
 
-- [x] `completeService` actualiza el ciclo y prepara fechas de refuerzo usando la lÃƒÆ’Ã‚Â³gica existente de completado.
+- [x] `completeService` actualiza el ciclo y prepara fechas de refuerzo usando la lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica existente de completado.
 - [x] El refuerzo se crea como servicio real en `services`.
 - [x] `generateReinforcementService` evita duplicados por sucursal + fecha del refuerzo.
-- [x] `completeService` solo actualiza `service_cycles`; no crea refuerzos automÃƒÆ’Ã‚Â¡ticamente.
-- [ ] Evaluar si `generateReinforcementService` debe abrirse a tÃƒÆ’Ã‚Â©cnicos asignados; por ahora queda restringido a `admin`.
+- [x] `completeService` solo actualiza `service_cycles`; no crea refuerzos automÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â¡ticamente.
+- [ ] Evaluar si `generateReinforcementService` debe abrirse a tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos asignados; por ahora queda restringido a `admin`.
 
 ### Usuarios
 
@@ -98,7 +98,7 @@ Notas:
 - [x] `listTechnicians`
 - [x] `updateUser`
 
-### ConfiguraciÃƒÆ’Ã‚Â³n
+### ConfiguraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n
 
 - [x] `getSystemSettings`
 - [x] `updateSystemSettings`
@@ -107,7 +107,7 @@ Notas:
 - [x] `updatePaymentMethod`
 - [x] `disablePaymentMethod`
 
-### AutenticaciÃƒÆ’Ã‚Â³n
+### AutenticaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n
 
 - [x] `login`
 - [x] `refreshToken`
@@ -118,52 +118,52 @@ Notas:
 - [x] `resetPassword`
 - [x] Hash de refresh tokens.
 - [x] Hash de reset tokens.
-- [x] Middleware de autenticaciÃƒÆ’Ã‚Â³n.
+- [x] Middleware de autenticaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n.
 - [x] Middleware de rol.
-- [x] Middleware de tÃƒÆ’Ã‚Â©cnico.
+- [x] Middleware de tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnico.
 - [x] Rutas protegidas.
-- [x] Contrato HTTP de `POST /api/auth/forgot-password` alineado al estÃƒÆ’Ã‚Â¡ndar `{ "data": ... }` con `data.success`.
+- [x] Contrato HTTP de `POST /api/auth/forgot-password` alineado al estÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â¡ndar `{ "data": ... }` con `data.success`.
 
 ---
 
-## PrÃƒÆ’Ã‚Â³ximo paso recomendado
+## PrÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³ximo paso recomendado
 
-### DocumentaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â­nima de API para frontend
+### DocumentaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n mÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­nima de API para frontend
 
-El backend ya cubre autenticaciÃƒÆ’Ã‚Â³n, clientes, servicios, operaciÃƒÆ’Ã‚Â³n tÃƒÆ’Ã‚Â©cnica, refuerzos e historial bÃƒÆ’Ã‚Â¡sico.
+El backend ya cubre autenticaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n, clientes, servicios, operaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnica, refuerzos e historial bÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â¡sico.
 
-Antes de pasar a dashboard o frontend, conviene documentar los endpoints tÃƒÆ’Ã‚Â©cnicos y administrativos ya existentes para que el frontend no tenga que inferir contratos desde controllers.
+Antes de pasar a dashboard o frontend, conviene documentar los endpoints tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos y administrativos ya existentes para que el frontend no tenga que inferir contratos desde controllers.
 
 Pendientes:
 
-- [x] Crear documentaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â­nima de endpoints administrativos.
-- [x] Crear documentaciÃƒÆ’Ã‚Â³n mÃƒÆ’Ã‚Â­nima de endpoints tÃƒÆ’Ã‚Â©cnicos.
+- [x] Crear documentaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n mÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­nima de endpoints administrativos.
+- [x] Crear documentaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n mÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­nima de endpoints tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos.
 - [x] Documentar payloads principales.
 - [x] Documentar respuestas `{ data }` y errores `{ message }`.
 - [x] Documentar permisos por endpoint.
-- [x] Mantener la documentaciÃƒÆ’Ã‚Â³n simple, preferiblemente en Markdown.
+- [x] Mantener la documentaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n simple, preferiblemente en Markdown.
 
 Notas:
 
-- [x] DocumentaciÃƒÆ’Ã‚Â³n creada en `/docs/api.md`.
+- [x] DocumentaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n creada en `/docs/api.md`.
 
 ---
 
-## Pendientes directos del mÃƒÆ’Ã‚Â³dulo tÃƒÆ’Ã‚Â©cnico operativo
+## Pendientes directos del mÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³dulo tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnico operativo
 
-- [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integraciÃƒÆ’Ã‚Â³n real con Firebase Storage.
-- [x] Implementar `generateReinforcementService` como caso de uso explÃƒÆ’Ã‚Â­cito.
+- [ ] Reemplazar placeholder de `API/src/infrastructure/storage/storage.service.ts` por integraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n real con Firebase Storage.
+- [x] Implementar `generateReinforcementService` como caso de uso explÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­cito.
 - [x] Verificar que existan tests suficientes para use cases, controllers/routes y permisos.
-- [x] Verificar que los endpoints tÃƒÆ’Ã‚Â©cnicos estÃƒÆ’Ã‚Â©n documentados para el frontend.
+- [x] Verificar que los endpoints tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos estÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©n documentados para el frontend.
 
 ---
 
-## Pendientes tÃƒÆ’Ã‚Â©cnicos
+## Pendientes tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicos
 
 - [ ] Integrar proveedor real de email.
 - [ ] Limpieza de tokens expirados.
-- [ ] PolÃƒÆ’Ã‚Â­tica de contraseÃƒÆ’Ã‚Â±a.
-- [ ] ValidaciÃƒÆ’Ã‚Â³n de expiraciones JWT.
+- [ ] PolÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â­tica de contraseÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â±a.
+- [ ] ValidaciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n de expiraciones JWT.
 - [ ] Reemplazar placeholder de storage por Firebase Storage real.
 
 ---
@@ -177,17 +177,17 @@ Notas:
 - [ ] Servicios realizados.
 - [ ] Servicios pendientes.
 - [ ] Clientes activos.
-- [ ] PrÃƒÆ’Ã‚Â³ximos servicios.
+- [ ] PrÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³ximos servicios.
 - [ ] Servicios cancelados o reprogramados.
-- [ ] MÃƒÆ’Ã‚Â©tricas basadas en precio histÃƒÆ’Ã‚Â³rico.
+- [ ] MÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©tricas basadas en precio histÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³rico.
 
 ### WhatsApp
 
 - [ ] `buildWhatsappLink`.
 - [ ] `buildUpcomingServiceMessage`.
 - [ ] Usar nombre de empresa desde `system_settings`.
-- [ ] Usar fecha prÃƒÆ’Ã‚Â³xima formateada.
-- [ ] Usar telÃƒÆ’Ã‚Â©fono cliente/sucursal.
+- [ ] Usar fecha prÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³xima formateada.
+- [ ] Usar telÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©fono cliente/sucursal.
 - [ ] Construir URL con `https://wa.me/` y `encodeURIComponent`.
 
 ### Frontend
@@ -198,19 +198,19 @@ Notas:
 - [ ] Pinia.
 - [ ] Componentes base reutilizables.
 - [ ] Pantallas administrativas.
-- [ ] Pantallas tÃƒÆ’Ã‚Â©cnicas mobile.
+- [ ] Pantallas tÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â©cnicas mobile.
 
 ---
 
 ## Reglas permanentes
 
-- [ ] Todo cÃƒÆ’Ã‚Â³digo nuevo debe incluir tests.
-- [ ] No crear cÃƒÆ’Ã‚Â³digo innecesario.
-- [ ] No duplicar lÃƒÆ’Ã‚Â³gica.
-- [ ] No lÃƒÆ’Ã‚Â³gica de negocio en controllers.
+- [ ] Todo cÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³digo nuevo debe incluir tests.
+- [ ] No crear cÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³digo innecesario.
+- [ ] No duplicar lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica.
+- [ ] No lÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³gica de negocio en controllers.
 - [ ] No modificar BD sin script SQL.
 
-- [x] ConfiguraciÃƒÆ’Ã‚Â³n por sucursal `technicianRevenueMode` (split/full) implementada en contrato y persistencia.
+- [x] ConfiguraciÃƒÂƒÃ†Â’ÃƒÂ†Ã¢Â€Â™ÃƒÂƒÃ¢Â€ÂšÃƒÂ‚Ã‚Â³n por sucursal `technicianRevenueMode` (split/full) implementada en contrato y persistencia.
 - [x] Dashboard base implementado: /api/dashboard/summary, /api/dashboard/analytics, /api/dashboard/alerts.
 
 - [x] Hardening dashboard aplicado (completionRate por periodo, validaciones de dimension y filtros en alerts).
@@ -218,8 +218,8 @@ Notas:
 - [x] Inicio frontend base en `/Front` con Vue 3 + Vite + TypeScript.
 - [x] Tailwind + variables CSS (light/dark), Pinia, Vue Router, auth store base y cliente HTTP centralizado.
 - [x] Estructura modular inicial (auth, dashboard, clients, services, settings, layout, technician) y componentes UI base.
-- [x] Tests frontend mÃƒÂ­nimos: auth store, guard de rutas, `AppButton`, `ThemeToggle`.
-- [ ] Pendiente frontend: implementar pantallas funcionales y flujos completos por mÃƒÂ³dulo (sin placeholders).
+- [x] Tests frontend mÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â­nimos: auth store, guard de rutas, `AppButton`, `ThemeToggle`.
+- [ ] Pendiente frontend: implementar pantallas funcionales y flujos completos por mÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â³dulo (sin placeholders).
 
 - [x] Limpieza inicial del frontend completada: assets/estilos de template removidos y CSS global consolidado en /Front/src/assets/styles/index.css.
 - [x] Capa de servicios API frontend implementada por modulo (auth, users, settings, clients, services, dashboard).
@@ -227,7 +227,16 @@ Notas:
 - [x] Endpoints centralizados en `/Front/src/shared/api/endpoints.ts`.
 - [x] No se crearon stores innecesarios en esta fase (solo se ajusto auth existente).
 - [x] Frontend auth real conectado con API (`login`, `logout`, `me`, `forgot-password`, `reset-password`, `refresh`).
-- [x] Guards de rutas por rol implementados con redirección para `admin`, `technician` y `admin+technician`.
-- [x] Layouts admin/técnico conectados a rutas protegidas.
-- [x] Recuperación y reset de contraseña implementados en frontend.
-- [x] Base de toggle de contexto admin/técnico implementada con `preferredMode`.
+- [x] Guards de rutas por rol implementados con redirecciÃƒÂ³n para `admin`, `technician` y `admin+technician`.
+- [x] Layouts admin/tÃƒÂ©cnico conectados a rutas protegidas.
+- [x] RecuperaciÃƒÂ³n y reset de contraseÃƒÂ±a implementados en frontend.
+- [x] Base de toggle de contexto admin/tÃƒÂ©cnico implementada con `preferredMode`.
+- [x] Dashboard administrativo real implementado en frontend.
+- [x] Summary conectado a `/api/dashboard/summary`.
+- [x] Analytics conectado a `/api/dashboard/analytics` (ventas por periodo, servicios por estado, top clientes).
+- [x] Alerts conectado a `/api/dashboard/alerts`.
+- [x] PrÃ³ximos servicios conectados a `/api/services/upcoming`.
+- [x] Componentes reutilizables de dashboard creados (MetricCard, DateRangeFilter, ChartCard, SimpleBarList, AlertList).
+- [x] Tests de dashboard agregados (pÃ¡gina y componentes clave).
+- [ ] Pendiente futuro: evaluar librerÃ­a de grÃ¡ficos para visualizaciÃ³n avanzada.
+- [x] Encoding validado sin mojibake visible en README y checklist.

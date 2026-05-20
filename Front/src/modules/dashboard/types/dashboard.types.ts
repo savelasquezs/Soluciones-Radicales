@@ -89,10 +89,23 @@ export type DashboardAnalyticsResponse = {
   };
 };
 
+export type DashboardAlertItem = {
+  id?: string;
+  label?: string;
+  message?: string;
+  scheduledAt?: string;
+  branchId?: string;
+  clientName?: string;
+  branchName?: string;
+  status?: string;
+  type?: string;
+  [key: string]: unknown;
+};
+
 export type DashboardAlerts = {
-  overdueServices: unknown[];
-  overdueCycles: unknown[];
-  pendingReinforcements: unknown[];
-  transfersWithoutProof: unknown[];
-  completedWithoutEvidence: unknown[];
+  overdueServices: DashboardAlertItem[];
+  overdueCycles: DashboardAlertItem[];
+  pendingReinforcements: DashboardAlertItem[];
+  transfersWithoutProof: DashboardAlertItem[];
+  completedWithoutEvidence: DashboardAlertItem[];
 };
