@@ -15,6 +15,7 @@ import {
   GetBranchHistoryInput,
   GetClientDetailOutput,
   UpdateBranchConfigurationInput,
+  UpdateBranchServiceCycleInput,
   UpdateBranchInput,
   UpdateBusinessInput,
   UpdateClientInput,
@@ -300,6 +301,34 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
     });
   };
 
+  const updateBranchServiceCycle = async (input: UpdateBranchServiceCycleInput) => {
+    const branch = await deps.branchRepository.findById(input.branchId);
+    if (!branch) {
+      throw new NotFoundError(`Branch not found: ${input.branchId}`);
+    }
+
+    const existingCycle = await deps.serviceCycleRepository.findByBranchId(input.branchId);
+
+    if (existingCycle) {
+      return deps.serviceCycleRepository.update(input.branchId, {
+        nextMainServiceDate: input.nextMainServiceDate,
+        nextReinforcementDate:
+          input.nextReinforcementDate === undefined
+            ? existingCycle.nextReinforcementDate
+            : input.nextReinforcementDate,
+        active: true,
+      });
+    }
+
+    return deps.serviceCycleRepository.create({
+      branchId: input.branchId,
+      lastServiceDate: null,
+      nextMainServiceDate: input.nextMainServiceDate,
+      nextReinforcementDate: input.nextReinforcementDate ?? null,
+      active: true,
+    });
+  };
+
   const getBranchHistory = async (input: GetBranchHistoryInput) => {
     const branch = await deps.branchRepository.findById(input.branchId);
     if (!branch) {
@@ -331,6 +360,7 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
     updateBusiness,
     updateBranch,
     updateBranchConfiguration,
+    updateBranchServiceCycle,
     getBranchHistory,
   };
 };

@@ -206,12 +206,18 @@ const branchFormInitialValue = computed(() => {
     return undefined;
   }
 
+  const selectedBranchDetail = detail.value?.businesses
+    .flatMap((businessItem) => businessItem.branches)
+    .find((branchItem) => branchItem.branch.id === selectedBranch.value?.id);
+
   return {
     address: selectedBranch.value.address,
     city: selectedBranch.value.city ?? '',
     phone: selectedBranch.value.phone ?? '',
     pricePerM2: selectedBranch.value.pricePerM2,
     fixedPrice: selectedBranch.value.fixedPrice,
+    nextMainServiceDate: selectedBranchDetail?.serviceCycle?.nextMainServiceDate ?? null,
+    reinforcementDays: selectedBranch.value.reinforcementDays ?? 0,
   };
 });
 
@@ -349,13 +355,31 @@ const handleBusinessSubmit = async (payload: { name: string }) => {
   }
 };
 
-const handleBranchSubmit = async (payload: UpdateBranchPayload) => {
+const handleBranchSubmit = async (
+  payload: UpdateBranchPayload & {
+    pricingMode: 'fixed' | 'square_meter';
+    squareMeters?: number;
+    nextMainServiceDate: string;
+    nextReinforcementDate?: string;
+  },
+) => {
   isSubmitting.value = true;
   error.value = '';
 
   try {
     if (selectedBranch.value) {
-      await clientsService.updateBranch(selectedBranch.value.id, payload);
+      await clientsService.updateBranch(selectedBranch.value.id, {
+        address: payload.address,
+        city: payload.city,
+        phone: payload.phone,
+        pricePerM2: payload.pricePerM2,
+        fixedPrice: payload.fixedPrice,
+      });
+      updateBranchCycleDates({
+        branchId: selectedBranch.value.id,
+        nextMainServiceDate: payload.nextMainServiceDate,
+        nextReinforcementDate: payload.nextReinforcementDate ?? null,
+      });
       await refreshDetail('Sucursal actualizada.', closeBranchModal);
       return;
     }
@@ -366,7 +390,12 @@ const handleBranchSubmit = async (payload: UpdateBranchPayload) => {
 
     await clientsService.addBranchToBusiness(selectedBusiness.value.id, {
       clientId: detail.value.client.id,
-      ...payload,
+      address: payload.address,
+      city: payload.city,
+      phone: payload.phone,
+      pricePerM2: payload.pricePerM2,
+      fixedPrice: payload.fixedPrice,
+      nextMainServiceDate: payload.nextMainServiceDate,
     });
     await refreshDetail('Sucursal agregada.', closeBranchModal);
   } catch {
@@ -400,7 +429,7 @@ const goToHistory = (branchId: string) => {
   void router.push(`/clients/${clientId.value}/branches/${branchId}/history`);
 };
 
-const updateBranchCycleDates = (payload: {
+const updateBranchCycleDates = async (payload: {
   branchId: string;
   nextMainServiceDate: string | null;
   nextReinforcementDate: string | null;
@@ -408,6 +437,21 @@ const updateBranchCycleDates = (payload: {
   if (!detail.value) {
     return;
   }
+
+  if (!payload.nextMainServiceDate) {
+    error.value = 'La fecha del proximo servicio es obligatoria.';
+    return;
+  }
+
+  try {
+    const updatedCycle = await clientsService.updateBranchCycle(payload.branchId, {
+      nextMainServiceDate: payload.nextMainServiceDate,
+      nextReinforcementDate: payload.nextReinforcementDate,
+    });
+
+    if (!updatedCycle) {
+      throw new Error('Cycle update failed');
+    }
 
   detail.value = {
     ...detail.value,
@@ -418,30 +462,18 @@ const updateBranchCycleDates = (payload: {
           return branchItem;
         }
 
-        const cycle: ServiceCycle = branchItem.serviceCycle
-          ? {
-              ...branchItem.serviceCycle,
-              nextMainServiceDate: payload.nextMainServiceDate,
-              nextReinforcementDate: payload.nextReinforcementDate,
-            }
-          : {
-              id: `local-${payload.branchId}`,
-              branchId: payload.branchId,
-              active: true,
-              lastMainServiceDate: null,
-              nextMainServiceDate: payload.nextMainServiceDate,
-              nextReinforcementDate: payload.nextReinforcementDate,
-            };
-
         return {
           ...branchItem,
-          serviceCycle: cycle,
+          serviceCycle: updatedCycle as ServiceCycle,
         };
       }),
     })),
   };
 
-  pushToast('Fechas actualizadas en vista local. Pendiente endpoint para persistir en backend.');
+    pushToast('Fechas de servicio actualizadas.');
+  } catch {
+    error.value = 'No se pudieron actualizar las fechas de la sucursal.';
+  }
 };
 
 onMounted(() => {

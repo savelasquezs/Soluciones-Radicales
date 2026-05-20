@@ -80,6 +80,27 @@ describe('clients.service', () => {
     expect(http.post).toHaveBeenCalledWith(endpoints.clients.create, payload);
   });
 
+  it('updateBranchCycle llama ruta correcta', async () => {
+    vi.mocked(http.patch).mockResolvedValue({
+      id: 'cycle-1',
+      branchId: 'branch-1',
+      active: true,
+      lastServiceDate: null,
+      nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+      nextReinforcementDate: '2026-06-30T10:00:00.000Z',
+    } as any);
+
+    await clientsService.updateBranchCycle('branch-1', {
+      nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+      nextReinforcementDate: '2026-06-30T10:00:00.000Z',
+    });
+
+    expect(http.patch).toHaveBeenCalledWith(endpoints.clients.updateBranchCycle('branch-1'), {
+      nextMainServiceDate: '2026-06-20T10:00:00.000Z',
+      nextReinforcementDate: '2026-06-30T10:00:00.000Z',
+    });
+  });
+
   it('normaliza respuesta backend a tipos frontend', async () => {
     vi.mocked(http.get).mockResolvedValue({
       client: {

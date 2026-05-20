@@ -83,6 +83,14 @@ const handleSubmit = () => {
     error.value = 'El nombre del cliente es obligatorio.';
     return;
   }
+  if (form.name.trim().length < 3) {
+    error.value = 'El nombre del cliente debe tener minimo 3 caracteres.';
+    return;
+  }
+  if (form.contactName.trim() && form.contactName.trim().length < 3) {
+    error.value = 'El nombre del contacto debe tener minimo 3 caracteres.';
+    return;
+  }
 
   emit('submit', {
     name: form.name.trim(),

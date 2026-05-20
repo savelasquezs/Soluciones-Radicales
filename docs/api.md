@@ -411,3 +411,4 @@ Respuesta:
 - `GET /api/clients/branches/:branchId/history` hoy retorna historial basico de `services` y no incluye tecnicos, evidencias ni metodo de pago enriquecido.
 
 - `createService` hoy no crea un servicio real en `createInitialClient` ni en `addBranchToBusiness`; actualmente solo se crea `serviceCycle` cuando llega `nextMainServiceDate`.
+- Nuevo endpoint: `PATCH /api/clients/branches/:branchId/cycle` para crear/actualizar `service_cycles` por sucursal. Body: `{ nextMainServiceDate, nextReinforcementDate? }`.

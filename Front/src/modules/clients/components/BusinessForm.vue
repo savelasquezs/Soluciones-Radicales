@@ -61,6 +61,10 @@ const handleSubmit = () => {
     error.value = 'El nombre del negocio es obligatorio.';
     return;
   }
+  if (name.value.trim().length < 3) {
+    error.value = 'El nombre del negocio debe tener minimo 3 caracteres.';
+    return;
+  }
 
   emit('submit', { name: name.value.trim() });
 };

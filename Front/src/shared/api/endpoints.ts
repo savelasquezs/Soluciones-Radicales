@@ -18,6 +18,7 @@ export const endpoints = {
     updateBusiness: (businessId: string) => `/clients/businesses/${businessId}`,
     addBranch: (businessId: string) => `/clients/businesses/${businessId}/branches`,
     updateBranch: (branchId: string) => `/clients/branches/${branchId}`,
+    updateBranchCycle: (branchId: string) => `/clients/branches/${branchId}/cycle`,
     updateBranchConfiguration: (branchId: string) => `/clients/branches/${branchId}/configuration`,
     branchHistory: (branchId: string) => `/clients/branches/${branchId}/history`,
   },

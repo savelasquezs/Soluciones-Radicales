@@ -100,6 +100,12 @@ export interface UpdateBranchConfigurationInput {
   technicianRevenueMode?: TechnicianRevenueMode;
 }
 
+export interface UpdateBranchServiceCycleInput {
+  branchId: string;
+  nextMainServiceDate: Date;
+  nextReinforcementDate?: Date | null;
+}
+
 export interface GetBranchHistoryInput {
   branchId: string;
   from?: Date;

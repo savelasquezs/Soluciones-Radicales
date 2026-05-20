@@ -145,6 +145,11 @@ export type UpdateBranchConfigurationPayload = {
   technicianRevenueMode: TechnicianRevenueMode;
 };
 
+export type UpdateBranchCyclePayload = {
+  nextMainServiceDate: ISODateString;
+  nextReinforcementDate?: ISODateString | null;
+};
+
 export type BranchHistoryQuery = DateRangeQuery & {
   status?: ServiceStatus;
   type?: ServiceType;

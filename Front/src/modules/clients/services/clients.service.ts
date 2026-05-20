@@ -18,6 +18,7 @@ import type {
   CreateInitialClientResult,
   ServiceCycle,
   UpdateBranchConfigurationPayload,
+  UpdateBranchCyclePayload,
   UpdateBranchPayload,
   UpdateBusinessPayload,
   UpdateClientPayload,
@@ -250,6 +251,10 @@ export const clientsService = {
   async updateBranchConfiguration(branchId: string, payload: UpdateBranchConfigurationPayload) {
     const response = await http.patch<BackendBranch>(endpoints.clients.updateBranchConfiguration(branchId), payload);
     return mapBranchConfiguration(response);
+  },
+  async updateBranchCycle(branchId: string, payload: UpdateBranchCyclePayload) {
+    const response = await http.patch<BackendServiceCycle>(endpoints.clients.updateBranchCycle(branchId), payload);
+    return mapServiceCycle(response);
   },
   async getBranchHistory(branchId: string, query?: BranchHistoryQuery) {
     const response = await http.get<BackendBranchHistoryResponse>(endpoints.clients.branchHistory(branchId), {

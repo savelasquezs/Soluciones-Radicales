@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import type { createClientUseCases } from '../../../application/clients/client.usecases';
+import { ValidationError } from '../../../application/errors';
 import {
   asyncHandler,
   parseOptionalBoolean,
@@ -24,6 +25,7 @@ interface ClientController {
   updateBusiness: RequestHandler;
   updateBranch: RequestHandler;
   updateBranchConfiguration: RequestHandler;
+  updateBranchServiceCycle: RequestHandler;
   getBranchHistory: RequestHandler;
   addBusinessToClient: RequestHandler;
   addBranchToBusiness: RequestHandler;
@@ -44,7 +46,8 @@ export const createClientController = (deps: {
     | 'getBranchHistory'
     | 'addBusinessToClient'
     | 'addBranchToBusiness'
-  >;
+  > &
+    Partial<Pick<ClientUseCases, 'updateBranchServiceCycle'>>;
 }): ClientController => {
   const createInitialClient = asyncHandler(async (request, response) => {
     const data = await deps.clientUseCases.createInitialClient({
@@ -211,6 +214,32 @@ export const createClientController = (deps: {
     response.status(200).json({ data });
   });
 
+  const updateBranchServiceCycle = asyncHandler(async (request, response) => {
+    if (!deps.clientUseCases.updateBranchServiceCycle) {
+      throw new Error('updateBranchServiceCycle use case is not configured');
+    }
+
+    const nextMainServiceDate = parseOptionalDate(
+      request.body?.nextMainServiceDate,
+      'Next main service date is invalid',
+    );
+
+    if (!nextMainServiceDate) {
+      throw new ValidationError('Next main service date is required');
+    }
+
+    const data = await deps.clientUseCases.updateBranchServiceCycle({
+      branchId: parseRequiredString(request.params.branchId, 'Branch id is required'),
+      nextMainServiceDate,
+      nextReinforcementDate: parseOptionalDate(
+        request.body?.nextReinforcementDate,
+        'Next reinforcement date is invalid',
+      ),
+    });
+
+    response.status(200).json({ data });
+  });
+
   const addBusinessToClient = asyncHandler(async (request, response) => {
     const data = await deps.clientUseCases.addBusinessToClient({
       clientId: parseRequiredString(request.params.clientId, 'Client id is required'),
@@ -274,6 +303,7 @@ export const createClientController = (deps: {
     updateBusiness,
     updateBranch,
     updateBranchConfiguration,
+    updateBranchServiceCycle,
     getBranchHistory,
     addBusinessToClient,
     addBranchToBusiness,

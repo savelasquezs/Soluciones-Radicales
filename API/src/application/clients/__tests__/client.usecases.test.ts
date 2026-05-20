@@ -316,4 +316,56 @@ describe('client usecases', () => {
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
+
+  it('updateBranchServiceCycle actualiza ciclo existente', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.findById.mockResolvedValue(baseBranch);
+    deps.serviceCycleRepository.findByBranchId.mockResolvedValue(baseCycle);
+    deps.serviceCycleRepository.update.mockResolvedValue({
+      ...baseCycle,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+    });
+    const useCases = createClientUseCases(deps);
+
+    const result = await useCases.updateBranchServiceCycle({
+      branchId: baseBranch.id,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+    });
+
+    expect(result.nextMainServiceDate).toEqual(new Date('2026-06-20T10:00:00.000Z'));
+    expect(deps.serviceCycleRepository.update).toHaveBeenCalledWith(baseBranch.id, {
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+      active: true,
+    });
+  });
+
+  it('updateBranchServiceCycle crea ciclo si no existe', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.findById.mockResolvedValue(baseBranch);
+    deps.serviceCycleRepository.findByBranchId.mockResolvedValue(null);
+    deps.serviceCycleRepository.create.mockResolvedValue({
+      ...baseCycle,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+    });
+    const useCases = createClientUseCases(deps);
+
+    const result = await useCases.updateBranchServiceCycle({
+      branchId: baseBranch.id,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+    });
+
+    expect(result.nextMainServiceDate).toEqual(new Date('2026-06-20T10:00:00.000Z'));
+    expect(deps.serviceCycleRepository.create).toHaveBeenCalledWith({
+      branchId: baseBranch.id,
+      lastServiceDate: null,
+      nextMainServiceDate: new Date('2026-06-20T10:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-30T10:00:00.000Z'),
+      active: true,
+    });
+  });
 });

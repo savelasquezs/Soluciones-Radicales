@@ -494,6 +494,7 @@ describe('route protection', () => {
     ['PATCH', '/api/clients/client-1'],
     ['PATCH', '/api/clients/businesses/business-1'],
     ['PATCH', '/api/clients/branches/branch-1'],
+    ['PATCH', '/api/clients/branches/branch-1/cycle'],
     ['PATCH', '/api/clients/branches/branch-1/configuration'],
     ['GET', '/api/clients/branches/branch-1/history'],
   ])('%s %s sin token retorna 401', async (method, path) => {
@@ -534,6 +535,7 @@ describe('route protection', () => {
     ['PATCH', '/api/clients/client-1'],
     ['PATCH', '/api/clients/businesses/business-1'],
     ['PATCH', '/api/clients/branches/branch-1'],
+    ['PATCH', '/api/clients/branches/branch-1/cycle'],
     ['PATCH', '/api/clients/branches/branch-1/configuration'],
     ['GET', '/api/clients/branches/branch-1/history'],
   ])('%s %s con usuario no admin retorna 403', async (method, path) => {

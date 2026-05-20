@@ -14,6 +14,7 @@ const buildUseCases = () => ({
   updateBusiness: vi.fn(),
   updateBranch: vi.fn(),
   updateBranchConfiguration: vi.fn(),
+  updateBranchServiceCycle: vi.fn(),
   getBranchHistory: vi.fn(),
   addBusinessToClient: vi.fn(),
   addBranchToBusiness: vi.fn(),
@@ -165,6 +166,31 @@ describe('client routes', () => {
         reinforcementDays: 20,
         reinforcementEnabled: false,
         reinforcementIsPaid: true,
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('PATCH /api/clients/branches/:branchId/cycle responde 200', async () => {
+    const useCases = buildUseCases();
+    useCases.updateBranchServiceCycle.mockResolvedValue({
+      id: 'cycle-1',
+      branchId: 'branch-1',
+      lastServiceDate: null,
+      nextMainServiceDate: new Date('2026-06-10T09:00:00.000Z'),
+      nextReinforcementDate: new Date('2026-06-20T09:00:00.000Z'),
+      active: true,
+    });
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/branch-1/cycle', {
+      method: 'PATCH',
+      body: {
+        nextMainServiceDate: '2026-06-10T09:00:00.000Z',
+        nextReinforcementDate: '2026-06-20T09:00:00.000Z',
       },
     });
 
