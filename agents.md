@@ -114,6 +114,8 @@ Debes:
 
 ---
 
+- Verifica que la interfaz de respuesta del backend corresponda con lo que espera el frontend en cada una de las peticiones.
+
 # 🏗️ BACKEND
 
 ## Stack:
