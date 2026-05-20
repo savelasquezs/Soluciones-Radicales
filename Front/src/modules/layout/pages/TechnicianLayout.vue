@@ -1,13 +1,25 @@
 <template>
   <div class="min-h-screen bg-background text-foreground">
-    <AppHeader />
-    <main class="p-4">
+    <AppHeader context="technician" />
+    <main class="mx-auto w-full max-w-5xl p-4 pb-20">
       <RouterView />
-      <div class="mt-4 flex gap-2">
-        <RouterLink class="rounded-lg bg-muted px-3 py-2 text-sm" to="/technician/schedule">Mi agenda</RouterLink>
-        <RouterLink class="rounded-lg bg-muted px-3 py-2 text-sm" to="/technician/profile">Perfil</RouterLink>
-      </div>
     </main>
+    <nav class="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-2 border-t border-border bg-card p-2 lg:hidden">
+      <RouterLink
+        to="/technician/schedule"
+        class="rounded-lg px-2 py-2 text-center text-xs"
+        active-class="bg-muted font-semibold"
+      >
+        Mi agenda
+      </RouterLink>
+      <RouterLink
+        to="/technician/profile"
+        class="rounded-lg px-2 py-2 text-center text-xs"
+        active-class="bg-muted font-semibold"
+      >
+        Perfil
+      </RouterLink>
+    </nav>
   </div>
 </template>
 

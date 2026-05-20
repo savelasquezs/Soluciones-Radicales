@@ -22,13 +22,19 @@ const flushQueue = (token: string | null) => {
 const normalizeError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
     return {
-      message: (error.response?.data as { message?: string } | undefined)?.message ??
+      message:
+        (error.response?.data as { message?: string } | undefined)?.message ??
         error.message ??
         'Request failed',
     };
   }
 
   return { message: 'Request failed' };
+};
+
+const shouldSkipRefresh = (url?: string) => {
+  if (!url) return false;
+  return url.includes('/auth/refresh') || url.includes('/auth/login');
 };
 
 httpClient.interceptors.request.use((config) => {
@@ -46,7 +52,12 @@ httpClient.interceptors.response.use(
     const status = error.response?.status;
     const refreshToken = localStorage.getItem(TOKEN_KEYS.refreshToken);
 
-    if (status !== 401 || original?._retry || !refreshToken) {
+    if (
+      status !== 401 ||
+      original?._retry ||
+      !refreshToken ||
+      shouldSkipRefresh(original?.url)
+    ) {
       return Promise.reject(normalizeError(error));
     }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-background text-foreground">
-    <AppHeader />
+    <AppHeader context="admin" />
     <div class="flex">
       <AppSidebar />
       <main class="w-full p-4 pb-20 lg:pb-4">

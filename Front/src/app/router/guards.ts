@@ -1,41 +1,46 @@
-import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
+import type { RouteLocationNormalized } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/stores/auth.store';
 
-export const authGuard = (
-  to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext,
-) => {
+const isPublicPath = (path: string) => {
+  return path === '/login' || path === '/forgot-password' || path === '/reset-password';
+};
+
+export const resolveRouteAccess = async (to: RouteLocationNormalized) => {
   const auth = useAuthStore();
+
+  if (auth.isAuthenticated && !auth.user) {
+    await auth.bootstrapSession();
+  }
+
+  if (isPublicPath(to.path)) {
+    if (!auth.isAuthenticated) return true;
+    return { path: auth.resolveHomePath() };
+  }
+
   if (!auth.isAuthenticated) {
-    next({ path: '/login', query: { redirect: to.fullPath } });
-    return;
+    return { path: '/login', query: { redirect: to.fullPath } };
   }
-  next();
-};
 
-export const adminGuard = (
-  _to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext,
-) => {
-  const auth = useAuthStore();
-  if (!auth.isAdmin) {
-    next('/technician');
-    return;
-  }
-  next();
-};
+  const isAdminRoute =
+    to.path === '/' ||
+    to.path === '/dashboard' ||
+    to.path.startsWith('/clients') ||
+    to.path.startsWith('/services') ||
+    to.path.startsWith('/settings');
 
-export const technicianGuard = (
-  _to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext,
-) => {
-  const auth = useAuthStore();
-  if (!auth.isTechnician) {
-    next('/dashboard');
-    return;
+  const isTechnicianRoute = to.path.startsWith('/technician');
+
+  if (to.path === '/') {
+    return { path: auth.resolveHomePath() };
   }
-  next();
+
+  if (isAdminRoute && !auth.isAdmin) {
+    return { path: auth.resolveHomePath() };
+  }
+
+  if (isTechnicianRoute && !auth.isTechnician) {
+    return { path: auth.resolveHomePath() };
+  }
+
+  return true;
 };
