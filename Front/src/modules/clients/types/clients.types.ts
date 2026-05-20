@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   DateRangeQuery,
   ID,
   ISODateString,
@@ -10,57 +10,64 @@ import type {
 export type Client = {
   id: ID;
   name: string;
-  contactName?: string | null;
-  phone?: string | null;
+  contactName: string | null;
+  phone: string | null;
+  createdAt?: ISODateString;
 };
 
 export type Business = {
   id: ID;
   clientId: ID;
   name: string;
-  branches?: Branch[];
 };
 
 export type Branch = {
   id: ID;
-  businessId?: ID;
-  clientId?: ID;
+  businessId: ID;
   address: string;
-  city?: string | null;
-  phone?: string | null;
-  pricePerM2?: number | null;
-  fixedPrice?: number | null;
+  phone: string | null;
+  city: string | null;
+  pricePerM2: number | null;
+  fixedPrice: number | null;
+  frequencyDays: number | null;
+  reinforcementDays: number | null;
+  reinforcementEnabled: boolean | null;
+  reinforcementIsPaid: boolean | null;
+  technicianRevenueMode: TechnicianRevenueMode;
+  createdAt: ISODateString;
 };
 
 export type BranchConfiguration = {
-  frequencyDays?: number;
-  reinforcementDays?: number;
-  reinforcementEnabled?: boolean;
-  reinforcementIsPaid?: boolean;
-  technicianRevenueMode?: TechnicianRevenueMode;
+  id: ID;
+  frequencyDays: number | null;
+  reinforcementDays: number | null;
+  reinforcementEnabled: boolean | null;
+  reinforcementIsPaid: boolean | null;
+  technicianRevenueMode: TechnicianRevenueMode;
 };
 
 export type ServiceCycle = {
-  id?: ID;
-  branchId?: ID;
-  active?: boolean;
-  lastMainServiceDate?: ISODateString | null;
-  nextMainServiceDate?: ISODateString | null;
-  nextReinforcementDate?: ISODateString | null;
+  id: ID;
+  branchId: ID;
+  active: boolean;
+  lastMainServiceDate: ISODateString | null;
+  nextMainServiceDate: ISODateString | null;
+  nextReinforcementDate: ISODateString | null;
+};
+
+export type ClientBranchDetail = {
+  branch: Branch;
+  serviceCycle: ServiceCycle | null;
+};
+
+export type ClientBusinessDetail = {
+  business: Business;
+  branches: ClientBranchDetail[];
 };
 
 export type ClientDetail = {
   client: Client;
-  businesses: Array<
-    Business & {
-      branches: Array<
-        Branch & {
-          configuration?: BranchConfiguration;
-          serviceCycle?: ServiceCycle;
-        }
-      >;
-    }
-  >;
+  businesses: ClientBusinessDetail[];
 };
 
 export type CreateInitialClientPayload = {
@@ -76,14 +83,20 @@ export type CreateInitialClientPayload = {
     reinforcementDays?: number;
     reinforcementEnabled?: boolean;
     reinforcementIsPaid?: boolean;
-    technicianRevenueMode?: TechnicianRevenueMode;
   };
   nextMainServiceDate?: ISODateString;
   createService?: boolean;
 };
 
+export type CreateInitialClientResult = {
+  client: Client;
+  business: Business;
+  branch: Branch;
+  serviceCycle: ServiceCycle | null;
+};
+
 export type UpdateClientPayload = {
-  name?: string;
+  name: string;
   contactName?: string;
   phone?: string;
 };
@@ -103,17 +116,34 @@ export type AddBranchPayload = {
   phone?: string;
   pricePerM2?: number;
   fixedPrice?: number;
+  frequencyDays?: number;
+  reinforcementDays?: number;
+  reinforcementEnabled?: boolean;
+  reinforcementIsPaid?: boolean;
+  nextMainServiceDate?: ISODateString;
+  createService?: boolean;
+};
+
+export type AddBranchResult = {
+  branch: Branch;
+  serviceCycle: ServiceCycle | null;
 };
 
 export type UpdateBranchPayload = {
-  address?: string;
+  address: string;
   city?: string;
   phone?: string;
   pricePerM2?: number;
   fixedPrice?: number;
 };
 
-export type UpdateBranchConfigurationPayload = BranchConfiguration;
+export type UpdateBranchConfigurationPayload = {
+  frequencyDays: number;
+  reinforcementDays: number;
+  reinforcementEnabled: boolean;
+  reinforcementIsPaid: boolean;
+  technicianRevenueMode: TechnicianRevenueMode;
+};
 
 export type BranchHistoryQuery = DateRangeQuery & {
   status?: ServiceStatus;
@@ -122,9 +152,16 @@ export type BranchHistoryQuery = DateRangeQuery & {
 
 export type BranchHistoryServiceItem = {
   id: ID;
+  branchId: ID;
   status: ServiceStatus;
   type: ServiceType;
-  scheduledAt?: ISODateString;
+  scheduledAt: ISODateString | null;
+  price: number | null;
+  notes: string | null;
+  paymentMethodId: string | null;
+  paymentProofUrl: string | null;
+  createdBy: string | null;
+  createdAt: ISODateString;
 };
 
 export type BranchHistoryResponse = {

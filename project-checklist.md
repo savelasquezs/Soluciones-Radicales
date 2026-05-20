@@ -1,4 +1,4 @@
-# Project Checklist ÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â¢ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â‚Â¬Ã…Â¡ÃƒÂ‚Ã‚Â¬ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â€ÂšÃ‚Â¬ÃƒÂ‚Ã‚Â Soluciones Radicales
+﻿# Project Checklist ÃƒÂƒÃ†Â’ÃƒÂ‚Ã‚Â¢ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â‚Â¬Ã…Â¡ÃƒÂ‚Ã‚Â¬ÃƒÂƒÃ‚Â¢ÃƒÂ¢Ã¢Â€ÂšÃ‚Â¬ÃƒÂ‚Ã‚Â Soluciones Radicales
 
 Este documento sirve para hacer seguimiento funcional del sistema interno de fumigaciones B2B.
 
@@ -242,3 +242,16 @@ Notas:
 - [x] Encoding validado sin mojibake visible en README y checklist.
 - [x] CORS backend configurado para frontend local (`http://localhost:5173`) con `CORS_ORIGIN`.
 - [x] Test HTTP de CORS agregado (preflight OPTIONS + origen permitido/no permitido).
+
+### Frontend - Clientes
+
+- [x] Modulo clientes implementado en frontend.
+- [x] `/clients` implementado.
+- [x] `/clients/:id` implementado.
+- [x] `/clients/:id/branches/:branchId/history` implementado.
+- [x] Formularios reutilizables de clientes creados.
+- [x] Historial de sucursal conectado.
+- [x] Regla de comparacion frontend/backend agregada.
+- [x] Tests de clientes agregados.
+- [ ] TODO real: `createService` aparece en docs/controller de clientes, pero el caso de uso actual no crea un servicio real con ese flag.
+- [ ] TODO real: si el historial administrativo necesita tecnicos, evidencias, metodo de pago legible o soportes en una sola respuesta, se requiere endpoint o read model mas rico en backend.

@@ -311,3 +311,17 @@ Reutilización > repetición
 ---
 
 Este proyecto debe poder escalar sin reescribirse.
+
+## 34. Regla de contrato frontend/backend
+
+Antes de crear o modificar servicios frontend, tipos, stores, paginas o componentes que consuman API se debe comparar siempre:
+- lo que espera el frontend
+- lo que documenta `/docs/api.md`
+- lo que realmente devuelve el backend
+
+Si existe diferencia:
+- no adivinar contratos
+- crear mapper o normalizador en el service frontend
+- mantener tipos internos del frontend en camelCase
+- actualizar `/docs/api.md` si la documentacion esta desactualizada
+- registrar TODO real en `/project-checklist.md` si falta informacion o endpoint

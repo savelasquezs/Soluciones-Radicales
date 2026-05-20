@@ -10,6 +10,8 @@ const TechnicianLayout = () => import('@/modules/layout/pages/TechnicianLayout.v
 
 const DashboardPage = () => import('@/modules/dashboard/pages/DashboardPage.vue');
 const ClientsPage = () => import('@/modules/clients/pages/ClientsPage.vue');
+const ClientDetailPage = () => import('@/modules/clients/pages/ClientDetailPage.vue');
+const BranchHistoryPage = () => import('@/modules/clients/pages/BranchHistoryPage.vue');
 const ServicesPage = () => import('@/modules/services/pages/ServicesPage.vue');
 const SettingsPage = () => import('@/modules/settings/pages/SettingsPage.vue');
 
@@ -28,6 +30,8 @@ export const router = createRouter({
       children: [
         { path: 'dashboard', component: DashboardPage },
         { path: 'clients', component: ClientsPage },
+        { path: 'clients/:id', component: ClientDetailPage },
+        { path: 'clients/:id/branches/:branchId/history', component: BranchHistoryPage },
         { path: 'services', component: ServicesPage },
         { path: 'settings', component: SettingsPage },
       ],

@@ -577,3 +577,17 @@ Reglas de alertas:
 Nota de trazabilidad:
 - Actualmente attributedSales usa technicianRevenueMode actual de la sucursal.
 - Si se requiere trazabilidad historica exacta, se debe guardar snapshot en services o service_technicians.
+
+## 34. Contrato frontend y backend
+
+Antes de implementar o modificar cualquier consumo HTTP en frontend se debe comparar siempre:
+- lo que espera el frontend
+- lo que documenta `/docs/api.md`
+- lo que realmente devuelve el backend
+
+Si hay diferencias:
+- no inventar tipos ni campos obligatorios
+- normalizar en el service frontend
+- mantener camelCase en tipos internos del frontend
+- actualizar `/docs/api.md` si el contrato documentado cambio
+- registrar TODO real en `/project-checklist.md` cuando falte informacion o endpoint

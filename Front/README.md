@@ -77,3 +77,11 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Frontend local: `http://localhost:5173`.
 - Backend API debe definir `CORS_ORIGIN=http://localhost:5173` para desarrollo.
 - Si cambias variables de entorno, reinicia `npm run dev` (Front y API si aplica).
+
+## Clients module
+
+- Rutas del modulo: `/clients`, `/clients/:id`, `/clients/:id/branches/:branchId/history`.
+- El modulo consume `clientsService`; no usa store global por ahora.
+- Las respuestas del backend se normalizan en `src/modules/clients/services/clients.service.ts` cuando la forma real no coincide con la semantica interna del frontend.
+- El detalle del cliente y el historial de sucursal se mantienen separados para evitar respuestas pesadas.
+- El historial de sucursal vive en una pantalla independiente y hoy consume el historial basico expuesto por backend.
