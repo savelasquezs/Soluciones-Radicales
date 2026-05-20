@@ -96,6 +96,7 @@ export const toBranchEntity = (row: BranchRow): Branch => ({
   reinforcementDays: row.reinforcementDays,
   reinforcementEnabled: row.reinforcementEnabled,
   reinforcementIsPaid: row.reinforcementIsPaid,
+  technicianRevenueMode: row.technicianRevenueMode as Branch['technicianRevenueMode'],
   createdAt: row.createdAt ?? new Date(),
 });
 

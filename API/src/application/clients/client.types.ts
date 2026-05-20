@@ -5,6 +5,7 @@ import {
   Service,
   ServiceCycle,
   ServiceStatus,
+  TechnicianRevenueMode,
   ServiceType,
 } from '../../domain/entities';
 
@@ -96,6 +97,7 @@ export interface UpdateBranchConfigurationInput {
   reinforcementDays?: number | null;
   reinforcementEnabled?: boolean | null;
   reinforcementIsPaid?: boolean | null;
+  technicianRevenueMode?: TechnicianRevenueMode;
 }
 
 export interface GetBranchHistoryInput {

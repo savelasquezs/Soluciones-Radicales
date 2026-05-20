@@ -67,6 +67,12 @@ const settingsUseCases = {
   disablePaymentMethod: vi.fn(),
 };
 
+const dashboardUseCases = {
+  getSummary: vi.fn(),
+  getAnalytics: vi.fn(),
+  getAlerts: vi.fn(),
+};
+
 const signAdminToken = async () => {
   const { signAccessToken } = await import('../../../../infrastructure/auth/jwt.service');
   return signAccessToken({
@@ -97,6 +103,7 @@ vi.mock('../../dependencies', () => ({
     serviceUseCases,
     userUseCases,
     settingsUseCases,
+    dashboardUseCases,
   }),
 }));
 
@@ -261,6 +268,35 @@ describe('app router integration', () => {
 
     expect(response.status).toBe(200);
     expect(settingsUseCases.getSystemSettings).toHaveBeenCalled();
+  });
+
+  it('bloquea /api/dashboard/summary sin token', async () => {
+    const request = await startApp();
+    const response = await request('/api/dashboard/summary');
+    expect(response.status).toBe(401);
+  });
+
+  it('permite /api/dashboard/summary con admin', async () => {
+    dashboardUseCases.getSummary.mockResolvedValue({
+      salesTotal: 0,
+      servicesTotal: 0,
+      servicesCompleted: 0,
+      servicesPending: 0,
+      servicesCanceled: 0,
+      servicesRescheduled: 0,
+      overdueServices: 0,
+      activeClients: 0,
+      activeBranches: 0,
+      completionRate: 0,
+    });
+    const request = await startApp();
+    const response = await request('/api/dashboard/summary', {
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+    expect(response.status).toBe(200);
+    expect(dashboardUseCases.getSummary).toHaveBeenCalled();
   });
 
   it('retorna 403 en /api/clients con usuario no admin', async () => {

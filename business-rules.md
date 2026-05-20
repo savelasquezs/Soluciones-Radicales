@@ -541,3 +541,15 @@ El cambio de contrasena autenticado debe requerir contrasena actual valida.
 El flujo de recuperacion de contrasena no debe revelar si el email existe o no.
 
 Los tokens de recuperacion deben ser de un solo uso y expirar.
+
+## 32. Atribucion de ventas por tecnico
+
+Cada sucursal define 	echnician_revenue_mode para atribucion de ventas con valores permitidos split y ull.
+
+Reglas:
+- sales representa ventas reales del negocio y cuenta cada servicio una sola vez.
+- ttributedSales representa ventas atribuidas a tecnicos y puede superar sales cuando el modo es ull.
+- En modo split, el valor del servicio se divide entre tecnicos asignados.
+- En modo ull, cada tecnico asignado recibe el valor completo del servicio.
+- La atribucion usa services.price historico y no recalcula precios historicos.
+

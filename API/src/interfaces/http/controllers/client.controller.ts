@@ -8,6 +8,7 @@ import {
   parseOptionalServiceStatus,
   parseOptionalServiceType,
   parseOptionalString,
+  parseOptionalTechnicianRevenueMode,
   parseRequiredString,
 } from '../request.utils';
 
@@ -189,6 +190,9 @@ export const createClientController = (deps: {
       reinforcementIsPaid: parseOptionalBoolean(
         request.body?.reinforcementIsPaid,
         'Branch reinforcementIsPaid must be a boolean',
+      ),
+      technicianRevenueMode: parseOptionalTechnicianRevenueMode(
+        request.body?.technicianRevenueMode,
       ),
     });
 

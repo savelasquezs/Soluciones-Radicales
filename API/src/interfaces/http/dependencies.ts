@@ -1,5 +1,6 @@
 import { createAuthUseCases } from '../../application/auth/auth.usecases';
 import { createClientUseCases } from '../../application/clients/client.usecases';
+import { createDashboardUseCases } from '../../application/dashboard/dashboard.usecases';
 import { createServiceUseCases } from '../../application/services/service.usecases';
 import { createSettingsUseCases } from '../../application/settings/settings.usecases';
 import { createUserUseCases } from '../../application/users/user.usecases';
@@ -21,6 +22,7 @@ import {
   BranchDrizzleRepository,
   BusinessDrizzleRepository,
   ClientDrizzleRepository,
+  DrizzleDashboardRepository,
   DrizzlePasswordResetTokenRepository,
   DrizzleRefreshTokenRepository,
   PaymentMethodDrizzleRepository,
@@ -38,6 +40,7 @@ export const createHttpDependencies = () => {
   const branchRepository = new BranchDrizzleRepository();
   const businessRepository = new BusinessDrizzleRepository();
   const clientRepository = new ClientDrizzleRepository();
+  const dashboardRepository = new DrizzleDashboardRepository();
   const passwordResetTokenRepository = new DrizzlePasswordResetTokenRepository();
   const paymentMethodRepository = new PaymentMethodDrizzleRepository();
   const refreshTokenRepository = new DrizzleRefreshTokenRepository();
@@ -68,6 +71,9 @@ export const createHttpDependencies = () => {
         uploadFile,
       },
       activityLogRepository,
+    }),
+    dashboardUseCases: createDashboardUseCases({
+      dashboardRepository,
     }),
     userUseCases: createUserUseCases({
       userRepository,

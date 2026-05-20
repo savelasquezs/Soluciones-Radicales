@@ -1,3 +1,5 @@
+export type TechnicianRevenueMode = 'split' | 'full';
+
 export interface Branch {
   id: string;
   businessId: string;
@@ -10,5 +12,6 @@ export interface Branch {
   reinforcementDays: number | null;
   reinforcementEnabled: boolean | null;
   reinforcementIsPaid: boolean | null;
+  technicianRevenueMode: TechnicianRevenueMode;
   createdAt: Date;
 }

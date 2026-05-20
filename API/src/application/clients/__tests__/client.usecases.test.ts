@@ -28,6 +28,7 @@ const baseBranch = {
   reinforcementDays: 15,
   reinforcementEnabled: true,
   reinforcementIsPaid: false,
+  technicianRevenueMode: 'split' as const,
   createdAt: new Date('2026-05-01T10:00:00.000Z'),
 };
 
@@ -231,6 +232,53 @@ describe('client usecases', () => {
     expect(result.frequencyDays).toBe(90);
     expect(deps.serviceRepository.update).not.toHaveBeenCalled();
     expect(deps.serviceCycleRepository.update).not.toHaveBeenCalled();
+  });
+
+  it('updateBranchConfiguration acepta technicianRevenueMode split', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.findById.mockResolvedValue(baseBranch);
+    deps.branchRepository.update.mockResolvedValue({
+      ...baseBranch,
+      technicianRevenueMode: 'split',
+    });
+    const useCases = createClientUseCases(deps);
+
+    const result = await useCases.updateBranchConfiguration({
+      branchId: baseBranch.id,
+      technicianRevenueMode: 'split',
+    });
+
+    expect(result.technicianRevenueMode).toBe('split');
+  });
+
+  it('updateBranchConfiguration acepta technicianRevenueMode full', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.findById.mockResolvedValue(baseBranch);
+    deps.branchRepository.update.mockResolvedValue({
+      ...baseBranch,
+      technicianRevenueMode: 'full',
+    });
+    const useCases = createClientUseCases(deps);
+
+    const result = await useCases.updateBranchConfiguration({
+      branchId: baseBranch.id,
+      technicianRevenueMode: 'full',
+    });
+
+    expect(result.technicianRevenueMode).toBe('full');
+  });
+
+  it('updateBranchConfiguration rechaza technicianRevenueMode invalido', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.findById.mockResolvedValue(baseBranch);
+    const useCases = createClientUseCases(deps);
+
+    await expect(
+      useCases.updateBranchConfiguration({
+        branchId: baseBranch.id,
+        technicianRevenueMode: 'invalid' as never,
+      }),
+    ).rejects.toThrow('Invalid technician revenue mode');
   });
 
   it('getBranchHistory retorna servicios de la sucursal', async () => {

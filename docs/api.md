@@ -330,3 +330,68 @@ Permiso para todos los endpoints: `admin` + token.
 ## Inconsistencias actuales detectadas
 
 - No se detectan inconsistencias activas en formato de respuesta estándar.
+## 9. Actualizacion de contrato - Sucursal y Dashboard
+
+### PATCH /api/clients/branches/:branchId/configuration
+Body acepta adicionalmente:
+
+```json
+{ "technicianRevenueMode": "split" }
+```
+
+Valores permitidos de `technicianRevenueMode`:
+- `split`
+- `full`
+
+### Dashboard (`/api/dashboard`)
+Todos requieren `admin` + token.
+
+#### GET /api/dashboard/summary
+Query opcional: `from`, `to`, `technicianId`, `clientId`, `businessId`, `branchId`, `status`, `type`, `paymentMethodId`.
+Respuesta:
+```json
+{
+  "data": {
+    "salesTotal": 0,
+    "servicesTotal": 0,
+    "servicesCompleted": 0,
+    "servicesPending": 0,
+    "servicesCanceled": 0,
+    "servicesRescheduled": 0,
+    "overdueServices": 0,
+    "activeClients": 0,
+    "activeBranches": 0,
+    "completionRate": 0
+  }
+}
+```
+
+#### GET /api/dashboard/analytics
+- `metric` requerido: `sales`, `attributedSales`, `services`, `completedServices`, `pendingServices`, `canceledServices`, `rescheduledServices`, `reinforcements`, `evidences`, `completionRate`.
+- `groupBy` opcional: `day`, `week`, `month`, `quarter`, `year`.
+- `dimension` opcional: `status`, `serviceType`, `paymentMethod`, `technician`, `client`, `business`, `branch`, `paidStatus`.
+- Filtros opcionales: `from`, `to`, `technicianId`, `clientId`, `businessId`, `branchId`, `status`, `type`, `paymentMethodId`.
+- `sort` opcional: `asc|desc` (default `desc`).
+- `limit` opcional: max 50.
+- `groupBy` y `dimension` no se usan juntos.
+- `attributedSales` requiere `dimension=technician` o `technicianId`.
+
+#### GET /api/dashboard/alerts
+Query opcional: `from`, `to`, `technicianId`, `clientId`, `businessId`, `branchId`.
+Respuesta:
+```json
+{
+  "data": {
+    "overdueServices": [],
+    "overdueCycles": [],
+    "pendingReinforcements": [],
+    "transfersWithoutProof": [],
+    "completedWithoutEvidence": []
+  }
+}
+```
+
+### sales vs attributedSales
+- `sales`: ventas reales del negocio (cada servicio cuenta una sola vez).
+- `attributedSales`: ventas atribuidas a tecnicos segun `technicianRevenueMode` de la sucursal.
+- En modo `full`, `attributedSales` puede superar `sales`.

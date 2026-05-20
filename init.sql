@@ -107,6 +107,7 @@ price_per_m2 NUMERIC,
   reinforcement_days INT,
   reinforcement_enabled BOOLEAN,
   reinforcement_is_paid BOOLEAN,
+  technician_revenue_mode TEXT NOT NULL DEFAULT 'split' CHECK (technician_revenue_mode IN ('split', 'full')),
 
   created_at TIMESTAMP DEFAULT NOW()
 );

@@ -171,6 +171,24 @@ describe('client routes', () => {
     expect(response.status).toBe(200);
   });
 
+  it('PATCH /api/clients/branches/:branchId/configuration rechaza technicianRevenueMode invalido', async () => {
+    const useCases = buildUseCases();
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/branch-1/configuration', {
+      method: 'PATCH',
+      body: {
+        technicianRevenueMode: 'invalid',
+      },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      message: 'Technician revenue mode must be split or full',
+    });
+  });
+
   it('GET /api/clients/branches/:branchId/history responde 200', async () => {
     const useCases = buildUseCases();
     useCases.getBranchHistory.mockResolvedValue({ branch: { id: 'branch-1' }, services: [] });

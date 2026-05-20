@@ -209,3 +209,7 @@ Notas:
 - [ ] No duplicar lógica.
 - [ ] No lógica de negocio en controllers.
 - [ ] No modificar BD sin script SQL.
+
+- [x] Configuracion por sucursal 	echnicianRevenueMode (split/full) implementada en contrato y persistencia.
+- [x] Dashboard base implementado: /api/dashboard/summary, /api/dashboard/analytics, /api/dashboard/alerts.
+

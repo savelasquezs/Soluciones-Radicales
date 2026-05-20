@@ -3,6 +3,7 @@ export * from './BranchDrizzleRepository';
 export * from './BusinessDrizzleRepository';
 export * from './ClientDrizzleRepository';
 export * from './DrizzlePasswordResetTokenRepository';
+export * from './DrizzleDashboardRepository';
 export * from './DrizzleRefreshTokenRepository';
 export * from './PaymentMethodDrizzleRepository';
 export * from './ServiceCycleDrizzleRepository';

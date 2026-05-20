@@ -2,6 +2,7 @@ export * from './ActivityLogRepository';
 export * from './BranchRepository';
 export * from './BusinessRepository';
 export * from './ClientRepository';
+export * from './DashboardRepository';
 export * from './PasswordResetTokenRepository';
 export * from './PaymentMethodRepository';
 export * from './RefreshTokenRepository';

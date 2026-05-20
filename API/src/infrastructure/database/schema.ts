@@ -1,11 +1,13 @@
 import {
   boolean,
+  check,
   numeric,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const usersTable = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -68,20 +70,30 @@ export const businessesTable = pgTable('businesses', {
   name: text('name').notNull(),
 });
 
-export const branchesTable = pgTable('branches', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  businessId: uuid('business_id').notNull(),
-  address: text('address').notNull(),
-  phone: text('phone'),
-  city: text('city'),
-  pricePerM2: numeric('price_per_m2', { mode: 'number' }),
-  fixedPrice: numeric('fixed_price', { mode: 'number' }),
-  frequencyDays: numeric('frequency_days', { mode: 'number' }),
-  reinforcementDays: numeric('reinforcement_days', { mode: 'number' }),
-  reinforcementEnabled: boolean('reinforcement_enabled'),
-  reinforcementIsPaid: boolean('reinforcement_is_paid'),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
-});
+export const branchesTable = pgTable(
+  'branches',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    businessId: uuid('business_id').notNull(),
+    address: text('address').notNull(),
+    phone: text('phone'),
+    city: text('city'),
+    pricePerM2: numeric('price_per_m2', { mode: 'number' }),
+    fixedPrice: numeric('fixed_price', { mode: 'number' }),
+    frequencyDays: numeric('frequency_days', { mode: 'number' }),
+    reinforcementDays: numeric('reinforcement_days', { mode: 'number' }),
+    reinforcementEnabled: boolean('reinforcement_enabled'),
+    reinforcementIsPaid: boolean('reinforcement_is_paid'),
+    technicianRevenueMode: text('technician_revenue_mode').notNull().default('split'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+  },
+  (table) => ({
+    technicianRevenueModeCheck: check(
+      'branches_technician_revenue_mode_check',
+      sql`${table.technicianRevenueMode} in ('split', 'full')`,
+    ),
+  }),
+);
 
 export const serviceCyclesTable = pgTable('service_cycles', {
   id: uuid('id').defaultRandom().primaryKey(),

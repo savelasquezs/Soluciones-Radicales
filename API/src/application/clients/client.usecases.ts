@@ -30,6 +30,8 @@ interface ClientUseCasesDeps {
 }
 
 export const createClientUseCases = (deps: ClientUseCasesDeps) => {
+  const technicianRevenueModes = new Set(['split', 'full']);
+
   const resolveBranchConfig = async (input: {
     frequencyDays?: number | null;
     reinforcementDays?: number | null;
@@ -88,6 +90,7 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
       reinforcementDays: config.reinforcementDays,
       reinforcementEnabled: config.reinforcementEnabled,
       reinforcementIsPaid: config.reinforcementIsPaid,
+      technicianRevenueMode: 'split',
     });
 
     let serviceCycle = null;
@@ -165,6 +168,7 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
       reinforcementDays: config.reinforcementDays,
       reinforcementEnabled: config.reinforcementEnabled,
       reinforcementIsPaid: config.reinforcementIsPaid,
+      technicianRevenueMode: 'split',
     });
 
     let serviceCycle = null;
@@ -267,6 +271,12 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
     if (!branch) {
       throw new NotFoundError(`Branch not found: ${input.branchId}`);
     }
+    if (
+      input.technicianRevenueMode !== undefined &&
+      !technicianRevenueModes.has(input.technicianRevenueMode)
+    ) {
+      throw new ValidationError('Invalid technician revenue mode');
+    }
 
     return deps.branchRepository.update(input.branchId, {
       frequencyDays:
@@ -283,6 +293,10 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
         input.reinforcementIsPaid === undefined
           ? branch.reinforcementIsPaid
           : input.reinforcementIsPaid,
+      technicianRevenueMode:
+        input.technicianRevenueMode === undefined
+          ? branch.technicianRevenueMode
+          : input.technicianRevenueMode,
     });
   };
 

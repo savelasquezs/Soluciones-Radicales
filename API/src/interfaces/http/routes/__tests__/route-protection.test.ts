@@ -10,6 +10,7 @@ import { createClientController } from '../../controllers/client.controller';
 import { createServiceController } from '../../controllers/service.controller';
 import { createSettingsController } from '../../controllers/settings.controller';
 import { createUserController } from '../../controllers/user.controller';
+import { createDashboardController } from '../../controllers/dashboard.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { errorHandler, notFoundHandler } from '../../middlewares/error.middleware';
 import { requireRole } from '../../middlewares/require-role.middleware';
@@ -18,6 +19,7 @@ import { createClientRoutes } from '../client.routes';
 import { createServiceRoutes } from '../service.routes';
 import { createSettingsRoutes } from '../settings.routes';
 import { createUserRoutes } from '../user.routes';
+import { createDashboardRoutes } from '../dashboard.routes';
 
 const servers = new Set<http.Server>();
 const serviceTechnicalUser = {
@@ -324,6 +326,54 @@ describe('route protection', () => {
 
     expect(response.status).toBe(200);
     expect(getSystemSettings).toHaveBeenCalled();
+  });
+
+  it('GET /api/dashboard/summary sin token retorna 401', async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(
+      '/api/dashboard',
+      authMiddleware,
+      requireRole('admin'),
+      createDashboardRoutes(
+        createDashboardController({
+          dashboardUseCases: {
+            getSummary: vi.fn(),
+            getAnalytics: vi.fn(),
+            getAlerts: vi.fn(),
+          },
+        }),
+      ),
+    );
+    const request = await createRequest(app);
+    const response = await request('/api/dashboard/summary');
+    expect(response.status).toBe(401);
+  });
+
+  it('GET /api/dashboard/summary con usuario no admin retorna 403', async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(
+      '/api/dashboard',
+      authMiddleware,
+      requireRole('admin'),
+      createDashboardRoutes(
+        createDashboardController({
+          dashboardUseCases: {
+            getSummary: vi.fn(),
+            getAnalytics: vi.fn(),
+            getAlerts: vi.fn(),
+          },
+        }),
+      ),
+    );
+    const request = await createRequest(app);
+    const response = await request('/api/dashboard/summary', {
+      headers: {
+        authorization: `Bearer ${signNonAdminToken()}`,
+      },
+    });
+    expect(response.status).toBe(403);
   });
 
   it('GET /api/clients sin token retorna 401', async () => {

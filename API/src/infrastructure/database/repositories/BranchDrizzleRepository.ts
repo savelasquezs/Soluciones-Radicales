@@ -20,6 +20,7 @@ export class BranchDrizzleRepository implements BranchRepository {
         reinforcementDays: data.reinforcementDays,
         reinforcementEnabled: data.reinforcementEnabled,
         reinforcementIsPaid: data.reinforcementIsPaid,
+        technicianRevenueMode: data.technicianRevenueMode,
       })
       .returning();
 
@@ -72,4 +73,3 @@ export class BranchDrizzleRepository implements BranchRepository {
     return row ? toBranchEntity(row) : null;
   }
 }
-

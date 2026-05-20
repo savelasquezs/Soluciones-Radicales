@@ -1,5 +1,11 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { PaymentMethodType, ServiceStatus, ServiceType, UserRole } from '../../domain/entities';
+import {
+  PaymentMethodType,
+  ServiceStatus,
+  ServiceType,
+  TechnicianRevenueMode,
+  UserRole,
+} from '../../domain/entities';
 import { ValidationError } from '../../application/errors';
 
 const serviceTypes = new Set<ServiceType>(['main', 'reinforcement']);
@@ -13,6 +19,7 @@ const serviceStatuses = new Set<ServiceStatus>([
 ]);
 const paymentMethodTypes = new Set<PaymentMethodType>(['cash', 'bank', 'other']);
 const userRoles = new Set<UserRole>(['admin']);
+const technicianRevenueModes = new Set<TechnicianRevenueMode>(['split', 'full']);
 
 export const asyncHandler = (
   handler: (request: Request, response: Response, next: NextFunction) => Promise<void> | void,
@@ -171,4 +178,22 @@ export const parseOptionalUserRole = (value: unknown): UserRole | undefined => {
   }
 
   return parsed as UserRole;
+};
+
+export const parseOptionalTechnicianRevenueMode = (
+  value: unknown,
+): TechnicianRevenueMode | undefined => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  const parsed = parseRequiredString(
+    value,
+    'Technician revenue mode must be split or full',
+  );
+  if (!technicianRevenueModes.has(parsed as TechnicianRevenueMode)) {
+    throw new ValidationError('Technician revenue mode must be split or full');
+  }
+
+  return parsed as TechnicianRevenueMode;
 };
