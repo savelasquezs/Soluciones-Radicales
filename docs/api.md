@@ -215,7 +215,15 @@ Flujo tÃ©cnico recomendado:
 ### `GET /api/services/technician/:technicianId/schedule`
 - Params: `technicianId`.
 - Query opcional: `from`, `to`.
-- Respuesta: `{ "data": [ { "id": "...", "technicians": [] } ] }`
+- Respuesta real backend:
+```json
+{
+  "data": {
+    "technician": { "id": "...", "name": "Tecnico 1", "email": "tech1@demo.com", "isTechnician": true },
+    "services": [ { "id": "...", "scheduledAt": "..." } ]
+  }
+}
+```
 
 ### `PATCH /api/services/:id/status`
 - Body: `{ "status": "confirmed" }`

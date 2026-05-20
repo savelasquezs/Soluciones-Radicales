@@ -9,6 +9,7 @@ import type {
   RescheduleServicePayload,
   Service,
   ServiceEvidence,
+  TechnicianScheduleResponse,
   ServicesByDayQuery,
   ServicesByMonthQuery,
   TechnicianScheduleQuery,
@@ -17,6 +18,36 @@ import type {
   UpdateServiceStatusPayload,
   UploadFilePayload,
 } from '../types/services.types';
+
+type BackendTechnicianScheduleResponse = {
+  technician: {
+    id: string;
+    name: string;
+    email?: string;
+    isTechnician: boolean;
+  };
+  services: Service[];
+};
+
+const normalizeTechnicianScheduleResponse = (
+  payload: BackendTechnicianScheduleResponse | Service[],
+): TechnicianScheduleResponse => {
+  if (Array.isArray(payload)) {
+    return {
+      technician: {
+        id: '',
+        name: 'Técnico',
+        isTechnician: true,
+      },
+      services: payload,
+    };
+  }
+
+  return {
+    technician: payload.technician,
+    services: payload.services ?? [],
+  };
+};
 
 export const servicesService = {
   createService(payload: CreateServicePayload) {
@@ -35,7 +66,12 @@ export const servicesService = {
     return http.get<Service[]>(endpoints.services.upcoming, { params: query });
   },
   getTechnicianSchedule(technicianId: string, query?: TechnicianScheduleQuery) {
-    return http.get<Service[]>(endpoints.services.technicianSchedule(technicianId), { params: query });
+    return http
+      .get<BackendTechnicianScheduleResponse | Service[]>(
+        endpoints.services.technicianSchedule(technicianId),
+        { params: query },
+      )
+      .then(normalizeTechnicianScheduleResponse);
   },
   updateServiceStatus(id: string, payload: UpdateServiceStatusPayload) {
     return http.patch<Service>(endpoints.services.updateStatus(id), payload);

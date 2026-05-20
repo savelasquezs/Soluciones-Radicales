@@ -13,6 +13,8 @@ const ClientsPage = () => import('@/modules/clients/pages/ClientsPage.vue');
 const ClientDetailPage = () => import('@/modules/clients/pages/ClientDetailPage.vue');
 const BranchHistoryPage = () => import('@/modules/clients/pages/BranchHistoryPage.vue');
 const ServicesPage = () => import('@/modules/services/pages/ServicesPage.vue');
+const ServicesCalendarPage = () => import('@/modules/services/pages/ServicesCalendarPage.vue');
+const ServiceDetailPage = () => import('@/modules/services/pages/ServiceDetailPage.vue');
 const SettingsPage = () => import('@/modules/settings/pages/SettingsPage.vue');
 
 const TechnicianSchedulePage = () => import('@/modules/technician/pages/TechnicianSchedulePage.vue');
@@ -33,6 +35,8 @@ export const router = createRouter({
         { path: 'clients/:id', component: ClientDetailPage },
         { path: 'clients/:id/branches/:branchId/history', component: BranchHistoryPage },
         { path: 'services', component: ServicesPage },
+        { path: 'services/calendar', component: ServicesCalendarPage },
+        { path: 'services/:id', component: ServiceDetailPage },
         { path: 'settings', component: SettingsPage },
       ],
     },
@@ -49,4 +53,3 @@ export const router = createRouter({
 });
 
 router.beforeEach(resolveRouteAccess);
-

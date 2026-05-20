@@ -91,3 +91,12 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Seleccion de fecha/hora/rango: usar siempre `src/shared/components/ui/AppDatePicker.vue` (`@vuepic/vue-datepicker`).
 - Evitar `input` nativo de fecha/hora (`date`, `time`, `datetime-local`) salvo excepcion tecnica justificada.
 - Para filtros `from/to`, preferir modo `range` y mapear a payload API en el modulo correspondiente.
+
+## Services module
+
+- Rutas del modulo: `/services`, `/services/calendar`, `/services/:id`.
+- Usa `servicesService`, `usersService` y `settingsService`.
+- El calendario administrativo usa FullCalendar (`@fullcalendar/vue3` + plugins daygrid/timegrid/interaction).
+- Esta vista administrativa no reemplaza la experiencia técnico mobile.
+- `getTechnicianSchedule` se normaliza en frontend porque backend retorna `{ technician, services }`.
+- Deuda UX actual: la creación usa `branchId` manual hasta tener selector/buscador real de sucursales.

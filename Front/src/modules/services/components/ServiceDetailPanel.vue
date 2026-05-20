@@ -1,0 +1,36 @@
+<template>
+  <AppCard v-if="service" class="space-y-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-semibold text-foreground">Servicio {{ service.id }}</h2>
+        <p class="text-sm text-foreground/70">{{ formatDateTime(service.scheduledAt) }}</p>
+      </div>
+      <ServiceStatusBadge :status="service.status" />
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <p class="text-sm text-foreground/80">Tipo: {{ service.type }}</p>
+      <p class="text-sm text-foreground/80">Precio: {{ service.price ?? 'Sin valor' }}</p>
+      <p class="text-sm text-foreground/80">Sucursal: {{ service.branchAddress || service.branchId }}</p>
+      <p class="text-sm text-foreground/80">Negocio: {{ service.businessName || 'No disponible' }}</p>
+      <p class="text-sm text-foreground/80">Método de pago: {{ service.paymentMethodName || service.paymentMethodId || 'No definido' }}</p>
+      <p class="text-sm text-foreground/80">Soporte de pago: {{ service.paymentProofUrl ? 'Disponible' : 'No disponible' }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-foreground">Notas</p>
+      <p class="text-sm text-foreground/70">{{ service.notes || 'Sin notas' }}</p>
+    </div>
+  </AppCard>
+</template>
+
+<script setup lang="ts">
+import AppCard from '@/shared/components/ui/AppCard.vue';
+import { formatDateTime } from '@/shared/helpers/dates';
+import type { Service } from '../types/services.types';
+import ServiceStatusBadge from './ServiceStatusBadge.vue';
+
+defineProps<{
+  service: Service | null;
+}>();
+</script>

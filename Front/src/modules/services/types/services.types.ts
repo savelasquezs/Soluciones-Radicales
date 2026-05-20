@@ -17,6 +17,11 @@ export type Service = {
   paymentMethodId?: ID | null;
   paymentProofUrl?: string | null;
   technicians?: Array<{ id: ID; name?: string }>;
+  businessName?: string | null;
+  branchName?: string | null;
+  branchAddress?: string | null;
+  branchPhone?: string | null;
+  paymentMethodName?: string | null;
 };
 
 export type ServiceEvidence = {
@@ -47,6 +52,16 @@ export type UpcomingServicesQuery = {
 };
 
 export type TechnicianScheduleQuery = DateRangeQuery;
+
+export type TechnicianScheduleResponse = {
+  technician: {
+    id: ID;
+    name: string;
+    email?: string;
+    isTechnician: boolean;
+  };
+  services: Service[];
+};
 
 export type UpdateServiceStatusPayload = {
   status: ServiceStatus;

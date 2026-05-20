@@ -256,3 +256,28 @@ Notas:
 - [x] Tests de clientes agregados.
 - [ ] TODO real: `createService` aparece en docs/controller de clientes, pero el caso de uso actual no crea un servicio real con ese flag.
 - [ ] TODO real: si el historial administrativo necesita tecnicos, evidencias, metodo de pago legible o soportes en una sola respuesta, se requiere endpoint o read model mas rico en backend.
+
+### Frontend - Servicios y calendario administrativo
+
+- [x] FullCalendar instalado.
+- [x] Servicios administrativos implementados.
+- [x] `/services` implementado.
+- [x] `/services/calendar` implementado.
+- [x] `/services/:id` implementado.
+- [x] Calendario mensual conectado.
+- [x] Servicios por día conectado.
+- [x] Programación por técnico conectada.
+- [x] Creación de servicio conectada.
+- [x] Asignación de técnicos conectada.
+- [x] Reprogramación conectada.
+- [x] Cancelación con confirmación conectada.
+- [x] Cambio de estado conectado.
+- [x] Refuerzos conectados.
+- [x] Métodos de pago conectados.
+- [x] Evidencias visibles.
+- [x] Tests de servicios agregados.
+- [ ] TODO real: reemplazar branchId manual en creación por selector de sucursal cuando exista endpoint/buscador adecuado.
+- [ ] TODO real: backend de servicios no retorna nombre de negocio/sucursal ni técnicos enriquecidos en listados mensuales/diarios; para UI administrativa completa se requiere enriquecer contrato o read model.
+- [ ] TODO real: backend de detalle de servicio no retorna payload enriquecido de sucursal/negocio/técnicos en el mismo endpoint.
+- [ ] TODO real: carga/subida de evidencias sigue dependiendo de storage real (Firebase) pendiente en backend.
+- [ ] TODO real: soporte visual de pago puede requerir endpoint/metadata adicional para vista administrativa enriquecida.

@@ -207,7 +207,7 @@ describe('clients pages', () => {
   });
 
   it('ClientDetailPage espera updateBranchCycleDates antes del refresh', async () => {
-    let resolveCycleUpdate: ((value: any) => void) | null = null;
+    let resolveCycleUpdate: (value: any) => void = () => undefined;
     const cyclePromise = new Promise((resolve) => {
       resolveCycleUpdate = resolve;
     });
@@ -239,7 +239,7 @@ describe('clients pages', () => {
     expect(clientsService.updateBranchCycle).toHaveBeenCalled();
     expect(clientsService.getClientDetail).toHaveBeenCalledTimes(1);
 
-    resolveCycleUpdate?.({
+    resolveCycleUpdate({
       id: 'cycle-1',
       branchId: 'branch-1',
       active: true,

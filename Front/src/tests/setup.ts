@@ -38,6 +38,42 @@ vi.mock('@vuepic/vue-datepicker', () => {
   };
 });
 
+vi.mock('@fullcalendar/vue3', () => ({
+  default: defineComponent({
+    name: 'FullCalendar',
+    props: {
+      options: { type: Object, required: true },
+    },
+    setup(props) {
+      return () =>
+        h('div', [
+          h(
+            'button',
+            {
+              'data-testid': 'fc-date-click',
+              onClick: () =>
+                (props.options as any)?.dateClick?.({
+                  dateStr: '2026-05-20',
+                }),
+            },
+            'dateClick',
+          ),
+          h(
+            'button',
+            {
+              'data-testid': 'fc-event-click',
+              onClick: () =>
+                (props.options as any)?.eventClick?.({
+                  event: { id: 'service-1' },
+                }),
+            },
+            'eventClick',
+          ),
+        ]);
+    },
+  }),
+}));
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query: string) => ({
