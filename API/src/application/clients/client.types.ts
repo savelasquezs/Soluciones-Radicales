@@ -118,3 +118,17 @@ export interface GetBranchHistoryOutput {
   branch: Branch;
   services: Service[];
 }
+
+export interface BranchSearchItem {
+  branchId: string;
+  branchAddress: string;
+  branchPhone: string | null;
+  businessId: string;
+  businessName: string;
+  clientId: string;
+  clientName: string;
+  clientPhone: string | null;
+  fixedPrice: number | null;
+  pricePerM2: number | null;
+  city: string | null;
+}

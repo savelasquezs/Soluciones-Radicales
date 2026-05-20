@@ -150,4 +150,30 @@ describe('clients.service', () => {
     expect(result.businesses[0].branches[0].branch.technicianRevenueMode).toBe('full');
     expect(result.client.contactName).toBe('Ana');
   });
+
+  it('searchBranches llama endpoint y normaliza respuesta', async () => {
+    vi.mocked(http.get).mockResolvedValue([
+      {
+        branchId: 'branch-1',
+        branchAddress: 'Cra 10 # 20-30',
+        branchPhone: '3001234567',
+        businessId: 'business-1',
+        businessName: 'Negocio A',
+        clientId: 'client-1',
+        clientName: 'Cliente A',
+        clientPhone: '3010000000',
+        fixedPrice: 250000,
+        pricePerM2: null,
+        city: 'Medellín',
+      },
+    ] as any);
+
+    const result = await clientsService.searchBranches('cliente');
+
+    expect(http.get).toHaveBeenCalledWith(endpoints.clients.searchBranches, {
+      params: { q: 'cliente' },
+    });
+    expect(result[0].branchId).toBe('branch-1');
+    expect(result[0].businessName).toBe('Negocio A');
+  });
 });

@@ -99,4 +99,4 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - El calendario administrativo usa FullCalendar (`@fullcalendar/vue3` + plugins daygrid/timegrid/interaction).
 - Esta vista administrativa no reemplaza la experiencia técnico mobile.
 - `getTechnicianSchedule` se normaliza en frontend porque backend retorna `{ technician, services }`.
-- Deuda UX actual: la creación usa `branchId` manual hasta tener selector/buscador real de sucursales.
+- La creación de servicio usa selector/buscador de sucursal con `GET /api/clients/branches/search`.

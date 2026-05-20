@@ -8,6 +8,7 @@ const buildUseCases = () => ({
   createInitialClient: vi.fn(),
   listClients: vi.fn(),
   searchClientsByName: vi.fn(),
+  searchBranches: vi.fn(),
   getClientById: vi.fn(),
   getClientDetail: vi.fn(),
   updateClient: vi.fn(),
@@ -67,6 +68,30 @@ describe('client routes', () => {
 
     expect(response.status).toBe(200);
     expect(useCases.searchClientsByName).toHaveBeenCalledWith('abc');
+  });
+
+  it('GET /api/clients/branches/search?q=abc llama searchBranches', async () => {
+    const useCases = buildUseCases();
+    useCases.searchBranches.mockResolvedValue([]);
+
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/search?q=abc');
+
+    expect(response.status).toBe(200);
+    expect(useCases.searchBranches).toHaveBeenCalledWith('abc');
+  });
+
+  it('GET /api/clients/branches/search sin q responde 400', async () => {
+    const useCases = buildUseCases();
+    const controller = createClientController({ clientUseCases: useCases });
+    const server = await startServer(createClientRoutes(controller), '/api/clients');
+
+    const response = await server.request('/api/clients/branches/search');
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: 'Search query is required' });
   });
 
   it('GET /api/clients/:id responde 404 cuando no existe', async () => {

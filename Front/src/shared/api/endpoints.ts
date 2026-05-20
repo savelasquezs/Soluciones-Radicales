@@ -11,6 +11,7 @@ export const endpoints = {
   clients: {
     list: '/clients',
     search: '/clients/search',
+    searchBranches: '/clients/branches/search',
     byId: (id: string) => `/clients/${id}`,
     detail: (id: string) => `/clients/${id}/detail`,
     create: '/clients',

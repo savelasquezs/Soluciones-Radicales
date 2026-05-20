@@ -4,6 +4,7 @@ import type {
   AddBranchPayload,
   AddBranchResult,
   AddBusinessPayload,
+  BranchSearchItem,
   Branch,
   BranchConfiguration,
   BranchHistoryQuery,
@@ -103,6 +104,20 @@ type BackendAddBranchResponse = {
 type BackendBranchHistoryResponse = {
   branch: BackendBranch;
   services: BackendService[];
+};
+
+type BackendBranchSearchItem = {
+  branchId: string;
+  branchAddress: string;
+  branchPhone: string | null;
+  businessId: string;
+  businessName: string;
+  clientId: string;
+  clientName: string;
+  clientPhone: string | null;
+  fixedPrice: number | null;
+  pricePerM2: number | null;
+  city: string | null;
 };
 
 const mapClient = (client: BackendClient): Client => ({
@@ -207,6 +222,20 @@ const mapBranchHistoryResponse = (
   services: response.services.map(mapBranchHistoryService),
 });
 
+const mapBranchSearchItem = (item: BackendBranchSearchItem): BranchSearchItem => ({
+  branchId: item.branchId,
+  branchAddress: item.branchAddress,
+  branchPhone: item.branchPhone,
+  businessId: item.businessId,
+  businessName: item.businessName,
+  clientId: item.clientId,
+  clientName: item.clientName,
+  clientPhone: item.clientPhone,
+  fixedPrice: item.fixedPrice,
+  pricePerM2: item.pricePerM2,
+  city: item.city,
+});
+
 export const clientsService = {
   async listClients() {
     const response = await http.get<BackendClient[]>(endpoints.clients.list);
@@ -215,6 +244,12 @@ export const clientsService = {
   async searchClients(q: string) {
     const response = await http.get<BackendClient[]>(endpoints.clients.search, { params: { q } });
     return response.map(mapClient);
+  },
+  async searchBranches(q: string) {
+    const response = await http.get<BackendBranchSearchItem[]>(endpoints.clients.searchBranches, {
+      params: { q },
+    });
+    return response.map(mapBranchSearchItem);
   },
   async getClientById(id: string) {
     const response = await http.get<BackendClient>(endpoints.clients.byId(id));

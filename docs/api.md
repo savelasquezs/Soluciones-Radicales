@@ -105,6 +105,32 @@ Permiso para todos los endpoints de esta secciÃ³n: `admin` + token.
 - Body: ninguno.
 - Respuesta: `{ "data": [ { "id": "...", "name": "Cliente A" } ] }`
 
+### `GET /api/clients/branches/search?q=...`
+- DescripciÃ³n: busca sucursales para flujo administrativo de creaciÃ³n de servicios.
+- Params/query: `q` (string, requerido).
+- Body: ninguno.
+- Respuesta:
+```json
+{
+  "data": [
+    {
+      "branchId": "...",
+      "branchAddress": "Cra 10 # 20-30",
+      "branchPhone": "3001234567",
+      "businessId": "...",
+      "businessName": "Negocio A",
+      "clientId": "...",
+      "clientName": "Cliente A",
+      "clientPhone": "3010000000",
+      "fixedPrice": 250000,
+      "pricePerM2": null,
+      "city": "MedellÃ­n"
+    }
+  ]
+}
+```
+- Comportamiento: resultado plano con lÃ­mite interno de 20 registros y orden por relevancia (nombre, telÃ©fono, direcciÃ³n).
+
 ### `GET /api/clients/:id`
 - DescripciÃ³n: obtiene cliente por id.
 - Params: `id`.
@@ -418,5 +444,7 @@ Respuesta:
 - `PATCH /api/clients/branches/:branchId/configuration` acepta `technicianRevenueMode` con valores `split|full`.
 - `GET /api/clients/branches/:branchId/history` hoy retorna historial basico de `services` y no incluye tecnicos, evidencias ni metodo de pago enriquecido.
 
-- `createService` hoy no crea un servicio real en `createInitialClient` ni en `addBranchToBusiness`; actualmente solo se crea `serviceCycle` cuando llega `nextMainServiceDate`.
+- `createService` no se crea automaticamente en backend durante `createInitialClient` o `addBranchToBusiness`; actualmente solo se crea `serviceCycle` cuando llega `nextMainServiceDate`.
+- Frontend administrativo ahora encadena `POST /api/services` despues de `createInitialClient` cuando existe `nextMainServiceDate` para crear servicio `main` en estado `pending`.
 - Nuevo endpoint: `PATCH /api/clients/branches/:branchId/cycle` para crear/actualizar `service_cycles` por sucursal. Body: `{ nextMainServiceDate, nextReinforcementDate? }`.
+- Nuevo endpoint: `GET /api/clients/branches/search?q=...` para selector de sucursal en creacion de servicios.

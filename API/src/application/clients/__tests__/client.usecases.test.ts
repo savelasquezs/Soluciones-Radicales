@@ -75,6 +75,7 @@ const buildDeps = () => ({
     findByBusinessId: vi.fn(),
     update: vi.fn(),
     findWithConfiguration: vi.fn(),
+    searchBranchesForService: vi.fn(),
   },
   serviceRepository: {
     create: vi.fn(),
@@ -315,6 +316,31 @@ describe('client usecases', () => {
         branchId: baseBranch.id,
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('searchBranches usa repositorio dedicado y limite por defecto', async () => {
+    const deps = buildDeps();
+    deps.branchRepository.searchBranchesForService.mockResolvedValue([
+      {
+        branchId: 'branch-1',
+        branchAddress: 'Cra 10',
+        branchPhone: '3001234567',
+        businessId: 'business-1',
+        businessName: 'Negocio 1',
+        clientId: 'client-1',
+        clientName: 'Cliente',
+        clientPhone: '3001234567',
+        fixedPrice: 100,
+        pricePerM2: 10,
+        city: 'Bogota',
+      },
+    ]);
+    const useCases = createClientUseCases(deps);
+
+    const result = await useCases.searchBranches('cliente');
+
+    expect(result).toHaveLength(1);
+    expect(deps.branchRepository.searchBranchesForService).toHaveBeenCalledWith('cliente', 20);
   });
 
   it('updateBranchServiceCycle actualiza ciclo existente', async () => {

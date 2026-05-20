@@ -155,6 +155,13 @@ const selectDate = (date: string) => {
 };
 
 const handleMonthChange = (payload: { year: number; month: number }) => {
+  if (
+    currentMonth.value.year === payload.year &&
+    currentMonth.value.month === payload.month
+  ) {
+    return;
+  }
+
   currentMonth.value = payload;
   void loadMonth();
 };

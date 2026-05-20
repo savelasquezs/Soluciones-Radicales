@@ -38,8 +38,12 @@ const calendarOptions = computed(() => ({
   eventClick: (arg: { event: { id: string } }) => {
     emit('select-service', arg.event.id);
   },
-  datesSet: (arg: { start: Date }) => {
-    emit('change-month', { year: arg.start.getFullYear(), month: arg.start.getMonth() + 1 });
+  datesSet: (arg: { view: { currentStart: Date } }) => {
+    const visibleMonthStart = arg.view.currentStart;
+    emit('change-month', {
+      year: visibleMonthStart.getFullYear(),
+      month: visibleMonthStart.getMonth() + 1,
+    });
   },
 }));
 </script>

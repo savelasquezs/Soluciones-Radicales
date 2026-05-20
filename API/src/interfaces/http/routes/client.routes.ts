@@ -9,6 +9,7 @@ export const createClientRoutes = (
   router.post('/', controller.createInitialClient);
   router.get('/', controller.listClients);
   router.get('/search', controller.searchClientsByName);
+  router.get('/branches/search', controller.searchBranches);
   router.get('/branches/:branchId/history', controller.getBranchHistory);
   router.patch('/branches/:branchId/cycle', controller.updateBranchServiceCycle);
   router.patch('/branches/:branchId/configuration', controller.updateBranchConfiguration);

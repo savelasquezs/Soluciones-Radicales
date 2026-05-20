@@ -1,8 +1,32 @@
 <template>
   <form class="space-y-4" @submit.prevent="onSubmit">
     <div class="space-y-2">
-      <p class="text-sm font-medium text-foreground">Sucursal (branchId)</p>
-      <AppInput v-model="form.branchId" placeholder="branch-id" />
+      <p class="text-sm font-medium text-foreground">Sucursal</p>
+      <AppInput
+        v-model="branchSearch"
+        placeholder="Buscar por cliente, negocio, teléfono o dirección"
+      />
+      <div
+        v-if="branchSearch.trim() && branchOptions.length"
+        class="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border bg-background p-2"
+      >
+        <button
+          v-for="item in branchOptions"
+          :key="item.branchId"
+          type="button"
+          class="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-surface"
+          @click="selectBranch(item)"
+        >
+          <p class="font-medium text-foreground">{{ item.clientName }} · {{ item.businessName }}</p>
+          <p class="text-xs text-foreground/70">
+            {{ item.branchAddress }}
+            <span v-if="item.branchPhone"> · {{ item.branchPhone }}</span>
+            <span v-if="item.clientPhone"> · Cliente: {{ item.clientPhone }}</span>
+          </p>
+        </button>
+      </div>
+      <p v-else-if="isSearchingBranches" class="text-xs text-foreground/70">Buscando sucursales...</p>
+      <p v-if="selectedBranchLabel" class="text-xs text-foreground/70">{{ selectedBranchLabel }}</p>
     </div>
 
     <div class="space-y-2">
@@ -35,7 +59,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
+import { clientsService } from '@/modules/clients/services/clients.service';
+import type { BranchSearchItem } from '@/modules/clients/types/clients.types';
 import AppButton from '@/shared/components/ui/AppButton.vue';
 import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 import AppInput from '@/shared/components/ui/AppInput.vue';
@@ -67,6 +93,11 @@ const form = reactive({
 });
 
 const error = ref('');
+const branchSearch = ref('');
+const branchOptions = ref<BranchSearchItem[]>([]);
+const selectedBranch = ref<BranchSearchItem | null>(null);
+const isSearchingBranches = ref(false);
+let branchSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const typeOptions = [
   { label: 'Principal', value: 'main' },
@@ -83,10 +114,48 @@ const statusOptions = [
   { label: 'Reprogramado', value: 'rescheduled' },
 ];
 
+const selectedBranchLabel = computed(() => {
+  if (!selectedBranch.value) return '';
+  return `Sucursal seleccionada: ${selectedBranch.value.clientName} · ${selectedBranch.value.businessName} · ${selectedBranch.value.branchAddress}`;
+});
+
+watch(branchSearch, (value) => {
+  if (branchSearchTimeout) {
+    clearTimeout(branchSearchTimeout);
+  }
+
+  const query = value.trim();
+  if (!query) {
+    branchOptions.value = [];
+    return;
+  }
+
+  branchSearchTimeout = setTimeout(async () => {
+    isSearchingBranches.value = true;
+    try {
+      branchOptions.value = await clientsService.searchBranches(query);
+    } catch {
+      branchOptions.value = [];
+    } finally {
+      isSearchingBranches.value = false;
+    }
+  }, 250);
+});
+
+const selectBranch = (item: BranchSearchItem) => {
+  selectedBranch.value = item;
+  form.branchId = item.branchId;
+  branchSearch.value = `${item.clientName} · ${item.businessName} · ${item.branchAddress}`;
+  branchOptions.value = [];
+  if (item.fixedPrice !== null && item.fixedPrice !== undefined) {
+    form.price = String(item.fixedPrice);
+  }
+};
+
 const onSubmit = () => {
   error.value = '';
   if (!form.branchId.trim()) {
-    error.value = 'El branchId es obligatorio.';
+    error.value = 'Debes seleccionar una sucursal válida.';
     return;
   }
 

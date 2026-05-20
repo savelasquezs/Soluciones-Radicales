@@ -130,6 +130,14 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
     return deps.clientRepository.searchByName(term);
   };
 
+  const searchBranches = async (query: string) => {
+    if (!query.trim()) {
+      throw new ValidationError('Search query is required');
+    }
+
+    return deps.branchRepository.searchBranchesForService(query.trim(), 20);
+  };
+
   const addBusinessToClient = async (input: AddBusinessToClientInput) => {
     if (!input.name.trim()) {
       throw new ValidationError('Business name is required');
@@ -353,6 +361,7 @@ export const createClientUseCases = (deps: ClientUseCasesDeps) => {
     getClientById,
     listClients,
     searchClientsByName,
+    searchBranches,
     addBusinessToClient,
     addBranchToBusiness,
     getClientDetail,

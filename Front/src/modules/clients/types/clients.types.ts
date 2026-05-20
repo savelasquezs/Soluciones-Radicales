@@ -173,3 +173,17 @@ export type BranchHistoryResponse = {
   branch: Branch;
   services: BranchHistoryServiceItem[];
 };
+
+export type BranchSearchItem = {
+  branchId: ID;
+  branchAddress: string;
+  branchPhone: string | null;
+  businessId: ID;
+  businessName: string;
+  clientId: ID;
+  clientName: string;
+  clientPhone: string | null;
+  fixedPrice: number | null;
+  pricePerM2: number | null;
+  city: string | null;
+};

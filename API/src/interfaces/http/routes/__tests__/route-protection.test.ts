@@ -389,6 +389,7 @@ describe('route protection', () => {
             createInitialClient: vi.fn(),
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
+            searchBranches: vi.fn(),
             getClientById: vi.fn(),
             getClientDetail: vi.fn(),
             updateClient: vi.fn(),
@@ -422,6 +423,7 @@ describe('route protection', () => {
             createInitialClient: vi.fn(),
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
+            searchBranches: vi.fn(),
             getClientById: vi.fn(),
             getClientDetail: vi.fn(),
             updateClient: vi.fn(),
@@ -460,6 +462,7 @@ describe('route protection', () => {
             createInitialClient: vi.fn(),
             listClients,
             searchClientsByName: vi.fn(),
+            searchBranches: vi.fn(),
             getClientById: vi.fn(),
             getClientDetail: vi.fn(),
             updateClient: vi.fn(),
@@ -490,6 +493,7 @@ describe('route protection', () => {
   });
 
   it.each([
+    ['GET', '/api/clients/branches/search?q=abc'],
     ['GET', '/api/clients/client-1/detail'],
     ['PATCH', '/api/clients/client-1'],
     ['PATCH', '/api/clients/businesses/business-1'],
@@ -510,6 +514,7 @@ describe('route protection', () => {
             createInitialClient: vi.fn(),
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
+            searchBranches: vi.fn(),
             getClientById: vi.fn(),
             getClientDetail: vi.fn(),
             updateClient: vi.fn(),
@@ -531,6 +536,7 @@ describe('route protection', () => {
   });
 
   it.each([
+    ['GET', '/api/clients/branches/search?q=abc'],
     ['GET', '/api/clients/client-1/detail'],
     ['PATCH', '/api/clients/client-1'],
     ['PATCH', '/api/clients/businesses/business-1'],
@@ -551,6 +557,7 @@ describe('route protection', () => {
             createInitialClient: vi.fn(),
             listClients: vi.fn(),
             searchClientsByName: vi.fn(),
+            searchBranches: vi.fn(),
             getClientById: vi.fn(),
             getClientDetail: vi.fn(),
             updateClient: vi.fn(),

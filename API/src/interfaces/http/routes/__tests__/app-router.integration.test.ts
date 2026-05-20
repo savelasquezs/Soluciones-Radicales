@@ -19,6 +19,7 @@ const clientUseCases = {
   createInitialClient: vi.fn(),
   listClients: vi.fn(),
   searchClientsByName: vi.fn(),
+  searchBranches: vi.fn(),
   getClientById: vi.fn(),
   getClientDetail: vi.fn(),
   updateClient: vi.fn(),

@@ -2,9 +2,11 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent } from 'vue';
 import BranchHistoryPage from '@/modules/clients/pages/BranchHistoryPage.vue';
+import InitialClientForm from '@/modules/clients/components/InitialClientForm.vue';
 import ClientDetailPage from '@/modules/clients/pages/ClientDetailPage.vue';
 import ClientsPage from '@/modules/clients/pages/ClientsPage.vue';
 import { clientsService } from '@/modules/clients/services/clients.service';
+import { servicesService } from '@/modules/services/services/services.service';
 
 const { push, back, routeState, toastPush } = vi.hoisted(() => ({
   push: vi.fn(),
@@ -45,6 +47,12 @@ vi.mock('@/modules/clients/services/clients.service', () => ({
     updateBranchCycle: vi.fn(),
     updateBranchConfiguration: vi.fn(),
     getBranchHistory: vi.fn(),
+  },
+}));
+
+vi.mock('@/modules/services/services/services.service', () => ({
+  servicesService: {
+    createService: vi.fn(),
   },
 }));
 
@@ -120,6 +128,27 @@ describe('clients pages', () => {
     ] as any);
     vi.mocked(clientsService.getClientDetail).mockResolvedValue(clientDetailMock as any);
     vi.mocked(clientsService.getBranchHistory).mockResolvedValue(historyMock as any);
+    vi.mocked(clientsService.createInitialClient).mockResolvedValue({
+      client: { id: 'client-1', name: 'Cliente A', contactName: 'Ana', phone: '3001234567' },
+      business: { id: 'business-1', clientId: 'client-1', name: 'Negocio A' },
+      branch: {
+        id: 'branch-1',
+        businessId: 'business-1',
+        address: 'Calle 123 # 45-67',
+        phone: '3001234567',
+        city: 'Bogota',
+        pricePerM2: null,
+        fixedPrice: 250000,
+        frequencyDays: 30,
+        reinforcementDays: 10,
+        reinforcementEnabled: true,
+        reinforcementIsPaid: false,
+        technicianRevenueMode: 'split',
+        createdAt: '2026-05-20T00:00:00.000Z',
+      },
+      serviceCycle: null,
+    } as any);
+    vi.mocked(servicesService.createService).mockResolvedValue({} as any);
     vi.mocked(clientsService.updateBranch).mockResolvedValue({} as any);
     vi.mocked(clientsService.updateBranchCycle).mockResolvedValue({
       id: 'cycle-1',
@@ -250,5 +279,30 @@ describe('clients pages', () => {
     await flushPromises();
 
     expect(clientsService.getClientDetail).toHaveBeenCalledTimes(2);
+  });
+
+  it('ClientsPage crea servicio inicial si viene nextMainServiceDate', async () => {
+    const wrapper = mount(ClientsPage);
+    await flushPromises();
+
+    const button = wrapper.findAll('button').find((item) => item.text() === 'Nuevo cliente');
+    await button?.trigger('click');
+    await flushPromises();
+
+    await wrapper.findComponent(InitialClientForm).vm.$emit('submit', {
+      client: { name: 'Cliente A', contactName: 'Ana', phone: '3001234567' },
+      businessName: 'Negocio A',
+      branch: { address: 'Calle 123 # 45-67', city: 'Bogota' },
+      nextMainServiceDate: '2099-12-31T12:00:00.000Z',
+    });
+    await flushPromises();
+
+    expect(servicesService.createService).toHaveBeenCalledWith({
+      branchId: 'branch-1',
+      scheduledAt: '2099-12-31T12:00:00.000Z',
+      type: 'main',
+      status: 'pending',
+      price: 250000,
+    });
   });
 });

@@ -6,11 +6,18 @@ import ServiceEvidenceList from '@/modules/services/components/ServiceEvidenceLi
 import ServiceForm from '@/modules/services/components/ServiceForm.vue';
 import ServicesCalendar from '@/modules/services/components/ServicesCalendar.vue';
 import ServiceStatusBadge from '@/modules/services/components/ServiceStatusBadge.vue';
+import { clientsService } from '@/modules/clients/services/clients.service';
 import { usersService } from '@/modules/users/services/users.service';
 
 vi.mock('@/modules/users/services/users.service', () => ({
   usersService: {
     listTechnicians: vi.fn(),
+  },
+}));
+
+vi.mock('@/modules/clients/services/clients.service', () => ({
+  clientsService: {
+    searchBranches: vi.fn(),
   },
 }));
 
@@ -62,10 +69,39 @@ describe('services components', () => {
     expect(withItems.text()).toContain('branch-1');
   });
 
-  it('ServiceForm valida branchId y scheduledAt', async () => {
+  it('ServiceForm valida sucursal y scheduledAt', async () => {
     const wrapper = mount(ServiceForm);
     await wrapper.find('form').trigger('submit.prevent');
-    expect(wrapper.text()).toContain('branchId es obligatorio');
+    expect(wrapper.text()).toContain('seleccionar una sucursal válida');
+  });
+
+  it('ServiceForm busca sucursal y prellena precio fijo', async () => {
+    vi.mocked(clientsService.searchBranches).mockResolvedValue([
+      {
+        branchId: 'branch-1',
+        branchAddress: 'Cra 10 # 20-30',
+        branchPhone: '3001234567',
+        businessId: 'business-1',
+        businessName: 'Negocio A',
+        clientId: 'client-1',
+        clientName: 'Cliente A',
+        clientPhone: '3010000000',
+        fixedPrice: 250000,
+        pricePerM2: null,
+        city: 'Medellín',
+      },
+    ] as any);
+
+    const wrapper = mount(ServiceForm);
+    await wrapper.find('input[placeholder="Buscar por cliente, negocio, teléfono o dirección"]').setValue('cliente');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await flushPromises();
+
+    const optionButton = wrapper.findAll('button').find((item) => item.text().includes('Cliente A · Negocio A'));
+    await optionButton?.trigger('click');
+
+    const priceInput = wrapper.find('input[placeholder="250000"]');
+    expect((priceInput.element as HTMLInputElement).value).toBe('250000');
   });
 
   it('AssignTechniciansModal lista técnicos y guarda selección', async () => {

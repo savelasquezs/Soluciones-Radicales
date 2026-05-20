@@ -101,6 +101,7 @@ import AppModal from '@/shared/components/ui/AppModal.vue';
 import AppSpinner from '@/shared/components/ui/AppSpinner.vue';
 import AppTable from '@/shared/components/ui/AppTable.vue';
 import { useToast } from '@/shared/composables/useToast';
+import { servicesService } from '@/modules/services/services/services.service';
 import InitialClientForm from '../components/InitialClientForm.vue';
 import { clientsService } from '../services/clients.service';
 import type { Client, CreateInitialClientPayload } from '../types/clients.types';
@@ -189,7 +190,28 @@ const createClient = async (payload: CreateInitialClientPayload) => {
 
   try {
     const result = await clientsService.createInitialClient(payload);
-    pushToast('Cliente creado correctamente.');
+    let serviceCreated = false;
+    if (payload.nextMainServiceDate) {
+      try {
+        await servicesService.createService({
+          branchId: result.branch.id,
+          scheduledAt: payload.nextMainServiceDate,
+          type: 'main',
+          status: 'pending',
+          price: result.branch.fixedPrice ?? undefined,
+        });
+        serviceCreated = true;
+      } catch {
+        serviceCreated = false;
+      }
+    }
+    if (payload.nextMainServiceDate && !serviceCreated) {
+      pushToast('Cliente creado, pero no se pudo crear el servicio inicial.');
+    } else if (payload.nextMainServiceDate && serviceCreated) {
+      pushToast('Cliente y servicio inicial creados correctamente.');
+    } else {
+      pushToast('Cliente creado correctamente.');
+    }
     closeCreateModal();
     if (!search.value.trim()) {
       await loadClients();

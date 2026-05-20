@@ -19,6 +19,7 @@ interface ClientController {
   createInitialClient: RequestHandler;
   listClients: RequestHandler;
   searchClientsByName: RequestHandler;
+  searchBranches: RequestHandler;
   getClientById: RequestHandler;
   getClientDetail: RequestHandler;
   updateClient: RequestHandler;
@@ -37,6 +38,7 @@ export const createClientController = (deps: {
     | 'createInitialClient'
     | 'listClients'
     | 'searchClientsByName'
+    | 'searchBranches'
     | 'getClientById'
     | 'getClientDetail'
     | 'updateClient'
@@ -119,6 +121,12 @@ export const createClientController = (deps: {
   const searchClientsByName = asyncHandler(async (request, response) => {
     const term = parseRequiredString(request.query.q, 'Search term is required');
     const data = await deps.clientUseCases.searchClientsByName(term);
+    response.status(200).json({ data });
+  });
+
+  const searchBranches = asyncHandler(async (request, response) => {
+    const query = parseRequiredString(request.query.q, 'Search query is required');
+    const data = await deps.clientUseCases.searchBranches(query);
     response.status(200).json({ data });
   });
 
@@ -297,6 +305,7 @@ export const createClientController = (deps: {
     createInitialClient,
     listClients,
     searchClientsByName,
+    searchBranches,
     getClientById,
     getClientDetail,
     updateClient,

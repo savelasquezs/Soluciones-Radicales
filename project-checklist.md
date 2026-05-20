@@ -254,7 +254,7 @@ Notas:
 - [x] Historial de sucursal conectado.
 - [x] Regla de comparacion frontend/backend agregada.
 - [x] Tests de clientes agregados.
-- [ ] TODO real: `createService` aparece en docs/controller de clientes, pero el caso de uso actual no crea un servicio real con ese flag.
+- [x] Flujo frontend de alta de cliente crea servicio inicial `main/pending` cuando hay `nextMainServiceDate`.
 - [ ] TODO real: si el historial administrativo necesita tecnicos, evidencias, metodo de pago legible o soportes en una sola respuesta, se requiere endpoint o read model mas rico en backend.
 
 ### Frontend - Servicios y calendario administrativo
@@ -276,7 +276,7 @@ Notas:
 - [x] Métodos de pago conectados.
 - [x] Evidencias visibles.
 - [x] Tests de servicios agregados.
-- [ ] TODO real: reemplazar branchId manual en creación por selector de sucursal cuando exista endpoint/buscador adecuado.
+- [x] Selector de sucursal en creación de servicio conectado a endpoint dedicado `/api/clients/branches/search`.
 - [ ] TODO real: backend de servicios no retorna nombre de negocio/sucursal ni técnicos enriquecidos en listados mensuales/diarios; para UI administrativa completa se requiere enriquecer contrato o read model.
 - [ ] TODO real: backend de detalle de servicio no retorna payload enriquecido de sucursal/negocio/técnicos en el mismo endpoint.
 - [ ] TODO real: carga/subida de evidencias sigue dependiendo de storage real (Firebase) pendiente en backend.
