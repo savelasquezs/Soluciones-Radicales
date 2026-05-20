@@ -375,7 +375,7 @@ const handleBranchSubmit = async (
         pricePerM2: payload.pricePerM2,
         fixedPrice: payload.fixedPrice,
       });
-      updateBranchCycleDates({
+      await updateBranchCycleDates({
         branchId: selectedBranch.value.id,
         nextMainServiceDate: payload.nextMainServiceDate,
         nextReinforcementDate: payload.nextReinforcementDate ?? null,

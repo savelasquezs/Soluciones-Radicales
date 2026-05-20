@@ -1,5 +1,6 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
+import { defineComponent } from 'vue';
 import BranchHistoryPage from '@/modules/clients/pages/BranchHistoryPage.vue';
 import ClientDetailPage from '@/modules/clients/pages/ClientDetailPage.vue';
 import ClientsPage from '@/modules/clients/pages/ClientsPage.vue';
@@ -41,6 +42,7 @@ vi.mock('@/modules/clients/services/clients.service', () => ({
     updateBusiness: vi.fn(),
     addBranchToBusiness: vi.fn(),
     updateBranch: vi.fn(),
+    updateBranchCycle: vi.fn(),
     updateBranchConfiguration: vi.fn(),
     getBranchHistory: vi.fn(),
   },
@@ -61,7 +63,7 @@ const clientDetailMock = {
           branch: {
             id: 'branch-1',
             businessId: 'business-1',
-            address: 'Calle 1',
+            address: 'Calle 123 # 45-67',
             phone: '3001234567',
             city: 'Bogota',
             pricePerM2: 1200,
@@ -91,7 +93,7 @@ const historyMock = {
   branch: {
     id: 'branch-1',
     businessId: 'business-1',
-    address: 'Calle 1',
+    address: 'Calle 123 # 45-67',
     phone: '3001234567',
     city: 'Bogota',
     pricePerM2: 1200,
@@ -118,6 +120,15 @@ describe('clients pages', () => {
     ] as any);
     vi.mocked(clientsService.getClientDetail).mockResolvedValue(clientDetailMock as any);
     vi.mocked(clientsService.getBranchHistory).mockResolvedValue(historyMock as any);
+    vi.mocked(clientsService.updateBranch).mockResolvedValue({} as any);
+    vi.mocked(clientsService.updateBranchCycle).mockResolvedValue({
+      id: 'cycle-1',
+      branchId: 'branch-1',
+      active: true,
+      lastMainServiceDate: null,
+      nextMainServiceDate: '2099-12-31T12:00:00.000Z',
+      nextReinforcementDate: '2100-01-10T12:00:00.000Z',
+    } as any);
   });
 
   afterEach(() => {
@@ -193,5 +204,51 @@ describe('clients pages', () => {
         type: 'main',
       }),
     );
+  });
+
+  it('ClientDetailPage espera updateBranchCycleDates antes del refresh', async () => {
+    let resolveCycleUpdate: ((value: any) => void) | null = null;
+    const cyclePromise = new Promise((resolve) => {
+      resolveCycleUpdate = resolve;
+    });
+    vi.mocked(clientsService.updateBranchCycle).mockReturnValueOnce(cyclePromise as any);
+
+    const BranchFormStub = defineComponent({
+      emits: ['submit'],
+      template:
+        '<button type="button" data-testid="branch-form-submit" @click="$emit(\'submit\', { address: \'Calle 123 # 45-67\', city: \'Medellín\', phone: \'3001234567\', pricingMode: \'square_meter\', pricePerM2: 1200, squareMeters: 100, fixedPrice: 120000, nextMainServiceDate: \'2099-12-31T12:00:00.000Z\', nextReinforcementDate: \'2100-01-10T12:00:00.000Z\' })">submit</button>',
+    });
+
+    const wrapper = mount(ClientDetailPage, {
+      global: {
+        stubs: {
+          BranchForm: BranchFormStub,
+        },
+      },
+    });
+    await flushPromises();
+
+    const editBranchButton = wrapper.findAll('button').find((item) => item.text() === 'Editar sucursal');
+    await editBranchButton?.trigger('click');
+    await flushPromises();
+
+    await wrapper.find('[data-testid="branch-form-submit"]').trigger('click');
+    await flushPromises();
+
+    expect(clientsService.updateBranch).toHaveBeenCalled();
+    expect(clientsService.updateBranchCycle).toHaveBeenCalled();
+    expect(clientsService.getClientDetail).toHaveBeenCalledTimes(1);
+
+    resolveCycleUpdate?.({
+      id: 'cycle-1',
+      branchId: 'branch-1',
+      active: true,
+      lastMainServiceDate: null,
+      nextMainServiceDate: '2099-12-31T12:00:00.000Z',
+      nextReinforcementDate: '2100-01-10T12:00:00.000Z',
+    });
+    await flushPromises();
+
+    expect(clientsService.getClientDetail).toHaveBeenCalledTimes(2);
   });
 });

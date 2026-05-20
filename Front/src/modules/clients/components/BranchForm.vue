@@ -46,10 +46,6 @@
           <p class="text-sm font-medium text-foreground">Precio fijo</p>
           <AppInput v-model="form.fixedPrice" type="number" placeholder="250000" />
         </div>
-        <div class="space-y-2">
-          <p class="text-sm font-medium text-foreground">Precio por m2</p>
-          <AppInput :model-value="form.pricePerM2" type="number" placeholder="1200" disabled />
-        </div>
       </template>
 
       <template v-else>
@@ -148,13 +144,26 @@ const inferPricingMode = () => {
   return PRICING_MODES.fixed;
 };
 
+const inferSquareMeters = (pricePerM2?: number | null, fixedPrice?: number | null) => {
+  if (!pricePerM2 || !fixedPrice || pricePerM2 <= 0) {
+    return '';
+  }
+
+  const inferredValue = fixedPrice / pricePerM2;
+  if (!Number.isFinite(inferredValue) || inferredValue <= 0) {
+    return '';
+  }
+
+  return String(Math.round(inferredValue * 100) / 100);
+};
+
 const form = reactive<BranchFormValue>({
   address: props.initialValue?.address ?? '',
   city: props.initialValue?.city ?? '',
   phone: props.initialValue?.phone ?? '',
   pricePerM2: props.initialValue?.pricePerM2?.toString() ?? '',
   fixedPrice: props.initialValue?.fixedPrice?.toString() ?? '',
-  squareMeters: '',
+  squareMeters: inferSquareMeters(props.initialValue?.pricePerM2, props.initialValue?.fixedPrice),
   pricingMode: inferPricingMode(),
   nextMainServiceDate: props.initialValue?.nextMainServiceDate ? new Date(props.initialValue.nextMainServiceDate) : null,
 });
@@ -220,7 +229,7 @@ watch(
     form.phone = value?.phone ?? '';
     form.pricePerM2 = value?.pricePerM2?.toString() ?? '';
     form.fixedPrice = value?.fixedPrice?.toString() ?? '';
-    form.squareMeters = '';
+    form.squareMeters = inferSquareMeters(value?.pricePerM2, value?.fixedPrice);
     form.pricingMode = value?.pricePerM2 ? PRICING_MODES.squareMeter : PRICING_MODES.fixed;
     form.nextMainServiceDate = value?.nextMainServiceDate ? new Date(value.nextMainServiceDate) : null;
     error.value = '';
