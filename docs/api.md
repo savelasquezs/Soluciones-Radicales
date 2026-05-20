@@ -1,13 +1,13 @@
 ﻿# API Backend - Soluciones Radicales
 
-## 1. IntroducciÃ³n
+## 1. Introducción
 
-API para operaciÃ³n interna B2B de fumigaciones (autenticaciÃ³n, clientes, servicios, usuarios, configuraciÃ³n).
+API para operación interna B2B de fumigaciones (autenticación, clientes, servicios, usuarios, configuración).
 
 - Base URL ejemplo: `http://localhost:3000/api`
 - Content-Type: `application/json`
 
-Formato estÃ¡ndar:
+Formato estándar:
 
 Success
 ```json
@@ -19,11 +19,11 @@ Error
 { "message": "..." }
 ```
 
-## 2. AutenticaciÃ³n
+## 2. Autenticación
 
 ### `POST /api/auth/login`
-- DescripciÃ³n: autentica usuario y retorna tokens.
-- Permisos: pÃºblico.
+- Descripción: autentica usuario y retorna tokens.
+- Permisos: público.
 - Body:
 ```json
 { "email": "admin@demo.com", "password": "Secret123" }
@@ -35,8 +35,8 @@ Error
 - Errores: `400`, `401`.
 
 ### `POST /api/auth/refresh`
-- DescripciÃ³n: renueva access token con refresh token.
-- Permisos: pÃºblico.
+- Descripción: renueva access token con refresh token.
+- Permisos: público.
 - Body:
 ```json
 { "refreshToken": "..." }
@@ -48,7 +48,7 @@ Error
 - Errores: `400`, `401`.
 
 ### `GET /api/auth/me`
-- DescripciÃ³n: retorna usuario autenticado.
+- Descripción: retorna usuario autenticado.
 - Permisos: Bearer token requerido.
 - Params: ninguno.
 - Body: ninguno.
@@ -59,8 +59,8 @@ Error
 - Errores: `401`.
 
 ### `POST /api/auth/forgot-password`
-- DescripciÃ³n: solicita recuperaciÃ³n de contraseÃ±a sin revelar existencia del email.
-- Permisos: pÃºblico.
+- Descripción: solicita recuperación de contraseña sin revelar existencia del email.
+- Permisos: público.
 - Body:
 ```json
 { "email": "admin@demo.com" }
@@ -72,8 +72,8 @@ Error
 - Errores: `400`.
 
 ### `POST /api/auth/reset-password`
-- DescripciÃ³n: restablece contraseÃ±a usando token de recuperaciÃ³n.
-- Permisos: pÃºblico.
+- Descripción: restablece contraseña usando token de recuperación.
+- Permisos: público.
 - Body:
 ```json
 { "token": "...", "newPassword": "Secret123" }
@@ -91,22 +91,22 @@ Authorization: Bearer <accessToken>
 
 ## 3. Clientes
 
-Permiso para todos los endpoints de esta secciÃ³n: `admin` + token.
+Permiso para todos los endpoints de esta sección: `admin` + token.
 
 ### `GET /api/clients`
-- DescripciÃ³n: lista clientes.
+- Descripción: lista clientes.
 - Params: ninguno.
 - Body: ninguno.
 - Respuesta: `{ "data": [ { "id": "...", "name": "Cliente A" } ] }`
 
 ### `GET /api/clients/search?q=...`
-- DescripciÃ³n: busca clientes por nombre.
+- Descripción: busca clientes por nombre.
 - Params/query: `q` (string, requerido).
 - Body: ninguno.
 - Respuesta: `{ "data": [ { "id": "...", "name": "Cliente A" } ] }`
 
 ### `GET /api/clients/branches/search?q=...`
-- DescripciÃ³n: busca sucursales para flujo administrativo de creaciÃ³n de servicios.
+- Descripción: busca sucursales para flujo administrativo de creación de servicios.
 - Params/query: `q` (string, requerido).
 - Body: ninguno.
 - Respuesta:
@@ -124,33 +124,33 @@ Permiso para todos los endpoints de esta secciÃ³n: `admin` + token.
       "clientPhone": "3010000000",
       "fixedPrice": 250000,
       "pricePerM2": null,
-      "city": "MedellÃ­n"
+      "city": "Medellín"
     }
   ]
 }
 ```
-- Comportamiento: resultado plano con lÃ­mite interno de 20 registros y orden por relevancia (nombre, telÃ©fono, direcciÃ³n).
+- Comportamiento: resultado plano con límite interno de 20 registros y orden por relevancia (nombre, teléfono, dirección).
 
 ### `GET /api/clients/:id`
-- DescripciÃ³n: obtiene cliente por id.
+- Descripción: obtiene cliente por id.
 - Params: `id`.
 - Body: ninguno.
 - Respuesta: `{ "data": { "id": "...", "name": "Cliente A", "contactName": "Juan", "phone": "300..." } }`
 
 ### `GET /api/clients/:id/detail`
-- DescripciÃ³n: detalle agregado de cliente con negocios, sucursales, configuraciÃ³n y ciclo por sucursal.
+- Descripción: detalle agregado de cliente con negocios, sucursales, configuración y ciclo por sucursal.
 - Params: `id`.
 - Body: ninguno.
 - Respuesta: `{ "data": { "client": {}, "businesses": [ { "branches": [ { "configuration": {}, "serviceCycle": {} } ] } ] } }`
 
 ### `POST /api/clients`
-- DescripciÃ³n: crea cliente inicial con negocio y sucursal.
+- Descripción: crea cliente inicial con negocio y sucursal.
 - Body:
 ```json
 {
   "client": { "name": "Cliente A", "contactName": "Juan", "phone": "3000000000" },
   "businessName": "Empresa A",
-  "branch": { "address": "Calle 1", "city": "BogotÃ¡", "pricePerM2": 1200, "frequencyDays": 30, "reinforcementDays": 10, "reinforcementEnabled": true, "reinforcementIsPaid": false },
+  "branch": { "address": "Calle 1", "city": "Bogotá", "pricePerM2": 1200, "frequencyDays": 30, "reinforcementDays": 10, "reinforcementEnabled": true, "reinforcementIsPaid": false },
   "nextMainServiceDate": "2026-05-10T09:00:00.000Z",
   "createService": true
 }
@@ -158,62 +158,62 @@ Permiso para todos los endpoints de esta secciÃ³n: `admin` + token.
 - Respuesta: `{ "data": { "client": {}, "business": {}, "branch": {} } }`
 
 ### `PATCH /api/clients/:id`
-- DescripciÃ³n: actualiza datos bÃ¡sicos del cliente.
+- Descripción: actualiza datos básicos del cliente.
 - Params: `id`.
 - Body: `{ "name": "Cliente A", "contactName": "Nuevo", "phone": "3001111111" }`
 - Respuesta: `{ "data": { "id": "...", "name": "Cliente A" } }`
 
 ### `POST /api/clients/:clientId/businesses`
-- DescripciÃ³n: crea negocio para un cliente.
+- Descripción: crea negocio para un cliente.
 - Params: `clientId`.
-- Body: `{ "name": "Nueva RazÃ³n Social" }`
-- Respuesta: `{ "data": { "id": "...", "clientId": "...", "name": "Nueva RazÃ³n Social" } }`
+- Body: `{ "name": "Nueva Razón Social" }`
+- Respuesta: `{ "data": { "id": "...", "clientId": "...", "name": "Nueva Razón Social" } }`
 
 ### `PATCH /api/clients/businesses/:businessId`
-- DescripciÃ³n: actualiza nombre de negocio.
+- Descripción: actualiza nombre de negocio.
 - Params: `businessId`.
 - Body: `{ "name": "Empresa Renombrada" }`
 - Respuesta: `{ "data": { "id": "...", "name": "Empresa Renombrada" } }`
 
 ### `POST /api/clients/businesses/:businessId/branches`
-- DescripciÃ³n: crea sucursal en negocio.
+- Descripción: crea sucursal en negocio.
 - Params: `businessId`.
-- Body: `{ "clientId": "...", "address": "Cra 1", "city": "BogotÃ¡", "fixedPrice": 250000 }`
+- Body: `{ "clientId": "...", "address": "Cra 1", "city": "Bogotá", "fixedPrice": 250000 }`
 - Respuesta: `{ "data": { "branch": {}, "serviceCycle": {} } }`
 
 ### `PATCH /api/clients/branches/:branchId`
-- DescripciÃ³n: actualiza datos bÃ¡sicos/precios de sucursal.
+- Descripción: actualiza datos básicos/precios de sucursal.
 - Params: `branchId`.
-- Body: `{ "address": "Nueva direcciÃ³n", "phone": "3002222222", "city": "MedellÃ­n", "pricePerM2": 1300, "fixedPrice": 260000 }`
-- Respuesta: `{ "data": { "id": "...", "address": "Nueva direcciÃ³n" } }`
+- Body: `{ "address": "Nueva dirección", "phone": "3002222222", "city": "Medellín", "pricePerM2": 1300, "fixedPrice": 260000 }`
+- Respuesta: `{ "data": { "id": "...", "address": "Nueva dirección" } }`
 
 ### `PATCH /api/clients/branches/:branchId/configuration`
-- DescripciÃ³n: actualiza configuraciÃ³n operativa de sucursal.
+- Descripción: actualiza configuración operativa de sucursal.
 - Params: `branchId`.
 - Body: `{ "frequencyDays": 45, "reinforcementDays": 12, "reinforcementEnabled": true, "reinforcementIsPaid": false }`
 - Respuesta: `{ "data": { "id": "...", "frequencyDays": 45 } }`
 
 ### `GET /api/clients/branches/:branchId/history`
-- DescripciÃ³n: historial de servicios por sucursal (con filtros).
+- Descripción: historial de servicios por sucursal (con filtros).
 - Params: `branchId`.
 - Query opcional: `from`, `to` (ISO), `status` (`pending|confirmed|in_progress|completed|canceled|rescheduled`), `type` (`main|reinforcement`).
 - Body: ninguno.
 - Respuesta: `{ "data": { "branch": {}, "services": [ { "id": "...", "status": "completed", "type": "main" } ] } }`
 
 Diferencia clave:
-- `GET /clients/:id/detail`: vista estructural (cliente, negocios, sucursales, configuraciÃ³n, ciclos).
+- `GET /clients/:id/detail`: vista estructural (cliente, negocios, sucursales, configuración, ciclos).
 - `GET /clients/branches/:branchId/history`: vista temporal (historial de servicios de una sucursal).
 
 ## 4. Servicios
 
 Permiso base de rutas: token requerido.  
-Regla operativa en casos tÃ©cnicos: `admin` o tÃ©cnico asignado (excepto `generate-reinforcement`, actualmente solo admin en use case).
+Regla operativa en casos técnicos: `admin` o técnico asignado (excepto `generate-reinforcement`, actualmente solo admin en use case).
 
 Tipos:
 - `main`: servicio principal.
 - `reinforcement`: servicio de refuerzo real en `services`.
 
-Flujo tÃ©cnico recomendado:
+Flujo técnico recomendado:
 `start -> notes -> evidences -> payment -> complete`
 
 ### Base
@@ -240,7 +240,7 @@ Flujo tÃ©cnico recomendado:
     "clientName": "Cliente A",
     "clientPhone": "3010000000",
     "paymentMethodName": "Efectivo",
-    "technicians": [{ "id": "...", "name": "Tecnico 1" }]
+    "technicians": [{ "id": "...", "name": "Técnico 1" }]
   }
 }
 ```
@@ -267,7 +267,7 @@ Flujo tÃ©cnico recomendado:
       "branchPhone": "3001234567",
       "clientName": "Cliente A",
       "clientPhone": "3010000000",
-      "technicians": [{ "id": "...", "name": "Tecnico 1" }]
+      "technicians": [{ "id": "...", "name": "Técnico 1" }]
     }
   ]
 }
@@ -284,7 +284,7 @@ Flujo tÃ©cnico recomendado:
 ```json
 {
   "data": {
-    "technician": { "id": "...", "name": "Tecnico 1", "email": "tech1@demo.com", "isTechnician": true },
+    "technician": { "id": "...", "name": "Técnico 1", "email": "tech1@demo.com", "isTechnician": true },
     "services": [ { "id": "...", "scheduledAt": "..." } ]
   }
 }
@@ -306,7 +306,7 @@ Flujo tÃ©cnico recomendado:
 - Body: `{ "technicianIds": ["tech-1", "tech-2"] }`
 - Respuesta: `{ "data": { "success": true } }`
 
-### OperaciÃ³n tÃ©cnica
+### Operación técnica
 
 ### `PATCH /api/services/:id/start`
 - Respuesta: `{ "data": { "id": "...", "status": "in_progress" } }`
@@ -315,7 +315,7 @@ Flujo tÃ©cnico recomendado:
 - Respuesta: `{ "data": { "id": "...", "status": "completed" } }`
 
 ### `PATCH /api/services/:id/notes`
-- Body: `{ "notes": "Se aplicÃ³ tratamiento en cocina y patio." }`
+- Body: `{ "notes": "Se aplicó tratamiento en cocina y patio." }`
 - Respuesta: `{ "data": { "id": "...", "notes": "..." } }`
 
 ### `PATCH /api/services/:id/payment`
@@ -342,7 +342,7 @@ Flujo tÃ©cnico recomendado:
 ### Refuerzos
 
 ### `POST /api/services/:id/generate-reinforcement`
-- DescripciÃ³n: crea servicio `reinforcement` real desde un `main` completado.
+- Descripción: crea servicio `reinforcement` real desde un `main` completado.
 - Body opcional: `{ "price": 0 }`
 - Respuesta: `{ "data": { "id": "...", "type": "reinforcement", "status": "pending", "scheduledAt": "..." } }`
 - Regla de duplicados: conflicto si ya existe refuerzo para misma sucursal y misma fecha calculada.
@@ -352,11 +352,11 @@ Flujo tÃ©cnico recomendado:
 Permiso para todos los endpoints: `admin` + token.
 
 ### `POST /api/users`
-- Body: `{ "name": "Tecnico 1", "email": "tech1@demo.com", "password": "Secret123", "role": "admin", "isTechnician": true }`
-- Respuesta: `{ "data": { "id": "...", "name": "Tecnico 1", "isTechnician": true } }`
+- Body: `{ "name": "Técnico 1", "email": "tech1@demo.com", "password": "Secret123", "role": "admin", "isTechnician": true }`
+- Respuesta: `{ "data": { "id": "...", "name": "Técnico 1", "isTechnician": true } }`
 
 ### `GET /api/users/technicians`
-- Respuesta: `{ "data": [ { "id": "...", "name": "Tecnico 1", "isTechnician": true } ] }`
+- Respuesta: `{ "data": [ { "id": "...", "name": "Técnico 1", "isTechnician": true } ] }`
 
 ### `GET /api/users/:id`
 - Respuesta: `{ "data": { "id": "...", "name": "Admin", "email": "admin@demo.com" } }`
@@ -365,7 +365,7 @@ Permiso para todos los endpoints: `admin` + token.
 - Body: `{ "name": "Nuevo nombre", "email": "nuevo@demo.com", "isTechnician": false }`
 - Respuesta: `{ "data": { "id": "...", "name": "Nuevo nombre" } }`
 
-## 6. ConfiguraciÃ³n
+## 6. Configuración
 
 Permiso para todos los endpoints: `admin` + token.
 
@@ -395,15 +395,15 @@ Permiso para todos los endpoints: `admin` + token.
 
 - Todos los endpoints usan JSON.
 - Errores siguen `{"message":"..."}`.
-- Fechas se envÃ­an en ISO string (`2026-05-10T09:00:00.000Z`).
+- Fechas se envían en ISO string (`2026-05-10T09:00:00.000Z`).
 - `/clients`, `/users`, `/settings`: requieren `admin`.
-- `/services`: requiere token; autorizaciÃ³n fina se valida por caso de uso.
+- `/services`: requiere token; autorización fina se valida por caso de uso.
 - No persistir binarios en base de datos: soportes/evidencias terminan en URL (`paymentProofUrl`, `fileUrl`).
 
 ## Inconsistencias actuales detectadas
 
-- No se detectan inconsistencias activas en formato de respuesta estÃ¡ndar.
-## 9. Actualizacion de contrato - Sucursal y Dashboard
+- No se detectan inconsistencias activas en formato de respuesta estándar.
+## 9. Actualización de contrato - Sucursal y Dashboard
 
 ### PATCH /api/clients/branches/:branchId/configuration
 Body acepta adicionalmente:
@@ -466,24 +466,24 @@ Respuesta:
 
 ### sales vs attributedSales
 - `sales`: ventas reales del negocio (cada servicio cuenta una sola vez).
-- `attributedSales`: ventas atribuidas a tecnicos segun `technicianRevenueMode` de la sucursal.
+- `attributedSales`: ventas atribuidas a técnicos según `technicianRevenueMode` de la sucursal.
 - En modo `full`, `attributedSales` puede superar `sales`.
 
 ## 10. Hardening dashboard y technicianRevenueMode
 
-- completionRate endurecido: validacion de dimensiones permitidas y calculo por periodo correcto.
+- completionRate endurecido: validación de dimensiones permitidas y cálculo por periodo correcto.
 - alerts endurecido: aplica filtros solicitados por query para evitar resultados globales no filtrados.
-- technicianRevenueMode documentado con regla actual basada en configuracion vigente de sucursal.
-- pendiente futuro: snapshot historico de technicianRevenueMode para trazabilidad exacta de attributedSales.
+- technicianRevenueMode documentado con regla actual basada en configuración vigente de sucursal.
+- pendiente futuro: snapshot histórico de technicianRevenueMode para trazabilidad exacta de attributedSales.
 
 ## 11. Notas de contrato frontend para clientes
 
 - `POST /api/clients/businesses/:businessId/branches` responde `{ data: { branch, serviceCycle } }`; no retorna `service`.
-- `serviceCycle.lastServiceDate` del backend se normaliza a `lastMainServiceDate` en frontend para mantener consistencia semantica.
+- `serviceCycle.lastServiceDate` del backend se normaliza a `lastMainServiceDate` en frontend para mantener consistencia semántica.
 - `PATCH /api/clients/branches/:branchId/configuration` acepta `technicianRevenueMode` con valores `split|full`.
-- `GET /api/clients/branches/:branchId/history` hoy retorna historial basico de `services` y no incluye tecnicos, evidencias ni metodo de pago enriquecido.
+- `GET /api/clients/branches/:branchId/history` hoy retorna historial básico de `services` y no incluye técnicos, evidencias ni método de pago enriquecido.
 
-- `createService` no se crea automaticamente en backend durante `createInitialClient` o `addBranchToBusiness`; actualmente solo se crea `serviceCycle` cuando llega `nextMainServiceDate`.
-- Frontend administrativo ahora encadena `POST /api/services` despues de `createInitialClient` cuando existe `nextMainServiceDate` para crear servicio `main` en estado `pending`.
+- `createService` no se crea automáticamente en backend durante `createInitialClient` o `addBranchToBusiness`; actualmente solo se crea `serviceCycle` cuando llega `nextMainServiceDate`.
+- Frontend administrativo ahora encadena `POST /api/services` después de `createInitialClient` cuando existe `nextMainServiceDate` para crear servicio `main` en estado `pending`.
 - Nuevo endpoint: `PATCH /api/clients/branches/:branchId/cycle` para crear/actualizar `service_cycles` por sucursal. Body: `{ nextMainServiceDate, nextReinforcementDate? }`.
-- Nuevo endpoint: `GET /api/clients/branches/search?q=...` para selector de sucursal en creacion de servicios.
+- Nuevo endpoint: `GET /api/clients/branches/search?q=...` para selector de sucursal en creación de servicios.
