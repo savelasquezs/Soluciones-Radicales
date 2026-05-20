@@ -72,3 +72,8 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Los filtros de fecha son locales (`from` y `to`) con acciones aplicar y este mes.
 - VisualizaciÃ³n inicial con listas y barras simples de Tailwind, sin librerÃ­a externa de grÃ¡ficos.
 - Fuentes de datos: `/api/dashboard/summary`, `/api/dashboard/analytics`, `/api/dashboard/alerts`, `/api/services/upcoming`.
+
+## CORS local API
+- Frontend local: `http://localhost:5173`.
+- Backend API debe definir `CORS_ORIGIN=http://localhost:5173` para desarrollo.
+- Si cambias variables de entorno, reinicia `npm run dev` (Front y API si aplica).

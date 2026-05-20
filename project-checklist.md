@@ -240,3 +240,5 @@ Notas:
 - [x] Tests de dashboard agregados (pÃ¡gina y componentes clave).
 - [ ] Pendiente futuro: evaluar librerÃ­a de grÃ¡ficos para visualizaciÃ³n avanzada.
 - [x] Encoding validado sin mojibake visible en README y checklist.
+- [x] CORS backend configurado para frontend local (`http://localhost:5173`) con `CORS_ORIGIN`.
+- [x] Test HTTP de CORS agregado (preflight OPTIONS + origen permitido/no permitido).

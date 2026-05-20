@@ -43,4 +43,10 @@ export const env = {
       'http://localhost:5173/reset-password',
     ),
   },
+  cors: {
+    origin: getEnv('CORS_ORIGIN', 'http://localhost:5173')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  },
 };
