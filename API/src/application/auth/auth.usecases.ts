@@ -57,6 +57,8 @@ const toPublicUser = (user: {
   email: string;
   role: 'admin';
   isTechnician: boolean;
+  active: boolean;
+  disabledAt: Date | null;
   createdAt: Date;
 }): UserPublic => ({
   id: user.id,
@@ -64,6 +66,8 @@ const toPublicUser = (user: {
   email: user.email,
   role: user.role,
   isTechnician: user.isTechnician,
+  active: user.active,
+  disabledAt: user.disabledAt,
   createdAt: user.createdAt,
 });
 

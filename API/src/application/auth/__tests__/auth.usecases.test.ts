@@ -9,6 +9,8 @@ const baseUser = {
   password: 'hashed-password',
   role: 'admin' as const,
   isTechnician: true,
+  active: true,
+  disabledAt: null,
   createdAt: new Date(),
 };
 
@@ -19,7 +21,9 @@ const buildDeps = () => {
     create: vi.fn(),
     update: vi.fn(),
     updatePassword: vi.fn(),
+    listUsers: vi.fn(),
     listTechnicians: vi.fn(),
+    disableUser: vi.fn(),
   };
   const refreshTokenRepository = {
     create: vi.fn(),

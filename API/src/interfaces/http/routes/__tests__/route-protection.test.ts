@@ -155,9 +155,11 @@ describe('route protection', () => {
         createUserController({
           userUseCases: {
             createUser: vi.fn(),
+            listUsers: vi.fn(),
             listTechnicians: vi.fn(),
             getUserById: vi.fn(),
             updateUser: vi.fn(),
+            disableUser: vi.fn(),
           },
         }),
       ),
@@ -180,9 +182,11 @@ describe('route protection', () => {
         createUserController({
           userUseCases: {
             createUser: vi.fn(),
+            listUsers: vi.fn(),
             listTechnicians: vi.fn(),
             getUserById: vi.fn(),
             updateUser: vi.fn(),
+            disableUser: vi.fn(),
           },
         }),
       ),
@@ -210,9 +214,11 @@ describe('route protection', () => {
         createUserController({
           userUseCases: {
             createUser: vi.fn(),
+            listUsers: vi.fn(),
             listTechnicians,
             getUserById: vi.fn(),
             updateUser: vi.fn(),
+            disableUser: vi.fn(),
           },
         }),
       ),

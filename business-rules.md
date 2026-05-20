@@ -602,3 +602,12 @@ No usar directamente:
 - `<input type="datetime-local">`
 
 Solo se permite excepcion con justificacion tecnica explicita.
+
+## 36. Desactivacion de usuarios
+
+La gestion de usuarios administrativos usa desactivacion logica, no borrado fisico.
+
+Reglas:
+- Un usuario desactivado (`active = false`) no debe autenticarse.
+- Los listados operativos de usuarios y tecnicos solo deben incluir usuarios activos.
+- Al desactivar un usuario se debe registrar `disabled_at`.

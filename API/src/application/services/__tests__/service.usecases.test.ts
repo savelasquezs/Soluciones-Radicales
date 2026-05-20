@@ -91,7 +91,9 @@ const buildDeps = () => ({
     create: vi.fn(),
     update: vi.fn(),
     updatePassword: vi.fn(),
+    listUsers: vi.fn(),
     listTechnicians: vi.fn(),
+    disableUser: vi.fn(),
   },
   branchRepository: {
     findById: vi.fn(),

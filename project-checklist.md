@@ -327,3 +327,6 @@ TODOs reales:
 - [ ] Falta endpoint para eliminar/desactivar usuarios (`DELETE /api/users/:id` o `PATCH /api/users/:id/disable`).
 - [ ] Falta reset password desde admin.
 - [ ] Falta estrategia de soft delete en usuarios.
+- [x] Endpoint `GET /api/users` implementado.
+- [x] Endpoint `PATCH /api/users/:id/disable` implementado.
+- [x] Soft disable de usuarios implementado (`users.active`, `users.disabled_at`).

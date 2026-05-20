@@ -13,6 +13,8 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('admin')),
     is_technician BOOLEAN DEFAULT false,
+    active BOOLEAN NOT NULL DEFAULT true,
+    disabled_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -218,6 +220,7 @@ CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens (user_id
 CREATE INDEX idx_password_reset_tokens_token_hash ON password_reset_tokens (token_hash);
 
 CREATE INDEX idx_password_reset_tokens_expires_at ON password_reset_tokens (expires_at);
+CREATE INDEX idx_users_active ON users (active);
 
 -- SETTINGS BASE
 INSERT INTO

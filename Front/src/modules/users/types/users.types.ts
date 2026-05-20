@@ -2,6 +2,8 @@ import type { AppUser, ID } from '@/shared/types/common';
 
 export type User = AppUser & {
   createdAt?: string;
+  active?: boolean;
+  disabledAt?: string | null;
 };
 
 export type CreateUserPayload = {

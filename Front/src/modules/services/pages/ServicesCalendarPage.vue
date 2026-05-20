@@ -1,44 +1,32 @@
 <template>
-  <section class="space-y-5">
+  <section ref="pageRef" class="services-calendar-page">
     <header class="flex flex-wrap items-center justify-end gap-2">
-      <AppButton variant="secondary" @click="goServices">Volver a servicios</AppButton>
+      <div class="space-y-3">
+        <AppSelect v-model="selectedTechnicianId" :options="technicianOptions" />
+      </div>
+      <AppButton variant="secondary" @click="goServices">
+        Volver a servicios
+      </AppButton>
       <AppButton @click="openCreateModal">Nuevo servicio</AppButton>
     </header>
 
-    <div class="space-y-4">
-      <AppCard v-if="isLoading" class="flex items-center gap-2 text-sm text-foreground/70">
+    <div class="calendar-content">
+      <AppCard
+        v-if="isLoading"
+        class="flex items-center gap-2 text-sm text-foreground/70"
+      >
         <AppSpinner />
         <span>Cargando servicios del mes...</span>
       </AppCard>
       <AppCard v-else-if="error" class="text-sm text-danger">{{ error }}</AppCard>
-      <ServicesCalendar
-        v-else
-        :services="services"
-        @select-date="selectDate"
-        @select-service="goDetail"
-        @change-month="handleMonthChange"
-      />
-    </div>
-
-    <div class="grid gap-4 xl:grid-cols-2">
-      <div class="space-y-4">
-        <AppCard class="space-y-3">
-          <p class="text-sm font-medium text-foreground">Programación por técnico</p>
-          <AppSelect v-model="selectedTechnicianId" :options="technicianOptions" />
-        </AppCard>
-        <TechnicianSchedulePanel
-          v-if="selectedTechnicianId"
-          :schedule="technicianSchedule"
-          :loading="isLoadingTechnicianSchedule"
+      <div v-else class="calendar-fill" :style="{ height: `${calendarHeight}px` }">
+        <ServicesCalendar
+          :services="calendarServices"
+          @select-date="selectDate"
           @select-service="goDetail"
+          @change-month="handleMonthChange"
         />
       </div>
-      <ServiceDayList
-        :services="dayServices"
-        :loading="isLoadingDayServices"
-        :selectedDate="selectedDate"
-        @select-service="goDetail"
-      />
     </div>
 
     <AppModal :open="isCreateModalOpen" size="md" @close="isCreateModalOpen = false">
@@ -56,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { usersService } from '@/modules/users/services/users.service';
 import AppButton from '@/shared/components/ui/AppButton.vue';
@@ -65,36 +53,55 @@ import AppModal from '@/shared/components/ui/AppModal.vue';
 import AppSelect from '@/shared/components/ui/AppSelect.vue';
 import AppSpinner from '@/shared/components/ui/AppSpinner.vue';
 import { useToast } from '@/shared/composables/useToast';
-import ServiceDayList from '../components/ServiceDayList.vue';
 import ServiceForm from '../components/ServiceForm.vue';
 import ServicesCalendar from '../components/ServicesCalendar.vue';
-import TechnicianSchedulePanel from '../components/TechnicianSchedulePanel.vue';
 import { servicesService } from '../services/services.service';
 import type { Service, TechnicianScheduleResponse } from '../types/services.types';
 
 const router = useRouter();
 const { push: pushToast } = useToast();
 
+const pageRef = ref<HTMLElement | null>(null);
 const services = ref<Service[]>([]);
-const dayServices = ref<Service[]>([]);
-const selectedDate = ref<string>('');
+const selectedDate = ref('');
 const selectedTechnicianId = ref('');
 const technicians = ref<Array<{ id: string; name: string }>>([]);
 const technicianSchedule = ref<TechnicianScheduleResponse | null>(null);
 
 const isLoading = ref(false);
-const isLoadingDayServices = ref(false);
 const isLoadingTechnicianSchedule = ref(false);
 const isCreateModalOpen = ref(false);
 const isSubmitting = ref(false);
 const error = ref('');
+const calendarHeight = ref(560);
 
-const currentMonth = ref({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 });
+const currentMonth = ref({
+  year: new Date().getFullYear(),
+  month: new Date().getMonth() + 1,
+});
 
 const technicianOptions = computed(() => [
-  { label: 'Selecciona un técnico', value: '' },
-  ...technicians.value.map((technician) => ({ label: technician.name, value: technician.id })),
+  { label: 'Todos los técnicos', value: '' },
+  ...technicians.value.map((technician) => ({
+    label: technician.name,
+    value: technician.id,
+  })),
 ]);
+
+const calendarServices = computed<Service[]>(() => {
+  if (!selectedTechnicianId.value) {
+    return services.value;
+  }
+  return technicianSchedule.value?.services ?? [];
+});
+
+const updateCalendarHeight = () => {
+  if (!pageRef.value) return;
+
+  const pageTop = pageRef.value.getBoundingClientRect().top;
+  const availableHeight = window.innerHeight - pageTop - 16;
+  calendarHeight.value = Math.max(448, availableHeight);
+};
 
 const loadMonth = async () => {
   isLoading.value = true;
@@ -108,21 +115,13 @@ const loadMonth = async () => {
   }
 };
 
-const loadDayServices = async (date: string) => {
-  isLoadingDayServices.value = true;
-  try {
-    dayServices.value = await servicesService.getServicesByDay({ date: `${date}T00:00:00.000Z` });
-  } catch {
-    dayServices.value = [];
-  } finally {
-    isLoadingDayServices.value = false;
-  }
-};
-
 const loadTechnicians = async () => {
   try {
     const data = await usersService.listTechnicians();
-    technicians.value = data.map((technician) => ({ id: technician.id, name: technician.name }));
+    technicians.value = data.map((technician) => ({
+      id: technician.id,
+      name: technician.name,
+    }));
   } catch {
     technicians.value = [];
   }
@@ -145,11 +144,13 @@ watch(selectedTechnicianId, async (technicianId) => {
 
 const selectDate = (date: string) => {
   selectedDate.value = date;
-  void loadDayServices(date);
 };
 
 const handleMonthChange = (payload: { year: number; month: number }) => {
-  if (currentMonth.value.year === payload.year && currentMonth.value.month === payload.month) {
+  if (
+    currentMonth.value.year === payload.year &&
+    currentMonth.value.month === payload.month
+  ) {
     return;
   }
 
@@ -168,8 +169,10 @@ const createService = async (payload: Parameters<typeof servicesService.createSe
     pushToast('Servicio creado.');
     isCreateModalOpen.value = false;
     await loadMonth();
-    if (selectedDate.value) {
-      await loadDayServices(selectedDate.value);
+    if (selectedTechnicianId.value) {
+      technicianSchedule.value = await servicesService.getTechnicianSchedule(
+        selectedTechnicianId.value,
+      );
     }
   } catch {
     pushToast('No se pudo crear el servicio.');
@@ -188,5 +191,40 @@ const goServices = () => {
 
 onMounted(async () => {
   await Promise.all([loadMonth(), loadTechnicians()]);
+  await nextTick();
+  updateCalendarHeight();
+  window.addEventListener('resize', updateCalendarHeight);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateCalendarHeight);
 });
 </script>
+
+<style scoped>
+.services-calendar-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.calendar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.calendar-fill {
+  min-height: 28rem;
+}
+
+.calendar-fill :deep(.services-calendar-card) {
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .calendar-fill {
+    min-height: 28rem;
+  }
+}
+</style>

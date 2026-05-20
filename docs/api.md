@@ -465,9 +465,15 @@ Permiso para todos los endpoints: `admin` + token.
 - Body: `{ "name": "Técnico 1", "email": "tech1@demo.com", "password": "Secret123", "role": "admin", "isTechnician": true }`
 - Respuesta: `{ "data": { "id": "...", "name": "Técnico 1", "isTechnician": true } }`
 
+### `GET /api/users`
+
+- Respuesta: `{ "data": [ { "id": "...", "name": "Admin", "email": "admin@demo.com", "active": true } ] }`
+- Nota: solo retorna usuarios activos.
+
 ### `GET /api/users/technicians`
 
 - Respuesta: `{ "data": [ { "id": "...", "name": "Técnico 1", "isTechnician": true } ] }`
+- Nota: solo retorna técnicos activos.
 
 ### `GET /api/users/:id`
 
@@ -477,6 +483,12 @@ Permiso para todos los endpoints: `admin` + token.
 
 - Body: `{ "name": "Nuevo nombre", "email": "nuevo@demo.com", "isTechnician": false }`
 - Respuesta: `{ "data": { "id": "...", "name": "Nuevo nombre" } }`
+
+### `PATCH /api/users/:id/disable`
+
+- Body opcional: `{ "actorUserId": "..." }`
+- Respuesta: `{ "data": { "success": true } }`
+- Efecto: desactivación lógica del usuario (`active=false`, `disabled_at=NOW()`).
 
 ## 6. Configuración
 

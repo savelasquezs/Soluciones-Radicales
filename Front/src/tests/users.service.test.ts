@@ -17,6 +17,14 @@ describe('usersService', () => {
     vi.clearAllMocks();
   });
 
+  it('listUsers llama endpoint correcto', async () => {
+    vi.mocked(http.get).mockResolvedValueOnce([] as any);
+
+    await usersService.listUsers();
+
+    expect(http.get).toHaveBeenCalledWith(endpoints.users.list);
+  });
+
   it('listTechnicians llama endpoint correcto', async () => {
     vi.mocked(http.get).mockResolvedValueOnce([] as any);
 
@@ -51,5 +59,15 @@ describe('usersService', () => {
     await usersService.updateUser('u-1', payload);
 
     expect(http.patch).toHaveBeenCalledWith(endpoints.users.update('u-1'), payload);
+  });
+
+  it('disableUser llama endpoint correcto', async () => {
+    vi.mocked(http.patch).mockResolvedValueOnce({ success: true } as any);
+
+    await usersService.disableUser('u-1', 'admin-1');
+
+    expect(http.patch).toHaveBeenCalledWith(endpoints.users.disable('u-1'), {
+      actorUserId: 'admin-1',
+    });
   });
 });

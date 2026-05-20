@@ -53,9 +53,11 @@ const serviceUseCases = {
 
 const userUseCases = {
   createUser: vi.fn(),
+  listUsers: vi.fn(),
   listTechnicians: vi.fn(),
   getUserById: vi.fn(),
   updateUser: vi.fn(),
+  disableUser: vi.fn(),
 };
 
 const settingsUseCases = {

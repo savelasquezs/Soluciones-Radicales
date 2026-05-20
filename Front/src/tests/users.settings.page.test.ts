@@ -15,9 +15,11 @@ vi.mock('@/shared/composables/useToast', () => ({
 vi.mock('@/modules/users/services/users.service', () => ({
   usersService: {
     createUser: vi.fn(),
+    listUsers: vi.fn(),
     listTechnicians: vi.fn(),
     getUserById: vi.fn(),
     updateUser: vi.fn(),
+    disableUser: vi.fn(),
   },
 }));
 
@@ -42,11 +44,11 @@ describe('UsersSettingsPage', () => {
   });
 
   it('carga usuarios al montar y muestra bloque academico', async () => {
-    vi.mocked(usersService.listTechnicians).mockResolvedValueOnce([
+    vi.mocked(usersService.listUsers).mockResolvedValueOnce([
       {
-        id: 'tech-1',
-        name: 'Tecnico',
-        email: 'tech@demo.com',
+        id: 'user-1',
+        name: 'Usuario',
+        email: 'user@demo.com',
         role: 'admin',
         isTechnician: true,
       },
@@ -55,18 +57,17 @@ describe('UsersSettingsPage', () => {
     const wrapper = mount(UsersSettingsPage);
     await flushPromises();
 
-    expect(usersService.listTechnicians).toHaveBeenCalled();
-    expect(wrapper.text()).toContain('Demostración académica CRUD');
+    expect(usersService.listUsers).toHaveBeenCalled();
     expect(wrapper.text()).toContain('Total técnicos');
-    expect(wrapper.text()).toContain('Total usuarios visibles');
   });
 
   it('valida nombre requerido y email requerido/formato', async () => {
-    vi.mocked(usersService.listTechnicians).mockResolvedValueOnce([]);
+    vi.mocked(usersService.listUsers).mockResolvedValueOnce([]);
 
     const wrapper = mount(UsersSettingsPage);
     await flushPromises();
 
+    await wrapper.find('button.button-primary').trigger('click');
     await wrapper.find('form').trigger('submit');
     expect(wrapper.text()).toContain('El nombre es obligatorio.');
     expect(wrapper.text()).toContain('El email es obligatorio.');
@@ -80,11 +81,11 @@ describe('UsersSettingsPage', () => {
   });
 
   it('exige password en creacion y no exige password en edicion', async () => {
-    vi.mocked(usersService.listTechnicians).mockResolvedValueOnce([
+    vi.mocked(usersService.listUsers).mockResolvedValueOnce([
       {
-        id: 'tech-1',
-        name: 'Tecnico',
-        email: 'tech@demo.com',
+        id: 'user-1',
+        name: 'Usuario',
+        email: 'user@demo.com',
         role: 'admin',
         isTechnician: true,
       },
@@ -93,6 +94,7 @@ describe('UsersSettingsPage', () => {
     const wrapper = mount(UsersSettingsPage);
     await flushPromises();
 
+    await wrapper.find('button.button-primary').trigger('click');
     await wrapper.find('#user-name').setValue('Nombre');
     await wrapper.find('#user-email').setValue('nombre@demo.com');
     await wrapper.find('form').trigger('submit');
@@ -101,17 +103,17 @@ describe('UsersSettingsPage', () => {
     const editButtons = wrapper
       .findAll('button')
       .filter((button) => button.text() === 'Editar');
-    await editButtons[1]?.trigger('click');
+    await editButtons[0]?.trigger('click');
 
     expect((wrapper.find('#user-password').element as HTMLInputElement).disabled).toBe(true);
   });
 
   it('crea usuario sin recargar pagina', async () => {
-    vi.mocked(usersService.listTechnicians)
+    vi.mocked(usersService.listUsers)
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
-          id: 'tech-2',
+          id: 'user-2',
           name: 'Nuevo',
           email: 'nuevo@demo.com',
           role: 'admin',
@@ -119,7 +121,7 @@ describe('UsersSettingsPage', () => {
         },
       ]);
     vi.mocked(usersService.createUser).mockResolvedValueOnce({
-      id: 'tech-2',
+      id: 'user-2',
       name: 'Nuevo',
       email: 'nuevo@demo.com',
       role: 'admin',
@@ -129,6 +131,7 @@ describe('UsersSettingsPage', () => {
     const wrapper = mount(UsersSettingsPage);
     await flushPromises();
 
+    await wrapper.find('button.button-primary').trigger('click');
     await wrapper.find('#user-name').setValue('Nuevo');
     await wrapper.find('#user-email').setValue('nuevo@demo.com');
     await wrapper.find('#user-password').setValue('123456');
@@ -140,35 +143,35 @@ describe('UsersSettingsPage', () => {
       email: 'nuevo@demo.com',
       password: '123456',
       role: 'admin',
-      isTechnician: false,
+      isTechnician: true,
     });
     expect(wrapper.text()).toContain('Usuario creado correctamente.');
   });
 
   it('carga usuario en formulario al editar, actualiza y cancela edicion', async () => {
-    vi.mocked(usersService.listTechnicians)
+    vi.mocked(usersService.listUsers)
       .mockResolvedValueOnce([
         {
-          id: 'tech-1',
-          name: 'Tecnico',
-          email: 'tech@demo.com',
+          id: 'user-1',
+          name: 'Usuario',
+          email: 'user@demo.com',
           role: 'admin',
           isTechnician: true,
         },
       ])
       .mockResolvedValueOnce([
         {
-          id: 'tech-1',
-          name: 'Tecnico Editado',
-          email: 'tech@demo.com',
+          id: 'user-1',
+          name: 'Usuario Editado',
+          email: 'user@demo.com',
           role: 'admin',
           isTechnician: true,
         },
       ]);
     vi.mocked(usersService.updateUser).mockResolvedValueOnce({
-      id: 'tech-1',
-      name: 'Tecnico Editado',
-      email: 'tech@demo.com',
+      id: 'user-1',
+      name: 'Usuario Editado',
+      email: 'user@demo.com',
       role: 'admin',
       isTechnician: true,
     });
@@ -179,18 +182,18 @@ describe('UsersSettingsPage', () => {
     const editButtons = wrapper
       .findAll('button')
       .filter((button) => button.text() === 'Editar');
-    await editButtons[1]?.trigger('click');
+    await editButtons[0]?.trigger('click');
 
-    expect((wrapper.find('#user-name').element as HTMLInputElement).value).toBe('Tecnico');
+    expect((wrapper.find('#user-name').element as HTMLInputElement).value).toBe('Usuario');
     expect(wrapper.text()).toContain('Editar usuario');
 
-    await wrapper.find('#user-name').setValue('Tecnico Editado');
+    await wrapper.find('#user-name').setValue('Usuario Editado');
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(usersService.updateUser).toHaveBeenCalledWith('tech-1', {
-      name: 'Tecnico Editado',
-      email: 'tech@demo.com',
+    expect(usersService.updateUser).toHaveBeenCalledWith('user-1', {
+      name: 'Usuario Editado',
+      email: 'user@demo.com',
       isTechnician: true,
     });
 
@@ -201,16 +204,31 @@ describe('UsersSettingsPage', () => {
     expect(wrapper.text()).toContain('Crear usuario');
   });
 
-  it('muestra estado vacio cuando no hay usuario autenticado ni tecnicos', async () => {
-    const auth = useAuthStore();
-    auth.user = null;
-    vi.mocked(usersService.listTechnicians).mockResolvedValueOnce([]);
+  it('desactiva usuario con confirmacion', async () => {
+    vi.mocked(usersService.listUsers)
+      .mockResolvedValueOnce([
+        {
+          id: 'user-2',
+          name: 'Usuario',
+          email: 'usuario@demo.com',
+          role: 'admin',
+          isTechnician: false,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    vi.mocked(usersService.disableUser).mockResolvedValueOnce({ success: true });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     const wrapper = mount(UsersSettingsPage);
     await flushPromises();
 
-    expect(wrapper.text()).toContain(
-      'No hay usuarios visibles con el contrato actual.',
-    );
+    const disableButton = wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Desactivar');
+    await disableButton?.trigger('click');
+    await flushPromises();
+
+    expect(usersService.disableUser).toHaveBeenCalledWith('user-2', 'admin-1');
+    expect(wrapper.text()).toContain('Usuario desactivado correctamente.');
   });
 });

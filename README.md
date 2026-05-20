@@ -89,21 +89,6 @@ npm test
 - `business-rules.md` - Reglas de negocio que deben guiar el desarrollo.
 - `agents.md` - Normas internas y acuerdos de desarrollo para agentes.
 
-## Flujo recomendado
-
-1. Revisar `business-rules.md` antes de implementar cualquier regla nueva.
-2. Validar los contratos API en `docs/api.md`.
-3. Usar `project-checklist.md` para tareas y puntos pendientes.
-4. Mantener `Front/` y `API/` separados en sus propios ciclos de desarrollo.
-
-## Notas adicionales
-
-- Las migraciones de base de datos deben incluir un nuevo archivo SQL en `Scripts/` y actualizar `init.sql`.
-- El frontend debe respetar la capa de servicios y no acceder a HTTP directamente desde componentes cuando haya un servicio disponible.
-- El backend sigue una arquitectura con capas de dominio, aplicación, infraestructura e interfaces.
-
----
-
 ## Arquitectura limpia y flujo de datos
 
 Soluciones Radicales usa Clean Architecture para aislar la lógica de negocio de detalles técnicos. Las capas principales son:
@@ -123,31 +108,35 @@ Flujo de una petición (resumen):
 
 Flujos asíncronos (cron/jobs): scheduler → caso de uso → repositorios → notificaciones / actualizaciones de ciclos.
 
-Diagrama ASCII (vertical):
+Responsabilidad por capas (resumen claro):
 
-  +----------------------+
-  |  Cliente / UI / API  |  <-- HTTP, Web, Mobile, Cron
-  +----------+-----------+
-             |
-             v
-  +----------+-----------+
-  |     Interfaces       |  <-- Controllers, Routes, Presenters
-  +----------+-----------+
-             |
-             v
-  +----------+-----------+
-  |    Application       |  <-- Use Cases / Services / DTOs
-  +----------+-----------+
-             |
-             v
-  +----------+-----------+
-  |      Domain          |  <-- Entities, Value Objects, Business Rules
-  +----------+-----------+
-             |
-             v
-  +----------+-----------+
-  |   Infrastructure     |  <-- Repositories, DB, Firebase, Email
-  +----------------------+
+1. `Interfaces`
+- Recibe requests HTTP y entrega responses.
+- Valida formato de entrada, parsea params/body/query.
+- No contiene reglas de negocio.
+
+2. `Application`
+- Orquesta casos de uso.
+- Aplica validaciones de negocio de alto nivel y reglas de flujo.
+- Define contratos (interfaces) que la infraestructura debe implementar.
+
+3. `Domain`
+- Contiene entidades, value objects y reglas puras del negocio.
+- No depende de Express, DB, ni librerias de infraestructura.
+
+4. `Infrastructure`
+- Implementa repositorios y adaptadores externos (DB, storage, email, etc.).
+- Traduce contratos de `Application` a detalles tecnicos concretos.
+
+Flujo de datos entre capas:
+
+1. Cliente llama endpoint HTTP.
+2. `Interfaces` transforma request en input del caso de uso.
+3. `Application` ejecuta el caso de uso y aplica reglas.
+4. `Application` consulta repositorios definidos por contrato.
+5. `Infrastructure` ejecuta persistencia/servicios externos y retorna datos.
+6. `Application` arma el resultado final.
+7. `Interfaces` responde al cliente en JSON.
 
 Dónde buscar código (guía rápida):
 
@@ -164,3 +153,23 @@ Buenas prácticas relacionadas con esta arquitectura:
 ---
 
 Este README ofrece una guía inicial para arrancar el proyecto y respetar las reglas de negocio del repositorio. Ajustar variables de entorno y configuración específica según el entorno local.
+
+## Demostracion academica: CRUD de Usuarios y Tecnicos
+
+Esta seccion del proyecto fue implementada para sustentacion academica y evidencia practica de desarrollo frontend moderno sobre backend real.
+
+- Ruta funcional: `/settings/users`.
+- CRUD completo integrado con API real:
+  - Crear usuario.
+  - Listar usuarios.
+  - Editar usuario.
+  - Desactivar usuario (soft delete).
+- SPA real: todas las operaciones actualizan la interfaz sin recargar la pagina completa.
+- Estructura del componente con HTML semantico nativo (`main`, `section`, `article`, `form`, `fieldset`, `table`, etc.).
+- Estilos en CSS nativo dentro de `style scoped` (sin depender de componentes visuales base para la UI principal).
+- Logica y reactividad con JavaScript usando Vue 3 (`script setup` + estado reactivo + manejo de eventos).
+- Soporte de modo oscuro y claro, heredando el tema global elegido por el usuario.
+- Responsive design para escritorio y mobile.
+- Hot reload en desarrollo con Vite (`npm run dev`) para cambios inmediatos durante la demostracion.
+
+Resultado: una demostracion academica clara de integracion frontend-backend, buenas practicas SPA y capacidad de construir UI funcional con HTML/CSS nativo y Vue.js.

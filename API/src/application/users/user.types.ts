@@ -17,5 +17,9 @@ export interface UpdateUserInput {
   actorUserId?: string | null;
 }
 
-export type UserPublic = Omit<User, 'password'>;
+export interface DisableUserInput {
+  id: string;
+  actorUserId?: string | null;
+}
 
+export type UserPublic = Omit<User, 'password'>;

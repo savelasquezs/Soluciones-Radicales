@@ -16,6 +16,8 @@ export const usersTable = pgTable('users', {
   password: text('password').notNull(),
   role: text('role').notNull(),
   isTechnician: boolean('is_technician').default(false),
+  active: boolean('active').default(true),
+  disabledAt: timestamp('disabled_at', { mode: 'date' }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
 });
 

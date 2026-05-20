@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs';
 import { ActivityLogRepository, UserRepository } from '../../domain/repositories';
 import { NotFoundError, ValidationError } from '../errors';
-import { CreateUserInput, UpdateUserInput, UserPublic } from './user.types';
+import { CreateUserInput, DisableUserInput, UpdateUserInput, UserPublic } from './user.types';
 
 interface UserUseCasesDeps {
   userRepository: UserRepository;
@@ -16,6 +16,8 @@ const toPublicUser = (user: {
   email: string;
   role: 'admin';
   isTechnician: boolean;
+  active: boolean;
+  disabledAt: Date | null;
   createdAt: Date;
 }): UserPublic => ({
   id: user.id,
@@ -23,6 +25,8 @@ const toPublicUser = (user: {
   email: user.email,
   role: user.role,
   isTechnician: user.isTechnician,
+  active: user.active,
+  disabledAt: user.disabledAt,
   createdAt: user.createdAt,
 });
 
@@ -69,6 +73,8 @@ export const createUserUseCases = (deps: UserUseCasesDeps) => {
       password: passwordHash,
       role: input.role ?? 'admin',
       isTechnician: input.isTechnician ?? false,
+      active: true,
+      disabledAt: null,
     });
 
     await logActivity('user_created', created.id, input.actorUserId ?? null);
@@ -88,6 +94,11 @@ export const createUserUseCases = (deps: UserUseCasesDeps) => {
     return users.map(toPublicUser);
   };
 
+  const listUsers = async (): Promise<UserPublic[]> => {
+    const users = await deps.userRepository.listUsers();
+    return users.map(toPublicUser);
+  };
+
   const updateUser = async (input: UpdateUserInput): Promise<UserPublic> => {
     const user = await deps.userRepository.findById(input.id);
     if (!user) {
@@ -103,11 +114,27 @@ export const createUserUseCases = (deps: UserUseCasesDeps) => {
     return toPublicUser(updated);
   };
 
+  const disableUser = async (input: DisableUserInput): Promise<{ success: true }> => {
+    const user = await deps.userRepository.findById(input.id);
+    if (!user) {
+      throw new NotFoundError(`User not found: ${input.id}`);
+    }
+
+    if (input.actorUserId && input.actorUserId === input.id) {
+      throw new ValidationError('You cannot disable your own user');
+    }
+
+    await deps.userRepository.disableUser(input.id);
+    await logActivity('user_disabled', input.id, input.actorUserId ?? null);
+    return { success: true };
+  };
+
   return {
     createUser,
     getUserById,
+    listUsers,
     listTechnicians,
     updateUser,
+    disableUser,
   };
 };
-

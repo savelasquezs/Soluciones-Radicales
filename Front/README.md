@@ -138,3 +138,4 @@ Antes de crear un componente nuevo, usar o extender los componentes base en `src
 - Evita recargas completas de pagina con `@submit.prevent` y estado reactivo.
 - Password se usa solo en creacion; en edicion no se solicita ni se muestra.
 - Limite de contrato actual: backend no expone `GET /users` ni endpoint de eliminar/desactivar usuarios.
+- Actualizacion Fase 9.1: ahora el backend expone `GET /api/users` y `PATCH /api/users/:id/disable`, por lo que la pantalla academica `/settings/users` ya incluye desactivacion real.

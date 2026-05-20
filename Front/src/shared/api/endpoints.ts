@@ -44,9 +44,11 @@ export const endpoints = {
   },
   users: {
     create: '/users',
+    list: '/users',
     technicians: '/users/technicians',
     byId: (id: string) => `/users/${id}`,
     update: (id: string) => `/users/${id}`,
+    disable: (id: string) => `/users/${id}/disable`,
   },
   settings: {
     get: '/settings',

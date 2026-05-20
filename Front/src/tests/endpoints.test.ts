@@ -6,5 +6,6 @@ describe('shared endpoints', () => {
     expect(endpoints.clients.detail('c1')).toBe('/clients/c1/detail');
     expect(endpoints.services.generateReinforcement('s1')).toBe('/services/s1/generate-reinforcement');
     expect(endpoints.settings.paymentMethodById('pm1')).toBe('/settings/payment-methods/pm1');
+    expect(endpoints.users.disable('u1')).toBe('/users/u1/disable');
   });
 });

@@ -55,9 +55,11 @@ const serviceUseCases = {
 
 const userUseCases = {
   createUser: vi.fn(),
+  listUsers: vi.fn(),
   listTechnicians: vi.fn(),
   getUserById: vi.fn(),
   updateUser: vi.fn(),
+  disableUser: vi.fn(),
 };
 
 const settingsUseCases = {
@@ -229,6 +231,20 @@ describe('app router integration', () => {
 
     expect(response.status).toBe(403);
     expect(userUseCases.listTechnicians).not.toHaveBeenCalled();
+  });
+
+  it('permite /api/users con admin', async () => {
+    userUseCases.listUsers.mockResolvedValue([{ id: 'user-1' }]);
+    const request = await startApp();
+
+    const response = await request('/api/users', {
+      headers: {
+        authorization: `Bearer ${await signAdminToken()}`,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(userUseCases.listUsers).toHaveBeenCalled();
   });
 
   it('permite /api/users/technicians con admin', async () => {

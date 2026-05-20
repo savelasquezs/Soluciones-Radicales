@@ -7,5 +7,7 @@ export interface User {
   password: string;
   role: UserRole;
   isTechnician: boolean;
+  active: boolean;
+  disabledAt: Date | null;
   createdAt: Date;
 }

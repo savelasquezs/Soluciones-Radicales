@@ -47,6 +47,8 @@ export const toUserEntity = (row: UserRow): User => ({
   password: row.password,
   role: row.role as User['role'],
   isTechnician: row.isTechnician ?? false,
+  active: row.active ?? true,
+  disabledAt: row.disabledAt ?? null,
   createdAt: row.createdAt ?? new Date(),
 });
 

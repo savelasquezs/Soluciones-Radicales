@@ -11,13 +11,18 @@ type UserUseCases = ReturnType<typeof createUserUseCases>;
 
 interface UserController {
   createUser: RequestHandler;
+  listUsers: RequestHandler;
   listTechnicians: RequestHandler;
   getUserById: RequestHandler;
   updateUser: RequestHandler;
+  disableUser: RequestHandler;
 }
 
 export const createUserController = (deps: {
-  userUseCases: Pick<UserUseCases, 'createUser' | 'listTechnicians' | 'getUserById' | 'updateUser'>;
+  userUseCases: Pick<
+    UserUseCases,
+    'createUser' | 'listUsers' | 'listTechnicians' | 'getUserById' | 'updateUser' | 'disableUser'
+  >;
 }): UserController => {
   const createUser = asyncHandler(async (request, response) => {
     const data = await deps.userUseCases.createUser({
@@ -34,6 +39,11 @@ export const createUserController = (deps: {
     });
 
     response.status(201).json({ data });
+  });
+
+  const listUsers = asyncHandler(async (_request, response) => {
+    const data = await deps.userUseCases.listUsers();
+    response.status(200).json({ data });
   });
 
   const listTechnicians = asyncHandler(async (_request, response) => {
@@ -64,10 +74,22 @@ export const createUserController = (deps: {
     response.status(200).json({ data });
   });
 
+  const disableUser = asyncHandler(async (request, response) => {
+    const data = await deps.userUseCases.disableUser({
+      id: parseRequiredString(request.params.id, 'User id is required'),
+      actorUserId:
+        typeof request.body?.actorUserId === 'string' ? request.body.actorUserId : undefined,
+    });
+
+    response.status(200).json({ data });
+  });
+
   return {
     createUser,
+    listUsers,
     listTechnicians,
     getUserById,
     updateUser,
+    disableUser,
   };
 };
