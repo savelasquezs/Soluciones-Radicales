@@ -1,25 +1,27 @@
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-muted p-4">
-    <AppCard class="w-full max-w-md space-y-4">
-      <h1 class="text-2xl font-semibold">Iniciar sesión</h1>
+	<main class="flex min-h-screen items-center justify-center bg-muted p-4">
+		<AppCard class="w-full max-w-md space-y-4">
+			<h1 class="text-2xl font-semibold">Iniciar sesión</h1>
 
-      <form class="space-y-3" @submit.prevent="onSubmit">
-        <AppInput v-model="email" type="email" placeholder="Correo" />
-        <AppInput v-model="password" type="password" placeholder="Contraseña" />
+			<form class="space-y-3" @submit.prevent="onSubmit">
+				<AppInput v-model="email" type="email" placeholder="Correo" />
+				<AppInput v-model="password" type="password" placeholder="Contraseña" />
 
-        <p v-if="errorMessage" class="text-sm text-danger">{{ errorMessage }}</p>
+				<p v-if="errorMessage" class="text-sm text-danger">
+					{{ errorMessage }}
+				</p>
 
-        <AppButton type="submit" :disabled="auth.isLoading" class="w-full">
-          <span v-if="!auth.isLoading">Entrar</span>
-          <AppSpinner v-else />
-        </AppButton>
-      </form>
+				<AppButton type="submit" :disabled="auth.isLoading" class="w-full">
+					<span v-if="!auth.isLoading">Entrar</span>
+					<AppSpinner v-else />
+				</AppButton>
+			</form>
 
-      <RouterLink class="text-sm text-primary" to="/forgot-password">
-        ¿Olvidaste la contraseña?
-      </RouterLink>
-    </AppCard>
-  </main>
+			<RouterLink class="text-sm text-primary" to="/forgot-password">
+				¿Olvidaste la contraseña?
+			</RouterLink>
+		</AppCard>
+	</main>
 </template>
 
 <script setup lang="ts">
@@ -42,43 +44,47 @@ const password = ref('');
 const errorMessage = ref('');
 
 const onSubmit = async () => {
-  errorMessage.value = '';
+	errorMessage.value = '';
 
-  if (!email.value.trim()) {
-    errorMessage.value = 'El correo es obligatorio.';
-    return;
-  }
+	if (!email.value.trim()) {
+		errorMessage.value = 'El correo es obligatorio.';
+		return;
+	}
 
-  if (!password.value.trim()) {
-    errorMessage.value = 'La contraseña es obligatoria.';
-    return;
-  }
+	if (!password.value.trim()) {
+		errorMessage.value = 'La contraseña es obligatoria.';
+		return;
+	}
 
-  try {
-    await auth.login(email.value, password.value);
+	try {
+		await auth.login(email.value, password.value);
 
-    const rawRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : '';
-    const forbidden = ['/login', '/forgot-password', '/reset-password'];
+		const rawRedirect =
+			typeof route.query.redirect === 'string' ? route.query.redirect : '';
+		const forbidden = ['/login', '/forgot-password', '/reset-password'];
 
-    const isValidRedirect = (r: string) => {
-      if (!r) return false;
-      try {
-        // only allow internal paths
-        if (!r.startsWith('/')) return false;
-        // ignore forbidden targets
-        if (forbidden.includes(r)) return false;
-        return true;
-      } catch (_e) {
-        return false;
-      }
-    };
+		const isValidRedirect = (r: string) => {
+			if (!r) return false;
+			try {
+				// only allow internal paths
+				if (!r.startsWith('/')) return false;
+				// ignore forbidden targets
+				if (forbidden.includes(r)) return false;
+				return true;
+			} catch (_e) {
+				return false;
+			}
+		};
 
-    const destination = isValidRedirect(rawRedirect) ? rawRedirect : auth.resolveHomePath();
-    await router.replace(destination);
-  } catch (error) {
-    const message = (error as { message?: string }).message ?? 'Error de autenticación.';
-    errorMessage.value = message;
-    pushToast(message);
-  }
+		const destination = isValidRedirect(rawRedirect)
+			? rawRedirect
+			: auth.resolveHomePath();
+		await router.replace(destination);
+	} catch (error) {
+		const message =
+			(error as { message?: string }).message ?? 'Error de autenticación.';
+		errorMessage.value = message;
+		pushToast(message);
+	}
 };
 </script>
