@@ -1,0 +1,2 @@
+<template><AppCard><h2 class="text-xl font-semibold">Perfil técnico</h2><p class="text-sm text-foreground/70">Perfil en construcción.</p></AppCard></template>
+<script setup lang="ts">import AppCard from '@/shared/components/ui/AppCard.vue';</script>

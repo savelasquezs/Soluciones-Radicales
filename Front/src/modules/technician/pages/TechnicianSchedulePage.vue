@@ -1,0 +1,2 @@
+<template><AppCard><h2 class="text-xl font-semibold">Mi agenda</h2><p class="text-sm text-foreground/70">Vista técnica inicial.</p></AppCard></template>
+<script setup lang="ts">import AppCard from '@/shared/components/ui/AppCard.vue';</script>

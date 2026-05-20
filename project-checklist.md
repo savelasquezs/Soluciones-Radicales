@@ -215,3 +215,8 @@ Notas:
 
 - [x] Hardening dashboard aplicado (completionRate por periodo, validaciones de dimension y filtros en alerts).
 - [ ] Pendiente futuro: snapshot historico de technicianRevenueMode para trazabilidad exacta de attributedSales.
+- [x] Inicio frontend base en `/Front` con Vue 3 + Vite + TypeScript.
+- [x] Tailwind + variables CSS (light/dark), Pinia, Vue Router, auth store base y cliente HTTP centralizado.
+- [x] Estructura modular inicial (auth, dashboard, clients, services, settings, layout, technician) y componentes UI base.
+- [x] Tests frontend mínimos: auth store, guard de rutas, `AppButton`, `ThemeToggle`.
+- [ ] Pendiente frontend: implementar pantallas funcionales y flujos completos por módulo (sin placeholders).

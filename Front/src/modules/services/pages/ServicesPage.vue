@@ -1,0 +1,2 @@
+<template><AppCard><h2 class="text-xl font-semibold">Servicios</h2><p class="text-sm text-foreground/70">Módulo de servicios en preparación.</p></AppCard></template>
+<script setup lang="ts">import AppCard from '@/shared/components/ui/AppCard.vue';</script>
