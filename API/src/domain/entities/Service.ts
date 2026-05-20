@@ -20,4 +20,12 @@ export interface Service {
   paymentProofUrl: string | null;
   price: number | null;
   createdAt: Date;
+  businessName?: string | null;
+  branchName?: string | null;
+  branchAddress?: string | null;
+  branchPhone?: string | null;
+  clientName?: string | null;
+  clientPhone?: string | null;
+  paymentMethodName?: string | null;
+  technicians?: Array<{ id: string; name: string }>;
 }

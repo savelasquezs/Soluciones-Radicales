@@ -21,6 +21,8 @@ export type Service = {
   branchName?: string | null;
   branchAddress?: string | null;
   branchPhone?: string | null;
+  clientName?: string | null;
+  clientPhone?: string | null;
   paymentMethodName?: string | null;
 };
 

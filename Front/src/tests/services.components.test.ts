@@ -66,7 +66,7 @@ describe('services components', () => {
         ],
       },
     });
-    expect(withItems.text()).toContain('branch-1');
+    expect(withItems.text()).toContain('Sucursal sin nombre');
   });
 
   it('ServiceForm valida sucursal y scheduledAt', async () => {

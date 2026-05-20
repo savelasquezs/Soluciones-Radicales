@@ -3,9 +3,98 @@ import { Service } from '../../../domain/entities';
 import { ServiceRepository } from '../../../domain/repositories';
 import { drizzleDb } from '../drizzle';
 import { toServiceEntity } from '../mappers';
-import { serviceTechniciansTable, servicesTable } from '../schema';
+import {
+  branchesTable,
+  businessesTable,
+  clientsTable,
+  paymentMethodsTable,
+  serviceTechniciansTable,
+  servicesTable,
+  usersTable,
+} from '../schema';
 
 export class ServiceDrizzleRepository implements ServiceRepository {
+  private async getTechniciansByServiceIds(serviceIds: string[]) {
+    if (!serviceIds.length) {
+      return new Map<string, Array<{ id: string; name: string }>>();
+    }
+
+    const rows = await drizzleDb
+      .select({
+        serviceId: serviceTechniciansTable.serviceId,
+        technicianId: usersTable.id,
+        technicianName: usersTable.name,
+      })
+      .from(serviceTechniciansTable)
+      .innerJoin(usersTable, eq(serviceTechniciansTable.technicianId, usersTable.id))
+      .where(inArray(serviceTechniciansTable.serviceId, serviceIds));
+
+    const map = new Map<string, Array<{ id: string; name: string }>>();
+    for (const row of rows) {
+      const bucket = map.get(row.serviceId) ?? [];
+      bucket.push({ id: row.technicianId, name: row.technicianName });
+      map.set(row.serviceId, bucket);
+    }
+
+    return map;
+  }
+
+  private async mapJoinedRows(
+    rows: Array<{
+      service: typeof servicesTable.$inferSelect;
+      branchAddress: string | null;
+      branchPhone: string | null;
+      businessName: string | null;
+      clientName: string | null;
+      clientPhone: string | null;
+      paymentMethodName: string | null;
+    }>,
+  ): Promise<Service[]> {
+    const baseServices = rows.map((row) => {
+      const service = toServiceEntity(row.service);
+      return {
+        ...service,
+        branchAddress: row.branchAddress,
+        branchPhone: row.branchPhone,
+        businessName: row.businessName,
+        clientName: row.clientName,
+        clientPhone: row.clientPhone,
+        paymentMethodName: row.paymentMethodName,
+        branchName: row.branchAddress,
+      };
+    });
+
+    const techniciansByService = await this.getTechniciansByServiceIds(
+      baseServices.map((item) => item.id),
+    );
+
+    return baseServices.map((service) => ({
+      ...service,
+      technicians: techniciansByService.get(service.id) ?? [],
+    }));
+  }
+
+  private async findJoinedByCondition(condition: any) {
+    const rows = await drizzleDb
+      .select({
+        service: servicesTable,
+        branchAddress: branchesTable.address,
+        branchPhone: branchesTable.phone,
+        businessName: businessesTable.name,
+        clientName: clientsTable.name,
+        clientPhone: clientsTable.phone,
+        paymentMethodName: paymentMethodsTable.name,
+      })
+      .from(servicesTable)
+      .leftJoin(branchesTable, eq(servicesTable.branchId, branchesTable.id))
+      .leftJoin(businessesTable, eq(branchesTable.businessId, businessesTable.id))
+      .leftJoin(clientsTable, eq(businessesTable.clientId, clientsTable.id))
+      .leftJoin(paymentMethodsTable, eq(servicesTable.paymentMethodId, paymentMethodsTable.id))
+      .where(condition);
+
+    return this.mapJoinedRows(rows);
+  }
+
   async create(data: Omit<Service, 'id' | 'createdAt'>): Promise<Service> {
     const [row] = await drizzleDb
       .insert(servicesTable)
@@ -26,13 +115,8 @@ export class ServiceDrizzleRepository implements ServiceRepository {
   }
 
   async findById(id: string): Promise<Service | null> {
-    const [row] = await drizzleDb
-      .select()
-      .from(servicesTable)
-      .where(eq(servicesTable.id, id))
-      .limit(1);
-
-    return row ? toServiceEntity(row) : null;
+    const rows = await this.findJoinedByCondition(eq(servicesTable.id, id));
+    return rows[0] ?? null;
   }
 
   async findByBranchId(
@@ -113,24 +197,18 @@ export class ServiceDrizzleRepository implements ServiceRepository {
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
 
-    const rows = await drizzleDb
-      .select()
-      .from(servicesTable)
-      .where(and(gte(servicesTable.scheduledAt, start), lt(servicesTable.scheduledAt, end)));
-
-    return rows.map(toServiceEntity);
+    return this.findJoinedByCondition(
+      and(gte(servicesTable.scheduledAt, start), lt(servicesTable.scheduledAt, end)),
+    );
   }
 
   async findByMonth(year: number, month: number): Promise<Service[]> {
     const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const end = new Date(year, month, 1, 0, 0, 0, 0);
 
-    const rows = await drizzleDb
-      .select()
-      .from(servicesTable)
-      .where(and(gte(servicesTable.scheduledAt, start), lt(servicesTable.scheduledAt, end)));
-
-    return rows.map(toServiceEntity);
+    return this.findJoinedByCondition(
+      and(gte(servicesTable.scheduledAt, start), lt(servicesTable.scheduledAt, end)),
+    );
   }
 
   async findByTechnicianId(technicianId: string): Promise<Service[]> {
@@ -144,12 +222,7 @@ export class ServiceDrizzleRepository implements ServiceRepository {
     }
 
     const serviceIds = links.map((item) => item.serviceId);
-    const rows = await drizzleDb
-      .select()
-      .from(servicesTable)
-      .where(inArray(servicesTable.id, serviceIds));
-
-    return rows.map(toServiceEntity);
+    return this.findJoinedByCondition(inArray(servicesTable.id, serviceIds));
   }
 
   async isTechnicianAssigned(serviceId: string, technicianId: string): Promise<boolean> {

@@ -1,8 +1,8 @@
 <template>
   <AppCard class="space-y-3">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-foreground">Servicios del día</h3>
-      <p v-if="selectedDate" class="text-sm text-foreground/70">{{ formatDate(selectedDate) }}</p>
+      <h3 class="text-base font-semibold text-foreground">Servicios del día</h3>
+      <p v-if="selectedDate" class="text-xs text-foreground/70">{{ formatDate(selectedDate) }}</p>
     </div>
 
     <div v-if="loading" class="flex items-center gap-2 text-sm text-foreground/70">
@@ -22,13 +22,14 @@
           @click="$emit('select-service', service.id)"
         >
           <div class="space-y-1">
-            <p class="text-sm font-medium text-foreground">
-              {{ service.branchName || service.branchAddress || `Sucursal ${service.branchId}` }}
+            <p class="text-xs font-semibold text-foreground">
+              {{ service.branchName || service.branchAddress || 'Sucursal sin nombre' }}
             </p>
             <p class="text-xs text-foreground/70">
               {{ formatDateTime(service.scheduledAt) }}
               <span v-if="service.businessName">· {{ service.businessName }}</span>
             </p>
+            <p v-if="service.branchPhone" class="text-[11px] text-foreground/70">Sucursal: {{ service.branchPhone }}</p>
             <p v-if="service.technicians?.length" class="text-xs text-foreground/70">
               Técnicos: {{ service.technicians.map((technician) => technician.name || technician.id).join(', ') }}
             </p>

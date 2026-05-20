@@ -1,32 +1,26 @@
 <template>
   <section class="space-y-5">
-    <header class="flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-semibold text-foreground">Calendario de servicios</h1>
-        <p class="text-sm text-foreground/70">Vista mensual administrativa conectada a servicios reales.</p>
-      </div>
-      <div class="flex gap-2">
-        <AppButton variant="secondary" @click="goServices">Volver a servicios</AppButton>
-        <AppButton @click="openCreateModal">Nuevo servicio</AppButton>
-      </div>
+    <header class="flex flex-wrap items-center justify-end gap-2">
+      <AppButton variant="secondary" @click="goServices">Volver a servicios</AppButton>
+      <AppButton @click="openCreateModal">Nuevo servicio</AppButton>
     </header>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div class="space-y-4">
-        <AppCard v-if="isLoading" class="flex items-center gap-2 text-sm text-foreground/70">
-          <AppSpinner />
-          <span>Cargando servicios del mes...</span>
-        </AppCard>
-        <AppCard v-else-if="error" class="text-sm text-danger">{{ error }}</AppCard>
-        <ServicesCalendar
-          v-else
-          :services="services"
-          @select-date="selectDate"
-          @select-service="goDetail"
-          @change-month="handleMonthChange"
-        />
-      </div>
+    <div class="space-y-4">
+      <AppCard v-if="isLoading" class="flex items-center gap-2 text-sm text-foreground/70">
+        <AppSpinner />
+        <span>Cargando servicios del mes...</span>
+      </AppCard>
+      <AppCard v-else-if="error" class="text-sm text-danger">{{ error }}</AppCard>
+      <ServicesCalendar
+        v-else
+        :services="services"
+        @select-date="selectDate"
+        @select-service="goDetail"
+        @change-month="handleMonthChange"
+      />
+    </div>
 
+    <div class="grid gap-4 xl:grid-cols-2">
       <div class="space-y-4">
         <AppCard class="space-y-3">
           <p class="text-sm font-medium text-foreground">Programación por técnico</p>
@@ -38,13 +32,13 @@
           :loading="isLoadingTechnicianSchedule"
           @select-service="goDetail"
         />
-        <ServiceDayList
-          :services="dayServices"
-          :loading="isLoadingDayServices"
-          :selectedDate="selectedDate"
-          @select-service="goDetail"
-        />
       </div>
+      <ServiceDayList
+        :services="dayServices"
+        :loading="isLoadingDayServices"
+        :selectedDate="selectedDate"
+        @select-service="goDetail"
+      />
     </div>
 
     <AppModal :open="isCreateModalOpen" size="md" @close="isCreateModalOpen = false">
@@ -155,10 +149,7 @@ const selectDate = (date: string) => {
 };
 
 const handleMonthChange = (payload: { year: number; month: number }) => {
-  if (
-    currentMonth.value.year === payload.year &&
-    currentMonth.value.month === payload.month
-  ) {
+  if (currentMonth.value.year === payload.year && currentMonth.value.month === payload.month) {
     return;
   }
 

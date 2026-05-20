@@ -114,6 +114,7 @@ export class BranchDrizzleRepository implements BranchRepository {
           ilike(businessesTable.name, likeQuery),
           ilike(clientsTable.phone, likeQuery),
           ilike(branchesTable.phone, likeQuery),
+          ilike(sql`CAST(${branchesTable.id} AS TEXT)`, likeQuery),
           ilike(branchesTable.address, likeQuery),
         ),
       )

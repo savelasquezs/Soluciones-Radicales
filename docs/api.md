@@ -224,7 +224,26 @@ Flujo tÃ©cnico recomendado:
 
 ### `GET /api/services/:id`
 - Params: `id`.
-- Respuesta: `{ "data": { "id": "...", "branchId": "...", "status": "pending" } }`
+- Respuesta:
+```json
+{
+  "data": {
+    "id": "...",
+    "branchId": "...",
+    "status": "pending",
+    "scheduledAt": "2026-05-20T10:00:00.000Z",
+    "type": "main",
+    "businessName": "Negocio A",
+    "branchName": "Cra 10 # 20-30",
+    "branchAddress": "Cra 10 # 20-30",
+    "branchPhone": "3001234567",
+    "clientName": "Cliente A",
+    "clientPhone": "3010000000",
+    "paymentMethodName": "Efectivo",
+    "technicians": [{ "id": "...", "name": "Tecnico 1" }]
+  }
+}
+```
 
 ### `GET /api/services/day?date=ISO`
 - Query: `date` (requerido).
@@ -232,7 +251,27 @@ Flujo tÃ©cnico recomendado:
 
 ### `GET /api/services/month?year=2026&month=5`
 - Query: `year` y `month` (requeridos).
-- Respuesta: `{ "data": [ { "id": "...", "scheduledAt": "..." } ] }`
+- Respuesta:
+```json
+{
+  "data": [
+    {
+      "id": "...",
+      "branchId": "...",
+      "scheduledAt": "2026-05-20T10:00:00.000Z",
+      "status": "pending",
+      "type": "main",
+      "businessName": "Negocio A",
+      "branchName": "Cra 10 # 20-30",
+      "branchAddress": "Cra 10 # 20-30",
+      "branchPhone": "3001234567",
+      "clientName": "Cliente A",
+      "clientPhone": "3010000000",
+      "technicians": [{ "id": "...", "name": "Tecnico 1" }]
+    }
+  ]
+}
+```
 
 ### `GET /api/services/upcoming?days=7`
 - Query opcional: `days`.
