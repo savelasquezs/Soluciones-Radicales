@@ -542,16 +542,22 @@ El flujo de recuperacion de contrasena no debe revelar si el email existe o no.
 
 Los tokens de recuperacion deben ser de un solo uso y expirar.
 
-## 32. Atribucion de ventas por tecnico
+## 32. Atribución de ventas por técnico
 
-Cada sucursal define 	echnician_revenue_mode para atribucion de ventas con valores permitidos split y ull.
+Cada sucursal define `technician_revenue_mode` para atribución de ventas.
+
+Valores permitidos:
+- `split`
+- `full`
 
 Reglas:
-- sales representa ventas reales del negocio y cuenta cada servicio una sola vez.
-- ttributedSales representa ventas atribuidas a tecnicos y puede superar sales cuando el modo es ull.
-- En modo split, el valor del servicio se divide entre tecnicos asignados.
-- En modo ull, cada tecnico asignado recibe el valor completo del servicio.
-- La atribucion usa services.price historico y no recalcula precios historicos.
+- `sales` representa ventas reales del negocio y cuenta cada servicio una sola vez.
+- `attributedSales` representa ventas atribuidas a técnicos y puede superar `sales` cuando el modo es `full`.
+- En modo `split`, el valor del servicio se divide entre técnicos asignados.
+- En modo `full`, cada técnico asignado recibe el valor completo del servicio.
+- La atribución usa `services.price` histórico y no recalcula precios históricos.
+- Actualmente `attributedSales` usa el `technicianRevenueMode` actual de la sucursal.
+- Si se requiere trazabilidad histórica exacta, se deberá guardar snapshot en `services` o `service_technicians`.
 
 
 ## 33. Dashboard hardening
