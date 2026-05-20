@@ -1,6 +1,10 @@
 <template>
   <section ref="pageRef" class="services-calendar-page">
     <header class="flex flex-wrap items-center justify-end gap-2">
+      <div class="grid grid-cols-2 gap-2 sm:flex">
+        <AppSelect v-model="selectedMonth" :options="monthOptions" />
+        <AppSelect v-model="selectedYear" :options="yearOptions" />
+      </div>
       <div class="space-y-3">
         <AppSelect v-model="selectedTechnicianId" :options="technicianOptions" />
       </div>
@@ -12,7 +16,7 @@
 
     <div class="calendar-content">
       <AppCard
-        v-if="isLoading"
+        v-if="isLoading && services.length === 0"
         class="flex items-center gap-2 text-sm text-foreground/70"
       >
         <AppSpinner />
@@ -21,6 +25,8 @@
       <AppCard v-else-if="error" class="text-sm text-danger">{{ error }}</AppCard>
       <div v-else class="calendar-fill" :style="{ height: `${calendarHeight}px` }">
         <ServicesCalendar
+          ref="calendarRef"
+          :initial-date="calendarInitialDate"
           :services="calendarServices"
           @select-date="selectDate"
           @select-service="goDetail"
@@ -40,6 +46,16 @@
         />
       </div>
     </AppModal>
+
+    <AppModal :open="isDayModalOpen" size="md" @close="isDayModalOpen = false">
+      <ServiceDayList
+        :services="visibleDayServices"
+        :loading="false"
+        :selected-date="selectedDate"
+        :empty-message="dayEmptyMessage"
+        @select-service="goDetail"
+      />
+    </AppModal>
   </section>
 </template>
 
@@ -53,6 +69,7 @@ import AppModal from '@/shared/components/ui/AppModal.vue';
 import AppSelect from '@/shared/components/ui/AppSelect.vue';
 import AppSpinner from '@/shared/components/ui/AppSpinner.vue';
 import { useToast } from '@/shared/composables/useToast';
+import ServiceDayList from '../components/ServiceDayList.vue';
 import ServiceForm from '../components/ServiceForm.vue';
 import ServicesCalendar from '../components/ServicesCalendar.vue';
 import { servicesService } from '../services/services.service';
@@ -62,22 +79,54 @@ const router = useRouter();
 const { push: pushToast } = useToast();
 
 const pageRef = ref<HTMLElement | null>(null);
+const calendarRef = ref<InstanceType<typeof ServicesCalendar> | null>(null);
 const services = ref<Service[]>([]);
 const selectedDate = ref('');
 const selectedTechnicianId = ref('');
+const selectedMonth = ref(String(new Date().getMonth() + 1));
+const selectedYear = ref(String(new Date().getFullYear()));
 const technicians = ref<Array<{ id: string; name: string }>>([]);
 const technicianSchedule = ref<TechnicianScheduleResponse | null>(null);
 
 const isLoading = ref(false);
 const isLoadingTechnicianSchedule = ref(false);
 const isCreateModalOpen = ref(false);
+const isDayModalOpen = ref(false);
 const isSubmitting = ref(false);
+const isProgrammaticNavigation = ref(false);
 const error = ref('');
 const calendarHeight = ref(560);
 
 const currentMonth = ref({
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
+});
+
+const calendarInitialDate = computed(
+  () => `${currentMonth.value.year}-${String(currentMonth.value.month).padStart(2, '0')}-01`,
+);
+
+const monthOptions = [
+  { label: 'Enero', value: '1' },
+  { label: 'Febrero', value: '2' },
+  { label: 'Marzo', value: '3' },
+  { label: 'Abril', value: '4' },
+  { label: 'Mayo', value: '5' },
+  { label: 'Junio', value: '6' },
+  { label: 'Julio', value: '7' },
+  { label: 'Agosto', value: '8' },
+  { label: 'Septiembre', value: '9' },
+  { label: 'Octubre', value: '10' },
+  { label: 'Noviembre', value: '11' },
+  { label: 'Diciembre', value: '12' },
+];
+
+const yearOptions = computed(() => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 7 }, (_, index) => {
+    const year = currentYear - 3 + index;
+    return { label: String(year), value: String(year) };
+  });
 });
 
 const technicianOptions = computed(() => [
@@ -95,12 +144,41 @@ const calendarServices = computed<Service[]>(() => {
   return technicianSchedule.value?.services ?? [];
 });
 
+const visibleDayServices = computed(() => {
+  if (!selectedDate.value) {
+    return [];
+  }
+
+  return calendarServices.value.filter((service) => {
+    return getLocalDateKey(service.scheduledAt) === selectedDate.value;
+  });
+});
+
+const selectedTechnicianName = computed(() =>
+  technicians.value.find((technician) => technician.id === selectedTechnicianId.value)?.name,
+);
+
+const dayEmptyMessage = computed(() => {
+  if (selectedTechnicianName.value) {
+    return `No hay servicios para ${selectedTechnicianName.value} en este día.`;
+  }
+  return 'No hay servicios para este día.';
+});
+
 const updateCalendarHeight = () => {
   if (!pageRef.value) return;
 
   const pageTop = pageRef.value.getBoundingClientRect().top;
   const availableHeight = window.innerHeight - pageTop - 16;
   calendarHeight.value = Math.max(448, availableHeight);
+};
+
+const getLocalDateKey = (value: string | Date) => {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const loadMonth = async () => {
@@ -113,6 +191,26 @@ const loadMonth = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const navigateToMonth = async (month: number, year: number) => {
+  if (
+    currentMonth.value.month === month &&
+    currentMonth.value.year === year
+  ) {
+    return;
+  }
+
+  isProgrammaticNavigation.value = true;
+  currentMonth.value = { month, year };
+  selectedMonth.value = String(month);
+  selectedYear.value = String(year);
+  await nextTick();
+  calendarRef.value?.goToDate(new Date(year, month - 1, 1));
+  await loadMonth();
+  window.setTimeout(() => {
+    isProgrammaticNavigation.value = false;
+  }, 0);
 };
 
 const loadTechnicians = async () => {
@@ -142,11 +240,20 @@ watch(selectedTechnicianId, async (technicianId) => {
   }
 });
 
-const selectDate = (date: string) => {
-  selectedDate.value = date;
+watch([selectedMonth, selectedYear], ([month, year]) => {
+  void navigateToMonth(Number(month), Number(year));
+});
+
+const selectDate = async (date: string) => {
+  selectedDate.value = date.split('T')[0] ?? date;
+  isDayModalOpen.value = true;
 };
 
 const handleMonthChange = (payload: { year: number; month: number }) => {
+  if (isProgrammaticNavigation.value) {
+    return;
+  }
+
   if (
     currentMonth.value.year === payload.year &&
     currentMonth.value.month === payload.month
@@ -155,6 +262,8 @@ const handleMonthChange = (payload: { year: number; month: number }) => {
   }
 
   currentMonth.value = payload;
+  selectedMonth.value = String(payload.month);
+  selectedYear.value = String(payload.year);
   void loadMonth();
 };
 
