@@ -329,11 +329,7 @@ const adminsCount = computed(
 );
 const showAdminTechnicianToggle = computed(() => form.role === 'admin');
 
-const normalizeUsers = (availableUsers: User[]) => {
-	return [...availableUsers].sort((left, right) =>
-		left.name.localeCompare(right.name),
-	);
-};
+
 
 const formatRole = (role: User['role']) => {
 	return role === 'admin' ? 'Administrador' : 'Técnico';
@@ -358,8 +354,7 @@ const loadUsers = async () => {
 	loading.value = true;
 	errorMessage.value = '';
 	try {
-		const availableUsers = await usersService.listUsers();
-		users.value = normalizeUsers(availableUsers);
+		 users.value = await usersService.listUsers();
 	} catch (error) {
 		errorMessage.value =
 			error instanceof Error ? error.message : 'No se pudo cargar la lista.';

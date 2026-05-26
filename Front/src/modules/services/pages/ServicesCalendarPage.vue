@@ -54,8 +54,41 @@
         :selected-date="selectedDate"
         :empty-message="dayEmptyMessage"
         @select-service="goDetail"
+        @change-status="openStatusModal"
+        @reschedule="openRescheduleModal"
+        @assign-technicians="openAssignModal"
       />
     </AppModal>
+
+    <AppModal :open="isStatusModalOpen" size="sm" @close="isStatusModalOpen = false">
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-foreground">Cambiar estado</h3>
+        <AppSelect v-model="selectedStatus" :options="statusOptions" />
+        <div class="flex justify-end gap-2">
+          <AppButton variant="secondary" @click="isStatusModalOpen = false">Cancelar</AppButton>
+          <AppButton :disabled="isSubmitting" @click="updateStatus">Guardar</AppButton>
+        </div>
+      </div>
+    </AppModal>
+
+    <AppModal :open="isRescheduleModalOpen" size="sm" @close="isRescheduleModalOpen = false">
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-foreground">Reprogramar servicio</h3>
+        <AppDatePicker v-model="rescheduleDate" enable-time-picker placeholder="Nueva fecha y hora" />
+        <div class="flex justify-end gap-2">
+          <AppButton variant="secondary" @click="isRescheduleModalOpen = false">Cancelar</AppButton>
+          <AppButton :disabled="isSubmitting" @click="rescheduleService">Guardar</AppButton>
+        </div>
+      </div>
+    </AppModal>
+
+    <AssignTechniciansModal
+      :open="isAssignModalOpen"
+      :submitting="isSubmitting"
+      :model-value="selectedService?.technicians?.map((item) => item.id) ?? []"
+      @close="isAssignModalOpen = false"
+      @submit="assignTechnicians"
+    />
   </section>
 </template>
 
@@ -65,10 +98,12 @@ import { useRouter } from 'vue-router';
 import { usersService } from '@/modules/users/services/users.service';
 import AppButton from '@/shared/components/ui/AppButton.vue';
 import AppCard from '@/shared/components/ui/AppCard.vue';
+import AppDatePicker from '@/shared/components/ui/AppDatePicker.vue';
 import AppModal from '@/shared/components/ui/AppModal.vue';
 import AppSelect from '@/shared/components/ui/AppSelect.vue';
 import AppSpinner from '@/shared/components/ui/AppSpinner.vue';
 import { useToast } from '@/shared/composables/useToast';
+import AssignTechniciansModal from '../components/AssignTechniciansModal.vue';
 import ServiceDayList from '../components/ServiceDayList.vue';
 import ServiceForm from '../components/ServiceForm.vue';
 import ServicesCalendar from '../components/ServicesCalendar.vue';
@@ -81,10 +116,13 @@ const { push: pushToast } = useToast();
 const pageRef = ref<HTMLElement | null>(null);
 const calendarRef = ref<InstanceType<typeof ServicesCalendar> | null>(null);
 const services = ref<Service[]>([]);
+const selectedService = ref<Service | null>(null);
 const selectedDate = ref('');
 const selectedTechnicianId = ref('');
 const selectedMonth = ref(String(new Date().getMonth() + 1));
 const selectedYear = ref(String(new Date().getFullYear()));
+const selectedStatus = ref<Service['status']>('pending');
+const rescheduleDate = ref<Date | null>(null);
 const technicians = ref<Array<{ id: string; name: string }>>([]);
 const technicianSchedule = ref<TechnicianScheduleResponse | null>(null);
 
@@ -92,6 +130,9 @@ const isLoading = ref(false);
 const isLoadingTechnicianSchedule = ref(false);
 const isCreateModalOpen = ref(false);
 const isDayModalOpen = ref(false);
+const isStatusModalOpen = ref(false);
+const isRescheduleModalOpen = ref(false);
+const isAssignModalOpen = ref(false);
 const isSubmitting = ref(false);
 const isProgrammaticNavigation = ref(false);
 const error = ref('');
@@ -101,6 +142,15 @@ const currentMonth = ref({
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
 });
+
+const statusOptions = [
+  { label: 'Pendiente', value: 'pending' },
+  { label: 'Confirmado', value: 'confirmed' },
+  { label: 'En progreso', value: 'in_progress' },
+  { label: 'Completado', value: 'completed' },
+  { label: 'Cancelado', value: 'canceled' },
+  { label: 'Reprogramado', value: 'rescheduled' },
+];
 
 const calendarInitialDate = computed(
   () => `${currentMonth.value.year}-${String(currentMonth.value.month).padStart(2, '0')}-01`,
@@ -193,6 +243,15 @@ const loadMonth = async () => {
   }
 };
 
+const refreshCalendarData = async () => {
+  await loadMonth();
+  if (selectedTechnicianId.value) {
+    technicianSchedule.value = await servicesService.getTechnicianSchedule(
+      selectedTechnicianId.value,
+    );
+  }
+};
+
 const navigateToMonth = async (month: number, year: number) => {
   if (
     currentMonth.value.month === month &&
@@ -271,18 +330,81 @@ const openCreateModal = () => {
   isCreateModalOpen.value = true;
 };
 
+const openStatusModal = (service: Service) => {
+  selectedService.value = service;
+  selectedStatus.value = service.status;
+  isStatusModalOpen.value = true;
+};
+
+const openRescheduleModal = (service: Service) => {
+  selectedService.value = service;
+  rescheduleDate.value = new Date(service.scheduledAt);
+  isRescheduleModalOpen.value = true;
+};
+
+const openAssignModal = (service: Service) => {
+  selectedService.value = service;
+  isAssignModalOpen.value = true;
+};
+
+const updateStatus = async () => {
+  if (!selectedService.value) return;
+  isSubmitting.value = true;
+  try {
+    await servicesService.updateServiceStatus(selectedService.value.id, {
+      status: selectedStatus.value,
+    });
+    pushToast('Estado actualizado.');
+    isStatusModalOpen.value = false;
+    await refreshCalendarData();
+  } catch {
+    pushToast('No se pudo actualizar el estado.');
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const rescheduleService = async () => {
+  if (!selectedService.value || !rescheduleDate.value) return;
+  isSubmitting.value = true;
+  try {
+    await servicesService.rescheduleService(selectedService.value.id, {
+      scheduledAt: rescheduleDate.value.toISOString(),
+    });
+    pushToast('Servicio reprogramado.');
+    isRescheduleModalOpen.value = false;
+    await refreshCalendarData();
+  } catch {
+    pushToast('No se pudo reprogramar el servicio.');
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const assignTechnicians = async (technicianIds: string[]) => {
+  if (!selectedService.value) return;
+  isSubmitting.value = true;
+  try {
+    await servicesService.assignTechniciansToService(selectedService.value.id, {
+      technicianIds,
+    });
+    pushToast('Técnicos asignados.');
+    isAssignModalOpen.value = false;
+    await refreshCalendarData();
+  } catch {
+    pushToast('No se pudieron asignar técnicos.');
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 const createService = async (payload: Parameters<typeof servicesService.createService>[0]) => {
   isSubmitting.value = true;
   try {
     await servicesService.createService(payload);
     pushToast('Servicio creado.');
     isCreateModalOpen.value = false;
-    await loadMonth();
-    if (selectedTechnicianId.value) {
-      technicianSchedule.value = await servicesService.getTechnicianSchedule(
-        selectedTechnicianId.value,
-      );
-    }
+    await refreshCalendarData();
   } catch {
     pushToast('No se pudo crear el servicio.');
   } finally {

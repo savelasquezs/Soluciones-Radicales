@@ -14,7 +14,7 @@ export const usersService = {
   },
   getUserById(id: string) {
     return http.get<User>(endpoints.users.byId(id));
-  },
+  },  
   updateUser(id: string, payload: UpdateUserPayload) {
     return http.patch<User>(endpoints.users.update(id), payload);
   },
