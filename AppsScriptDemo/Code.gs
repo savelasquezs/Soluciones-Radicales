@@ -172,26 +172,44 @@ function saveInspection(payload) {
 
     payload.areaEvaluations.forEach(function (evaluation, areaIndex) {
       const area = getAreaForCompany_(payload.empresaId, evaluation.areaId);
-      const expectedCriteria = criteriaForAreaName_(area.nombre);
       let firstFindingId = '';
 
-      expectedCriteria.forEach(function (criterionLabel, criterionIndex) {
-        const incoming = evaluation.criterios[criterionIndex];
+      if (evaluation.inspected === false) {
         const findingId = Utilities.getUuid();
-        if (!firstFindingId) firstFindingId = findingId;
+        firstFindingId = findingId;
 
         appendObject_('Hallazgos', {
           id: findingId,
           inspeccionId: inspectionId,
           area: area.nombre,
-          categoria: criterionLabel,
-          cumplimiento: incoming.cumplimiento,
-          descripcion: criterionIndex === 0 ? (evaluation.observacion || '') : '',
-          recomendacion: criterionIndex === 0 ? (evaluation.recomendacion || '') : '',
-          orden: (areaIndex * 10) + criterionIndex + 1,
+          categoria: 'Área no inspeccionada',
+          cumplimiento: 'N/A',
+          descripcion: evaluation.skipReason || 'Área no inspeccionada durante esta visita.',
+          recomendacion: '',
+          orden: (areaIndex * 10) + 1,
           areaId: area.id
         });
-      });
+      } else {
+        const expectedCriteria = criteriaForAreaName_(area.nombre);
+
+        expectedCriteria.forEach(function (criterionLabel, criterionIndex) {
+          const incoming = evaluation.criterios[criterionIndex];
+          const findingId = Utilities.getUuid();
+          if (!firstFindingId) firstFindingId = findingId;
+
+          appendObject_('Hallazgos', {
+            id: findingId,
+            inspeccionId: inspectionId,
+            area: area.nombre,
+            categoria: criterionLabel,
+            cumplimiento: incoming.cumplimiento,
+            descripcion: criterionIndex === 0 ? (evaluation.observacion || '') : '',
+            recomendacion: criterionIndex === 0 ? (evaluation.recomendacion || '') : '',
+            orden: (areaIndex * 10) + criterionIndex + 1,
+            areaId: area.id
+          });
+        });
+      }
 
       const saved = savePhotos_(
         inspectionId,
