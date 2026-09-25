@@ -221,6 +221,22 @@ function saveInspection(payload) {
       Array.prototype.push.apply(photoRecords, saved);
     });
 
+    (payload.trampas || []).forEach(function (item) {
+      if (!String(item.numeroTrampa || '').trim() &&
+          !String(item.ubicacion || '').trim() &&
+          !String(item.plaga || '').trim()) return;
+
+      appendObject_('Trampas', {
+        id: Utilities.getUuid(),
+        inspeccionId: inspectionId,
+        numeroTrampa: item.numeroTrampa || '',
+        ubicacion: item.ubicacion || '',
+        plaga: item.plaga || '',
+        cantidad: item.cantidad || '',
+        observacion: item.observacion || ''
+      });
+    });
+
     (payload.monitoreo || []).forEach(function (item) {
       if (!String(item.tipo || '').trim() &&
           !String(item.ubicacion || '').trim() &&
@@ -229,7 +245,7 @@ function saveInspection(payload) {
       appendObject_('Monitoreo', {
         id: Utilities.getUuid(),
         inspeccionId: inspectionId,
-        tipo: item.tipo || '',
+        tipo: 'Puesto de monitoreo',
         numeroPunto: item.numeroPunto || '',
         ubicacion: item.ubicacion || '',
         plaga: item.plaga || '',
