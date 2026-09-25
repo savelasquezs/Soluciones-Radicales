@@ -143,8 +143,6 @@
   const state = { data:null, hallazgos:[], productos:[], monitoreo:[], step:1, signatures:{} };
 
   document.addEventListener('DOMContentLoaded', () => {
-    setupSignaturePad('tecnico','firmaTecnicoCanvas');
-    setupSignaturePad('cliente','firmaClienteCanvas');
     google.script.run.withSuccessHandler(init).withFailureHandler(showError).getInitialData();
   });
 
@@ -189,6 +187,12 @@
       document.getElementById('step' + n).classList.toggle('hidden', n !== step);
       document.getElementById('stepBadge' + n).classList.toggle('active', n === step);
     });
+    if (step === 3) {
+      requestAnimationFrame(() => {
+        if (!state.signatures.tecnico) setupSignaturePad('tecnico','firmaTecnicoCanvas');
+        if (!state.signatures.cliente) setupSignaturePad('cliente','firmaClienteCanvas');
+      });
+    }
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
