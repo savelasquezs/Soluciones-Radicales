@@ -1,7 +1,16 @@
 const CONFIG = Object.freeze({
   SPREADSHEET_ID: '1MW6tcc6cbDP5X9YRgW3g3vJZ8JhszCo3_C5iwswSojA',
   PHOTOS_FOLDER_ID: '1PUl9iHOiFDzGj6cy6cj0vXf1VVRXBb0O',
-  REPORTS_FOLDER_ID: '19JXmY_kef-SIzKnIF2qg0201NL5mb57H'
+  REPORTS_FOLDER_ID: '19JXmY_kef-SIzKnIF2qg0201NL5mb57H',
+  SIGNATURES_FOLDER_ID: '1bBGPLROCUhPs1y93drm6CW26CD55mhfD',
+  LOGO_FILE_ID: '1NFAZtZNwWLxDCQSbAjyVWtXtssmSpU2z'
+});
+
+const BRAND = Object.freeze({
+  BLUE: '#0877b9',
+  BLUE_DARK: '#0b5f91',
+  GREEN: '#5b8f18',
+  TEXT: '#17324d'
 });
 
 function doGet() {
@@ -16,8 +25,19 @@ function getInitialData() {
     empresas: readActiveRows_('Empresas'),
     areas: readActiveRows_('Areas'),
     tecnicos: readActiveRows_('Tecnicos'),
-    fecha: Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd')
+    fecha: Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd'),
+    logoDataUrl: getLogoDataUrl_()
   };
+}
+
+function getLogoDataUrl_() {
+  try {
+    const blob = DriveApp.getFileById(CONFIG.LOGO_FILE_ID).getBlob();
+    return 'data:' + blob.getContentType() + ';base64,' +
+      Utilities.base64Encode(blob.getBytes());
+  } catch (error) {
+    return '';
+  }
 }
 
 function addArea(empresaId, nombre) {
@@ -68,6 +88,8 @@ function saveInspection(payload) {
     const now = new Date();
     const inspectionId = Utilities.getUuid();
     const compliancePct = calculateCompliance_(payload.hallazgos);
+    const empresa = findById_('Empresas', payload.empresaId);
+    const tecnico = findById_('Tecnicos', payload.tecnicoId);
 
     const inspectionRow = appendObject_('Inspecciones', {
       id: inspectionId,
@@ -80,7 +102,9 @@ function saveInspection(payload) {
       observacionesGenerales: payload.observacionesGenerales || '',
       informePdfUrl: '',
       createdAt: now,
-      empresaId: payload.empresaId
+      empresaId: payload.empresaId,
+      emailEnviadoA: '',
+      emailEnviadoAt: ''
     });
 
     const photoRecords = [];
@@ -139,16 +163,62 @@ function saveInspection(payload) {
       });
     });
 
-    const pdfUrl = generatePdf_(payload, inspectionId, photoRecords, compliancePct, now);
-    setCellByHeader_('Inspecciones', inspectionRow, 'informePdfUrl', pdfUrl);
+    const signatureRecords = [
+      saveSignature_(
+        inspectionId,
+        'TECNICO',
+        tecnico ? tecnico.nombre : 'Técnico',
+        payload.firmas.tecnico,
+        now
+      ),
+      saveSignature_(
+        inspectionId,
+        'RESPONSABLE_CLIENTE',
+        payload.responsableNombre,
+        payload.firmas.cliente,
+        now
+      )
+    ];
+
+    const report = generatePdf_(
+      payload,
+      inspectionId,
+      photoRecords,
+      signatureRecords,
+      compliancePct,
+      now
+    );
+
+    setCellByHeader_('Inspecciones', inspectionRow, 'informePdfUrl', report.file.getUrl());
+
+    let emailSent = false;
+    let emailTo = empresa ? String(empresa.email || '').trim() : '';
+    let emailError = '';
+
+    if (emailTo) {
+      try {
+        sendReportEmail_(empresa, report.file, payload, compliancePct);
+        emailSent = true;
+        setCellByHeader_('Inspecciones', inspectionRow, 'emailEnviadoA', emailTo);
+        setCellByHeader_('Inspecciones', inspectionRow, 'emailEnviadoAt', now);
+      } catch (error) {
+        emailError = error && error.message ? error.message : String(error);
+      }
+    } else {
+      emailError = 'La empresa no tiene correo configurado.';
+    }
 
     return {
       ok: true,
       inspectionId: inspectionId,
-      pdfUrl: pdfUrl,
+      pdfUrl: report.file.getUrl(),
       cumplimientoPct: compliancePct,
       photosSaved: photoRecords.length,
-      hallazgosSaved: payload.hallazgos.length
+      hallazgosSaved: payload.hallazgos.length,
+      signaturesSaved: signatureRecords.length,
+      emailSent: emailSent,
+      emailTo: emailTo,
+      emailError: emailError
     };
   } finally {
     lock.releaseLock();
@@ -158,7 +228,7 @@ function saveInspection(payload) {
 function validatePayload_(payload) {
   if (!payload) throw new Error('No se recibieron datos.');
 
-  ['empresaId', 'tecnicoId', 'fecha'].forEach(function (key) {
+  ['empresaId', 'tecnicoId', 'fecha', 'responsableNombre'].forEach(function (key) {
     if (!String(payload[key] || '').trim()) {
       throw new Error('Falta el campo obligatorio: ' + key);
     }
@@ -184,6 +254,14 @@ function validatePayload_(payload) {
 
   if (totalPhotos > 24) {
     throw new Error('La demo admite máximo 24 fotos por inspección.');
+  }
+
+  if (!payload.firmas || !payload.firmas.tecnico || !payload.firmas.tecnico.dataBase64) {
+    throw new Error('Falta la firma del técnico.');
+  }
+
+  if (!payload.firmas.cliente || !payload.firmas.cliente.dataBase64) {
+    throw new Error('Falta la firma del responsable del cliente.');
   }
 }
 
@@ -242,7 +320,30 @@ function savePhotos_(inspectionId, findingId, area, photos, now) {
   return saved;
 }
 
-function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
+function saveSignature_(inspectionId, tipo, nombre, signature, now) {
+  const folder = DriveApp.getFolderById(CONFIG.SIGNATURES_FOLDER_ID);
+  const bytes = Utilities.base64Decode(signature.dataBase64);
+  const fileName = sanitizeFilename_(
+    'firma-' + tipo.toLowerCase() + '-' + inspectionId.slice(0, 8) + '.png'
+  );
+  const blob = Utilities.newBlob(bytes, 'image/png', fileName);
+  const file = folder.createFile(blob);
+
+  const record = {
+    id: Utilities.getUuid(),
+    inspeccionId: inspectionId,
+    tipo: tipo,
+    nombre: nombre,
+    driveFileId: file.getId(),
+    driveUrl: file.getUrl(),
+    createdAt: now
+  };
+
+  appendObject_('Firmas', record);
+  return record;
+}
+
+function generatePdf_(payload, inspectionId, photoRecords, signatureRecords, compliancePct, now) {
   const reportsFolder = DriveApp.getFolderById(CONFIG.REPORTS_FOLDER_ID);
   const doc = DocumentApp.create('Informe MIP - ' + inspectionId);
   const docFile = DriveApp.getFileById(doc.getId());
@@ -252,28 +353,31 @@ function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
   const empresa = findById_('Empresas', payload.empresaId);
   const tecnico = findById_('Tecnicos', payload.tecnicoId);
 
-  body.appendParagraph('SOLUCIONES RADICALES')
-    .setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  body.appendParagraph('Informe del servicio de Manejo Integrado de Plagas (MIP)')
-    .setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  appendLogo_(body);
+
+  const title = body.appendParagraph('Informe del servicio de Manejo Integrado de Plagas (MIP)');
+  title.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+  title.editAsText().setForegroundColor(BRAND.BLUE_DARK);
 
   body.appendTable([
     ['Empresa', empresa ? empresa.nombre : payload.empresaId],
     ['NIT', empresa ? (empresa.nit || '') : ''],
     ['Dirección', empresa ? (empresa.direccion || '') : ''],
+    ['Correo', empresa ? (empresa.email || '') : ''],
     ['Fecha', payload.fecha],
     ['Técnico', tecnico ? tecnico.nombre : payload.tecnicoId],
     ['Solicitud de servicio', payload.solicitudServicio || ''],
     ['Cumplimiento general', compliancePct + '%']
   ]);
 
-  body.appendParagraph('Hallazgos y condiciones locativas')
-    .setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  appendSectionTitle_(body, 'Hallazgos y condiciones locativas');
 
   payload.hallazgos.forEach(function (hallazgo, index) {
     const area = getAreaForCompany_(payload.empresaId, hallazgo.areaId);
-    body.appendParagraph((index + 1) + '. ' + area.nombre)
-      .setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    const areaTitle = body.appendParagraph((index + 1) + '. ' + area.nombre);
+    areaTitle.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    areaTitle.editAsText().setForegroundColor(BRAND.GREEN);
+
     body.appendTable([
       ['Categoría', hallazgo.categoria],
       ['Cumplimiento', hallazgo.cumplimiento],
@@ -287,21 +391,13 @@ function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
 
     findingPhotos.forEach(function (photo, photoIndex) {
       body.appendParagraph('Evidencia ' + (photoIndex + 1) + ' - ' + area.nombre);
-      const image = body.appendImage(DriveApp.getFileById(photo.driveFileId).getBlob());
-      const width = image.getWidth();
-      const height = image.getHeight();
-      const maxWidth = 440;
-      if (width > maxWidth) {
-        image.setWidth(maxWidth);
-        image.setHeight(Math.round(height * maxWidth / width));
-      }
+      appendSizedImage_(body, DriveApp.getFileById(photo.driveFileId).getBlob(), 440);
     });
   });
 
   const productos = payload.productos || [];
   if (productos.some(function (p) { return String(p.producto || '').trim(); })) {
-    body.appendParagraph('Productos aplicados')
-      .setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    appendSectionTitle_(body, 'Productos aplicados');
     const table = [['Producto', 'Dosis', 'Lote', 'Vencimiento', 'Método']];
     productos.forEach(function (p) {
       if (!String(p.producto || '').trim()) return;
@@ -320,8 +416,7 @@ function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
   if (monitoreo.some(function (m) {
     return String(m.tipo || '').trim() || String(m.ubicacion || '').trim();
   })) {
-    body.appendParagraph('Puestos de monitoreo / trampas')
-      .setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    appendSectionTitle_(body, 'Puestos de monitoreo / trampas');
     const table = [['Tipo', 'N°', 'Ubicación', 'Plaga', 'Cantidad', 'Observación']];
     monitoreo.forEach(function (m) {
       if (!String(m.tipo || '').trim() && !String(m.ubicacion || '').trim()) return;
@@ -338,15 +433,37 @@ function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
   }
 
   if (payload.observacionesGenerales) {
-    body.appendParagraph('Observaciones generales')
-      .setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    appendSectionTitle_(body, 'Observaciones generales');
     body.appendParagraph(payload.observacionesGenerales);
   }
 
-  body.appendParagraph(
+  appendSectionTitle_(body, 'Firmas');
+  const techSignature = signatureRecords.filter(function (item) {
+    return item.tipo === 'TECNICO';
+  })[0];
+  const clientSignature = signatureRecords.filter(function (item) {
+    return item.tipo === 'RESPONSABLE_CLIENTE';
+  })[0];
+
+  const signatureTable = body.appendTable([['Técnico', 'Responsable del cliente'], ['', ''], ['', '']]);
+  if (techSignature) {
+    const image = signatureTable.getCell(1, 0)
+      .appendImage(DriveApp.getFileById(techSignature.driveFileId).getBlob());
+    resizeInlineImage_(image, 190);
+  }
+  if (clientSignature) {
+    const image = signatureTable.getCell(1, 1)
+      .appendImage(DriveApp.getFileById(clientSignature.driveFileId).getBlob());
+    resizeInlineImage_(image, 190);
+  }
+  signatureTable.getCell(2, 0).setText(tecnico ? tecnico.nombre : 'Técnico');
+  signatureTable.getCell(2, 1).setText(payload.responsableNombre);
+
+  const generated = body.appendParagraph(
     'Generado automáticamente el ' +
     Utilities.formatDate(now, 'America/Bogota', 'dd/MM/yyyy HH:mm')
   );
+  generated.editAsText().setForegroundColor('#65727b').setFontSize(8);
 
   doc.saveAndClose();
 
@@ -356,7 +473,81 @@ function generatePdf_(payload, inspectionId, photoRecords, compliancePct, now) {
 
   const pdfFile = reportsFolder.createFile(docFile.getAs(MimeType.PDF)).setName(pdfName);
   docFile.setTrashed(true);
-  return pdfFile.getUrl();
+
+  return { file: pdfFile };
+}
+
+function appendLogo_(body) {
+  try {
+    const paragraph = body.appendParagraph('');
+    paragraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    const image = paragraph.appendInlineImage(DriveApp.getFileById(CONFIG.LOGO_FILE_ID).getBlob());
+    resizeInlineImage_(image, 250);
+  } catch (error) {
+    const fallback = body.appendParagraph('SOLUCIONES RADICALES');
+    fallback.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    fallback.editAsText().setBold(true).setForegroundColor(BRAND.BLUE_DARK).setFontSize(18);
+  }
+}
+
+function appendSectionTitle_(body, text) {
+  const p = body.appendParagraph(text);
+  p.setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  p.editAsText().setForegroundColor(BRAND.BLUE_DARK);
+  return p;
+}
+
+function appendSizedImage_(body, blob, maxWidth) {
+  const image = body.appendImage(blob);
+  resizeInlineImage_(image, maxWidth);
+  return image;
+}
+
+function resizeInlineImage_(image, maxWidth) {
+  const width = image.getWidth();
+  const height = image.getHeight();
+  if (width > maxWidth) {
+    image.setWidth(maxWidth);
+    image.setHeight(Math.round(height * maxWidth / width));
+  }
+}
+
+function sendReportEmail_(empresa, pdfFile, payload, compliancePct) {
+  const to = String(empresa.email || '').trim();
+  if (!to) throw new Error('La empresa no tiene correo configurado.');
+
+  const subject = 'Informe MIP - ' + empresa.nombre + ' - ' + payload.fecha;
+  const bodyText =
+    'Buen día.\n\n' +
+    'Adjuntamos el informe del servicio de Manejo Integrado de Plagas (MIP) realizado el ' +
+    payload.fecha + '.\n' +
+    'Cumplimiento general registrado: ' + compliancePct + '%.\n\n' +
+    'Soluciones Radicales';
+
+  const htmlBody =
+    '<p>Buen día.</p>' +
+    '<p>Adjuntamos el informe del servicio de <b>Manejo Integrado de Plagas (MIP)</b> realizado el ' +
+    escapeHtmlServer_(payload.fecha) + '.</p>' +
+    '<p>Cumplimiento general registrado: <b>' + compliancePct + '%</b>.</p>' +
+    '<p><b>Soluciones Radicales</b><br>Control integrado de plaga</p>';
+
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    body: bodyText,
+    htmlBody: htmlBody,
+    attachments: [pdfFile.getBlob().setName(pdfFile.getName())],
+    name: 'Soluciones Radicales'
+  });
+}
+
+function escapeHtmlServer_(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function readActiveRows_(sheetName) {
