@@ -10,8 +10,30 @@ const BRAND = Object.freeze({
   BLUE: '#0877b9',
   BLUE_DARK: '#0b5f91',
   GREEN: '#5b8f18',
-  TEXT: '#17324d'
+  TEXT: '#17324d',
+  MUTED: '#65727b'
 });
+
+const FORM_META = Object.freeze({
+  TITLE: 'PROGRAMA DE CONTROL INTEGRADO DE PLAGA',
+  CODE: 'FO-PS-02',
+  VERSION: '03',
+  SUBTITLE: 'Informe de prestaciones de servicio - condiciones locativas'
+});
+
+const DEFAULT_CRITERIA = Object.freeze([
+  'Instalación de barreras físicas',
+  'Disposición adecuada de residuos sólidos y líquidos',
+  'Mantenimiento higiénico',
+  'Mantenimiento locativo interno y externo'
+]);
+
+const PERIMETER_CRITERIA = Object.freeze([
+  'Instalación de barreras físicas alcantarillas',
+  'Disposición adecuada de residuos sólidos y líquidos',
+  'Mantenimiento higiénico',
+  'Mantenimiento zonas verdes'
+]);
 
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
@@ -29,12 +51,19 @@ function authorizeEmail() {
 }
 
 function getInitialData() {
+  const areas = readActiveRows_('Areas').map(function (area) {
+    const copy = Object.assign({}, area);
+    copy.criterios = criteriaForAreaName_(area.nombre);
+    return copy;
+  });
+
   return {
     empresas: readActiveRows_('Empresas'),
-    areas: readActiveRows_('Areas'),
+    areas: areas,
     tecnicos: readActiveRows_('Tecnicos'),
     fecha: Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd'),
-    logoDataUrl: getLogoDataUrl_()
+    logoDataUrl: getLogoDataUrl_(),
+    formMeta: FORM_META
   };
 }
 
@@ -79,7 +108,8 @@ function addArea(empresaId, nombre) {
     empresaId: empresaId,
     nombre: nombre,
     activo: true,
-    orden: maxOrder + 1
+    orden: maxOrder + 1,
+    criterios: criteriaForAreaName_(nombre)
   };
 
   appendObject_('Areas', area);
@@ -95,7 +125,7 @@ function saveInspection(payload) {
   try {
     const now = new Date();
     const inspectionId = Utilities.getUuid();
-    const compliancePct = calculateCompliance_(payload.hallazgos);
+    const compliancePct = calculateCompliance_(payload.areaEvaluations);
     const empresa = findById_('Empresas', payload.empresaId);
     const tecnico = findById_('Tecnicos', payload.tecnicoId);
 
@@ -112,34 +142,14 @@ function saveInspection(payload) {
       createdAt: now,
       empresaId: payload.empresaId,
       emailEnviadoA: '',
-      emailEnviadoAt: ''
-    });
-
-    const photoRecords = [];
-    payload.hallazgos.forEach(function (hallazgo, index) {
-      const area = getAreaForCompany_(payload.empresaId, hallazgo.areaId);
-      const findingId = Utilities.getUuid();
-
-      appendObject_('Hallazgos', {
-        id: findingId,
-        inspeccionId: inspectionId,
-        area: area.nombre,
-        categoria: hallazgo.categoria,
-        cumplimiento: hallazgo.cumplimiento,
-        descripcion: hallazgo.descripcion || '',
-        recomendacion: hallazgo.recomendacion || '',
-        orden: index + 1,
-        areaId: area.id
-      });
-
-      const saved = savePhotos_(
-        inspectionId,
-        findingId,
-        area.nombre,
-        hallazgo.photos || [],
-        now
-      );
-      Array.prototype.push.apply(photoRecords, saved);
+      emailEnviadoAt: '',
+      direccionServicio: payload.direccion || '',
+      telefonoServicio: payload.telefono || '',
+      contactoNombre: payload.contactoNombre || '',
+      contactoCargo: payload.contactoCargo || '',
+      contactoCelular: payload.contactoCelular || '',
+      contactoEmail: payload.contactoEmail || '',
+      elaboradoPor: payload.elaboradoPor || ''
     });
 
     (payload.productos || []).forEach(function (producto) {
@@ -157,8 +167,46 @@ function saveInspection(payload) {
       });
     });
 
+    const photoRecords = [];
+
+    payload.areaEvaluations.forEach(function (evaluation, areaIndex) {
+      const area = getAreaForCompany_(payload.empresaId, evaluation.areaId);
+      const expectedCriteria = criteriaForAreaName_(area.nombre);
+      let firstFindingId = '';
+
+      expectedCriteria.forEach(function (criterionLabel, criterionIndex) {
+        const incoming = evaluation.criterios[criterionIndex];
+        const findingId = Utilities.getUuid();
+        if (!firstFindingId) firstFindingId = findingId;
+
+        appendObject_('Hallazgos', {
+          id: findingId,
+          inspeccionId: inspectionId,
+          area: area.nombre,
+          categoria: criterionLabel,
+          cumplimiento: incoming.cumplimiento,
+          descripcion: criterionIndex === 0 ? (evaluation.observacion || '') : '',
+          recomendacion: criterionIndex === 0 ? (evaluation.recomendacion || '') : '',
+          orden: (areaIndex * 10) + criterionIndex + 1,
+          areaId: area.id
+        });
+      });
+
+      const saved = savePhotos_(
+        inspectionId,
+        firstFindingId,
+        area.nombre,
+        evaluation.photos || [],
+        now
+      );
+      Array.prototype.push.apply(photoRecords, saved);
+    });
+
     (payload.monitoreo || []).forEach(function (item) {
-      if (!String(item.tipo || '').trim() && !String(item.ubicacion || '').trim()) return;
+      if (!String(item.tipo || '').trim() &&
+          !String(item.ubicacion || '').trim() &&
+          !String(item.plaga || '').trim()) return;
+
       appendObject_('Monitoreo', {
         id: Utilities.getUuid(),
         inspeccionId: inspectionId,
@@ -167,7 +215,10 @@ function saveInspection(payload) {
         ubicacion: item.ubicacion || '',
         plaga: item.plaga || '',
         cantidad: item.cantidad || '',
-        observacion: item.observacion || ''
+        observacion: item.observacion || '',
+        productoQuimico: payload.monitoreoGeneral.productoQuimico || '',
+        personaCargo: payload.monitoreoGeneral.personaCargo || '',
+        antidoto: payload.monitoreoGeneral.antidoto || ''
       });
     });
 
@@ -191,6 +242,8 @@ function saveInspection(payload) {
     const report = generatePdf_(
       payload,
       inspectionId,
+      empresa,
+      tecnico,
       photoRecords,
       signatureRecords,
       compliancePct,
@@ -199,13 +252,13 @@ function saveInspection(payload) {
 
     setCellByHeader_('Inspecciones', inspectionRow, 'informePdfUrl', report.file.getUrl());
 
+    const emailTo = String(payload.contactoEmail || (empresa ? empresa.email : '') || '').trim();
     let emailSent = false;
-    let emailTo = empresa ? String(empresa.email || '').trim() : '';
     let emailError = '';
 
     if (emailTo) {
       try {
-        sendReportEmail_(empresa, report.file, payload, compliancePct);
+        sendReportEmail_(emailTo, empresa, report.file, payload, compliancePct);
         emailSent = true;
         setCellByHeader_('Inspecciones', inspectionRow, 'emailEnviadoA', emailTo);
         setCellByHeader_('Inspecciones', inspectionRow, 'emailEnviadoAt', now);
@@ -222,7 +275,7 @@ function saveInspection(payload) {
       pdfUrl: report.file.getUrl(),
       cumplimientoPct: compliancePct,
       photosSaved: photoRecords.length,
-      hallazgosSaved: payload.hallazgos.length,
+      areasSaved: payload.areaEvaluations.length,
       signaturesSaved: signatureRecords.length,
       emailSent: emailSent,
       emailTo: emailTo,
@@ -245,23 +298,36 @@ function validatePayload_(payload) {
   const empresa = findById_('Empresas', payload.empresaId);
   if (!empresa) throw new Error('La empresa seleccionada no existe.');
 
-  if (!Array.isArray(payload.hallazgos) || !payload.hallazgos.length) {
-    throw new Error('Agrega al menos un hallazgo.');
+  if (!Array.isArray(payload.areaEvaluations) || !payload.areaEvaluations.length) {
+    throw new Error('La empresa no tiene áreas configuradas para inspeccionar.');
   }
 
   let totalPhotos = 0;
-  payload.hallazgos.forEach(function (hallazgo, index) {
-    ['areaId', 'categoria', 'cumplimiento'].forEach(function (key) {
-      if (!String(hallazgo[key] || '').trim()) {
-        throw new Error('Hallazgo ' + (index + 1) + ': falta ' + key + '.');
+
+  payload.areaEvaluations.forEach(function (evaluation, areaIndex) {
+    const area = getAreaForCompany_(payload.empresaId, evaluation.areaId);
+    const expected = criteriaForAreaName_(area.nombre);
+
+    if (!Array.isArray(evaluation.criterios) ||
+        evaluation.criterios.length !== expected.length) {
+      throw new Error('Área ' + area.nombre + ': la matriz de evaluación está incompleta.');
+    }
+
+    evaluation.criterios.forEach(function (criterion, criterionIndex) {
+      const status = String(criterion.cumplimiento || '');
+      if (['C', 'CP', 'NC', 'N/A'].indexOf(status) === -1) {
+        throw new Error(
+          'Área ' + area.nombre + ', criterio ' + (criterionIndex + 1) +
+          ': selecciona C, CP, NC o N/A.'
+        );
       }
     });
-    getAreaForCompany_(payload.empresaId, hallazgo.areaId);
-    totalPhotos += (hallazgo.photos || []).length;
+
+    totalPhotos += (evaluation.photos || []).length;
   });
 
-  if (totalPhotos > 24) {
-    throw new Error('La demo admite máximo 24 fotos por inspección.');
+  if (totalPhotos > 36) {
+    throw new Error('La demo admite máximo 36 fotos por inspección.');
   }
 
   if (!payload.firmas || !payload.firmas.tecnico || !payload.firmas.tecnico.dataBase64) {
@@ -271,18 +337,58 @@ function validatePayload_(payload) {
   if (!payload.firmas.cliente || !payload.firmas.cliente.dataBase64) {
     throw new Error('Falta la firma del responsable del cliente.');
   }
+
+  if (!payload.monitoreoGeneral) {
+    payload.monitoreoGeneral = {};
+  }
 }
 
-function calculateCompliance_(hallazgos) {
+function calculateCompliance_(areaEvaluations) {
   const values = [];
-  hallazgos.forEach(function (hallazgo) {
-    if (hallazgo.cumplimiento === 'C') values.push(100);
-    if (hallazgo.cumplimiento === 'CP') values.push(50);
-    if (hallazgo.cumplimiento === 'NC') values.push(0);
+
+  (areaEvaluations || []).forEach(function (evaluation) {
+    (evaluation.criterios || []).forEach(function (criterion) {
+      if (criterion.cumplimiento === 'C') values.push(100);
+      if (criterion.cumplimiento === 'CP') values.push(50);
+      if (criterion.cumplimiento === 'NC') values.push(0);
+    });
   });
+
   if (!values.length) return 100;
   const total = values.reduce(function (sum, value) { return sum + value; }, 0);
   return Math.round((total / values.length) * 10) / 10;
+}
+
+function areaScore_(criteria) {
+  let earned = 0;
+  let applicable = 0;
+
+  (criteria || []).forEach(function (criterion) {
+    if (criterion.cumplimiento === 'N/A') return;
+    applicable += 1.38;
+    if (criterion.cumplimiento === 'C') earned += 1.38;
+    if (criterion.cumplimiento === 'CP') earned += 0.69;
+  });
+
+  if (!applicable) {
+    return { earned: 0, max: 0, pct: 100, label: 'N/A' };
+  }
+
+  return {
+    earned: Math.round(earned * 100) / 100,
+    max: Math.round(applicable * 100) / 100,
+    pct: Math.round((earned / applicable) * 1000) / 10,
+    label: (Math.round(earned * 100) / 100) + ' / ' +
+      (Math.round(applicable * 100) / 100)
+  };
+}
+
+function criteriaForAreaName_(areaName) {
+  const normalized = normalize_(areaName);
+  const source = normalized.indexOf('perimetral') !== -1 ?
+    PERIMETER_CRITERIA : DEFAULT_CRITERIA;
+
+  return source.map(function (item) { return item; });
 }
 
 function getAreaForCompany_(empresaId, areaId) {
@@ -351,101 +457,145 @@ function saveSignature_(inspectionId, tipo, nombre, signature, now) {
   return record;
 }
 
-function generatePdf_(payload, inspectionId, photoRecords, signatureRecords, compliancePct, now) {
+function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, signatureRecords, compliancePct, now) {
   const reportsFolder = DriveApp.getFolderById(CONFIG.REPORTS_FOLDER_ID);
   const doc = DocumentApp.create('Informe MIP - ' + inspectionId);
   const docFile = DriveApp.getFileById(doc.getId());
   docFile.moveTo(reportsFolder);
 
   const body = doc.getBody();
-  const empresa = findById_('Empresas', payload.empresaId);
-  const tecnico = findById_('Tecnicos', payload.tecnicoId);
-
   appendLogo_(body);
 
-  const title = body.appendParagraph('Informe del servicio de Manejo Integrado de Plagas (MIP)');
-  title.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-  title.editAsText().setForegroundColor(BRAND.BLUE_DARK);
+  const programTitle = body.appendParagraph(FORM_META.TITLE);
+  programTitle.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+  programTitle.editAsText()
+    .setBold(true)
+    .setForegroundColor(BRAND.BLUE_DARK)
+    .setFontSize(13);
+
+  const meta = body.appendParagraph(
+    'Código: ' + FORM_META.CODE + '   |   Versión: ' + FORM_META.VERSION
+  );
+  meta.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+  meta.editAsText().setForegroundColor(BRAND.MUTED).setFontSize(8);
+
+  const subtitle = body.appendParagraph(FORM_META.SUBTITLE);
+  subtitle.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+  subtitle.editAsText().setBold(true).setForegroundColor(BRAND.TEXT).setFontSize(11);
 
   body.appendTable([
-    ['Empresa', empresa ? empresa.nombre : payload.empresaId],
-    ['NIT', empresa ? (empresa.nit || '') : ''],
-    ['Dirección', empresa ? (empresa.direccion || '') : ''],
-    ['Correo', empresa ? (empresa.email || '') : ''],
-    ['Fecha', payload.fecha],
-    ['Técnico', tecnico ? tecnico.nombre : payload.tecnicoId],
-    ['Solicitud de servicio', payload.solicitudServicio || ''],
-    ['Cumplimiento general', compliancePct + '%']
+    ['CLIENTE', empresa ? empresa.nombre : payload.empresaId, 'FECHA', payload.fecha],
+    ['DIRECCIÓN', payload.direccion || '', 'TELÉFONO', payload.telefono || ''],
+    ['CONTACTO', payload.contactoNombre || '', 'CARGO', payload.contactoCargo || ''],
+    ['CELULAR', payload.contactoCelular || '', 'E-MAIL', payload.contactoEmail || ''],
+    ['TÉCNICO ASIGNADO', tecnico ? tecnico.nombre : payload.tecnicoId, 'ELABORADO POR', payload.elaboradoPor || ''],
+    ['SOLICITUD DEL SERVICIO', payload.solicitudServicio || '', 'CUMPLIMIENTO', compliancePct + '%']
   ]);
 
-  appendSectionTitle_(body, 'Hallazgos y condiciones locativas');
-
-  payload.hallazgos.forEach(function (hallazgo, index) {
-    const area = getAreaForCompany_(payload.empresaId, hallazgo.areaId);
-    const areaTitle = body.appendParagraph((index + 1) + '. ' + area.nombre);
-    areaTitle.setHeading(DocumentApp.ParagraphHeading.HEADING2);
-    areaTitle.editAsText().setForegroundColor(BRAND.GREEN);
-
-    body.appendTable([
-      ['Categoría', hallazgo.categoria],
-      ['Cumplimiento', hallazgo.cumplimiento],
-      ['Descripción', hallazgo.descripcion || ''],
-      ['Recomendación', hallazgo.recomendacion || '']
-    ]);
-
-    const findingPhotos = photoRecords.filter(function (photo) {
-      return photo.area === area.nombre;
-    });
-
-    findingPhotos.forEach(function (photo, photoIndex) {
-      body.appendParagraph('Evidencia ' + (photoIndex + 1) + ' - ' + area.nombre);
-      appendSizedImage_(body, DriveApp.getFileById(photo.driveFileId).getBlob(), 440);
-    });
+  appendSectionTitle_(body, 'PRODUCTOS APLICADOS');
+  const products = (payload.productos || []).filter(function (item) {
+    return String(item.producto || '').trim();
   });
 
-  const productos = payload.productos || [];
-  if (productos.some(function (p) { return String(p.producto || '').trim(); })) {
-    appendSectionTitle_(body, 'Productos aplicados');
-    const table = [['Producto', 'Dosis', 'Lote', 'Vencimiento', 'Método']];
-    productos.forEach(function (p) {
-      if (!String(p.producto || '').trim()) return;
-      table.push([
+  if (products.length) {
+    const productRows = [[
+      'Producto', 'Dosis', 'Vencimiento', 'Fabricación', 'Lote', 'Método de aplicación'
+    ]];
+    products.forEach(function (p) {
+      productRows.push([
         p.producto || '',
         p.dosis || '',
-        p.lote || '',
         p.vencimiento || '',
+        p.fabricacion || '',
+        p.lote || '',
         p.metodoAplicacion || ''
       ]);
     });
-    body.appendTable(table);
+    body.appendTable(productRows);
+  } else {
+    body.appendParagraph('Sin productos aplicados registrados.');
   }
 
-  const monitoreo = payload.monitoreo || [];
-  if (monitoreo.some(function (m) {
-    return String(m.tipo || '').trim() || String(m.ubicacion || '').trim();
-  })) {
-    appendSectionTitle_(body, 'Puestos de monitoreo / trampas');
-    const table = [['Tipo', 'N°', 'Ubicación', 'Plaga', 'Cantidad', 'Observación']];
-    monitoreo.forEach(function (m) {
-      if (!String(m.tipo || '').trim() && !String(m.ubicacion || '').trim()) return;
-      table.push([
-        m.tipo || '',
-        String(m.numeroPunto || ''),
-        m.ubicacion || '',
-        m.plaga || '',
-        String(m.cantidad || ''),
-        m.observacion || ''
+  appendSectionTitle_(body, 'CONDICIONES LOCATIVAS');
+
+  payload.areaEvaluations.forEach(function (evaluation) {
+    const area = getAreaForCompany_(payload.empresaId, evaluation.areaId);
+    const areaTitle = body.appendParagraph(String(area.nombre || '').toUpperCase());
+    areaTitle.editAsText().setBold(true).setForegroundColor(BRAND.GREEN);
+
+    const rows = [['Condición', 'C', 'CP', 'NC', 'N/A']];
+    evaluation.criterios.forEach(function (criterion) {
+      rows.push([
+        criterion.label,
+        criterion.cumplimiento === 'C' ? 'X' : '',
+        criterion.cumplimiento === 'CP' ? 'X' : '',
+        criterion.cumplimiento === 'NC' ? 'X' : '',
+        criterion.cumplimiento === 'N/A' ? 'X' : ''
       ]);
     });
-    body.appendTable(table);
+
+    const score = areaScore_(evaluation.criterios);
+    rows.push(['TOTAL ÁREA', score.label, '', '', score.pct + '%']);
+    body.appendTable(rows);
+
+    if (evaluation.observacion) {
+      body.appendParagraph('Observación: ' + evaluation.observacion);
+    }
+    if (evaluation.recomendacion) {
+      body.appendParagraph('Recomendación: ' + evaluation.recomendacion);
+    }
+
+    const areaPhotos = photoRecords.filter(function (photo) {
+      return String(photo.area) === String(area.nombre);
+    });
+
+    areaPhotos.forEach(function (photo, index) {
+      body.appendParagraph('Evidencia ' + (index + 1) + ' - ' + area.nombre);
+      appendSizedImage_(body, DriveApp.getFileById(photo.driveFileId).getBlob(), 430);
+    });
+  });
+
+  const monitoring = (payload.monitoreo || []).filter(function (item) {
+    return String(item.tipo || '').trim() ||
+      String(item.ubicacion || '').trim() ||
+      String(item.plaga || '').trim();
+  });
+
+  if (monitoring.length ||
+      payload.monitoreoGeneral.productoQuimico ||
+      payload.monitoreoGeneral.personaCargo ||
+      payload.monitoreoGeneral.antidoto) {
+    appendSectionTitle_(body, 'CONTROL DE TRAMPAS / PUESTOS DE MONITOREO');
+
+    body.appendTable([
+      ['Producto químico', payload.monitoreoGeneral.productoQuimico || ''],
+      ['Persona a cargo', payload.monitoreoGeneral.personaCargo || ''],
+      ['Antídoto', payload.monitoreoGeneral.antidoto || '']
+    ]);
+
+    if (monitoring.length) {
+      const monitorRows = [['Tipo', 'N°', 'Ubicación', 'Plaga evidenciada', 'Cantidad', 'Observación']];
+      monitoring.forEach(function (item) {
+        monitorRows.push([
+          item.tipo || '',
+          String(item.numeroPunto || ''),
+          item.ubicacion || '',
+          item.plaga || '',
+          String(item.cantidad || ''),
+          item.observacion || ''
+        ]);
+      });
+      body.appendTable(monitorRows);
+    }
   }
 
   if (payload.observacionesGenerales) {
-    appendSectionTitle_(body, 'Observaciones generales');
+    appendSectionTitle_(body, 'OBSERVACIONES');
     body.appendParagraph(payload.observacionesGenerales);
   }
 
-  appendSectionTitle_(body, 'Firmas');
+  appendSectionTitle_(body, 'FIRMAS');
+
   const techSignature = signatureRecords.filter(function (item) {
     return item.tipo === 'TECNICO';
   })[0];
@@ -453,17 +603,24 @@ function generatePdf_(payload, inspectionId, photoRecords, signatureRecords, com
     return item.tipo === 'RESPONSABLE_CLIENTE';
   })[0];
 
-  const signatureTable = body.appendTable([['Técnico', 'Responsable del cliente'], ['', ''], ['', '']]);
+  const signatureTable = body.appendTable([
+    ['Firma Técnico', 'Firma Responsable'],
+    ['', ''],
+    ['', '']
+  ]);
+
   if (techSignature) {
     const image = signatureTable.getCell(1, 0)
       .appendImage(DriveApp.getFileById(techSignature.driveFileId).getBlob());
     resizeInlineImage_(image, 190);
   }
+
   if (clientSignature) {
     const image = signatureTable.getCell(1, 1)
       .appendImage(DriveApp.getFileById(clientSignature.driveFileId).getBlob());
     resizeInlineImage_(image, 190);
   }
+
   signatureTable.getCell(2, 0).setText(tecnico ? tecnico.nombre : 'Técnico');
   signatureTable.getCell(2, 1).setText(payload.responsableNombre);
 
@@ -471,7 +628,7 @@ function generatePdf_(payload, inspectionId, photoRecords, signatureRecords, com
     'Generado automáticamente el ' +
     Utilities.formatDate(now, 'America/Bogota', 'dd/MM/yyyy HH:mm')
   );
-  generated.editAsText().setForegroundColor('#65727b').setFontSize(8);
+  generated.editAsText().setForegroundColor(BRAND.MUTED).setFontSize(8);
 
   doc.saveAndClose();
 
@@ -489,19 +646,26 @@ function appendLogo_(body) {
   try {
     const paragraph = body.appendParagraph('');
     paragraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    const image = paragraph.appendInlineImage(DriveApp.getFileById(CONFIG.LOGO_FILE_ID).getBlob());
-    resizeInlineImage_(image, 250);
+    const image = paragraph.appendInlineImage(
+      DriveApp.getFileById(CONFIG.LOGO_FILE_ID).getBlob()
+    );
+    resizeInlineImage_(image, 245);
   } catch (error) {
     const fallback = body.appendParagraph('SOLUCIONES RADICALES');
     fallback.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    fallback.editAsText().setBold(true).setForegroundColor(BRAND.BLUE_DARK).setFontSize(18);
+    fallback.editAsText()
+      .setBold(true)
+      .setForegroundColor(BRAND.BLUE_DARK)
+      .setFontSize(18);
   }
 }
 
 function appendSectionTitle_(body, text) {
   const p = body.appendParagraph(text);
-  p.setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  p.editAsText().setForegroundColor(BRAND.BLUE_DARK);
+  p.editAsText()
+    .setBold(true)
+    .setForegroundColor(BRAND.BLUE_DARK)
+    .setFontSize(11);
   return p;
 }
 
@@ -520,21 +684,23 @@ function resizeInlineImage_(image, maxWidth) {
   }
 }
 
-function sendReportEmail_(empresa, pdfFile, payload, compliancePct) {
-  const to = String(empresa.email || '').trim();
+function sendReportEmail_(to, empresa, pdfFile, payload, compliancePct) {
   if (!to) throw new Error('La empresa no tiene correo configurado.');
 
-  const subject = 'Informe MIP - ' + empresa.nombre + ' - ' + payload.fecha;
+  const companyName = empresa ? empresa.nombre : 'Cliente';
+  const subject = 'Informe de prestación de servicio MIP - ' +
+    companyName + ' - ' + payload.fecha;
+
   const bodyText =
     'Buen día.\n\n' +
-    'Adjuntamos el informe del servicio de Manejo Integrado de Plagas (MIP) realizado el ' +
+    'Adjuntamos el informe de prestación de servicio del Programa de Control Integrado de Plaga realizado el ' +
     payload.fecha + '.\n' +
     'Cumplimiento general registrado: ' + compliancePct + '%.\n\n' +
     'Soluciones Radicales';
 
   const htmlBody =
     '<p>Buen día.</p>' +
-    '<p>Adjuntamos el informe del servicio de <b>Manejo Integrado de Plagas (MIP)</b> realizado el ' +
+    '<p>Adjuntamos el informe de prestación de servicio del <b>Programa de Control Integrado de Plaga</b> realizado el ' +
     escapeHtmlServer_(payload.fecha) + '.</p>' +
     '<p>Cumplimiento general registrado: <b>' + compliancePct + '%</b>.</p>' +
     '<p><b>Soluciones Radicales</b><br>Control integrado de plaga</p>';
@@ -595,7 +761,11 @@ function appendObject_(sheetName, obj) {
   const sheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(sheetName);
   if (!sheet) throw new Error('No existe la hoja: ' + sheetName);
 
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  const headers = sheet
+    .getRange(1, 1, 1, sheet.getLastColumn())
+    .getValues()[0]
+    .map(String);
+
   const row = headers.map(function (header) {
     return Object.prototype.hasOwnProperty.call(obj, header) ? obj[header] : '';
   });
@@ -606,9 +776,14 @@ function appendObject_(sheetName, obj) {
 
 function setCellByHeader_(sheetName, rowNumber, headerName, value) {
   const sheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(sheetName);
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  const headers = sheet
+    .getRange(1, 1, 1, sheet.getLastColumn())
+    .getValues()[0]
+    .map(String);
+
   const column = headers.indexOf(headerName) + 1;
   if (!column) throw new Error('No existe la columna: ' + headerName);
+
   sheet.getRange(rowNumber, column).setValue(value);
 }
 
