@@ -22,11 +22,14 @@ La demo maneja empresas y áreas como entidades separadas.
 - Se calcula automáticamente el porcentaje general de cumplimiento.
 - Se pueden registrar productos aplicados.
 - Se pueden registrar trampas y puestos de monitoreo.
+- Se generan firmas digitales del técnico y del responsable del cliente, almacenadas en Drive y visibles en el PDF.
+- El PDF se envía automáticamente al correo configurado de la empresa.
+- La interfaz y el PDF utilizan el logo recuperado del informe original y los colores corporativos azul/verde.
 - Se genera un PDF final con toda la información.
 
 Hojas principales:
 
-`Empresas`, `Areas`, `Inspecciones`, `Tecnicos`, `Hallazgos`, `Fotos`, `Productos`, `Monitoreo` y `Configuracion`.
+`Empresas`, `Areas`, `Inspecciones`, `Tecnicos`, `Hallazgos`, `Fotos`, `Firmas`, `Productos`, `Monitoreo` y `Configuracion`.
 
 La hoja `Clientes` se conserva para compatibilidad con la versión 1 de la demo.
 
@@ -61,3 +64,20 @@ npx clasp deployments
 `feature/apps-script-demo`
 
 La demo está aislada del API/Frontend histórico del repositorio.
+
+
+## Correos de prueba por empresa
+
+- Comercializadora Palacio G S.A.S → `santyvan974@gmail.com`
+- Bello Oro Pan S.A.S → `santiago.velasquez022@pascualbravo.edu.co`
+
+El correo se toma del registro de la empresa seleccionada; no está fijo en el código.
+
+## Identidad visual
+
+El logo usado por la demo fue recuperado del informe original suministrado y almacenado en Drive.
+La paleta aplicada conserva los tonos existentes en el material fuente:
+
+- Azul principal: `#0877b9`
+- Azul oscuro: `#0b5f91`
+- Verde: `#5b8f18`
