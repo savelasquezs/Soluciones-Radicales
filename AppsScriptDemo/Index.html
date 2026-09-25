@@ -733,53 +733,86 @@
       const score = areaScore(area);
       const complete = isAreaComplete(area);
       const open = state.openAreas.has(index);
+      const skipped = area.inspected === false;
+
+      const metaText = skipped
+        ? 'Marcada como no inspeccionada'
+        : (complete ? 'Matriz completa' : 'Pendiente de completar');
 
       return `
-        <article id="area-card-${index}" class="areaCard ${complete ? 'complete' : ''}">
+        <article id="area-card-${index}" class="areaCard ${complete ? 'complete' : ''} ${skipped ? 'skipped' : ''}">
           <div class="areaHeader">
             <div>
               <div class="areaName">${escapeHtml(area.areaName)}</div>
-              <div class="areaMeta">${complete ? 'Matriz completa' : 'Pendiente de completar'}</div>
+              <div class="areaMeta">${escapeHtml(metaText)}</div>
             </div>
-            <div class="areaScore">${complete ? escapeHtml(score.display) : 'Pendiente'}</div>
+            <div class="areaScore">${escapeHtml(score.display)}</div>
             <button type="button" class="areaToggle light" onclick="toggleArea(${index})">
-              ${open ? 'Cerrar' : 'Evaluar área'}
+              ${open ? 'Cerrar' : (skipped ? 'Ver detalle' : 'Evaluar área')}
             </button>
           </div>
 
           <div class="areaBody ${open ? '' : 'hidden'}">
-            <div class="matrixHeader">
-              <div>Condición locativa</div>
-              <div style="text-align:center">C &nbsp;&nbsp; CP &nbsp;&nbsp; NC &nbsp;&nbsp; N/A</div>
+            <div class="quickMark">
+              <button type="button" class="${skipped ? 'primary' : 'ghost'}" onclick="toggleAreaInspection(${index})">
+                ${skipped ? 'Volver a inspeccionar área' : 'Marcar como no inspeccionada'}
+              </button>
+              ${!skipped ? `
+                <button type="button" class="ghost" onclick="setAllAreaStatus(${index},'C')">Marcar toda el área C</button>
+                <button type="button" class="ghost" onclick="setAllAreaStatus(${index},'N/A')">Marcar toda el área N/A</button>
+              ` : ''}
             </div>
 
-            ${area.criterios.map((criterion,criterionIndex) => `
-              <div class="criterionRow">
-                <div class="criterionLabel">${escapeHtml(criterion.label)}</div>
-                <div class="statusGroup">
-                  ${statusButton(index,criterionIndex,'C',criterion.cumplimiento)}
-                  ${statusButton(index,criterionIndex,'CP',criterion.cumplimiento)}
-                  ${statusButton(index,criterionIndex,'NC',criterion.cumplimiento)}
-                  ${statusButton(index,criterionIndex,'N/A',criterion.cumplimiento)}
+            ${skipped ? `
+              <div class="skipBox">
+                <label>Motivo <span class="labelHint">(opcional)</span></label>
+                <input
+                  value="${escapeHtml(area.skipReason || '')}"
+                  oninput="updateAreaText(${index},'skipReason',this.value)"
+                  placeholder="Ej. área cerrada, sin acceso o fuera del alcance de la visita"
+                >
+                <div class="note">Esta área no participa en el cálculo de cumplimiento.</div>
+              </div>
+            ` : `
+              <div class="matrixHeader">
+                <div>Condición locativa</div>
+                <div style="text-align:center">C &nbsp;&nbsp; CP &nbsp;&nbsp; NC &nbsp;&nbsp; N/A</div>
+              </div>
+
+              ${area.criterios.map((criterion,criterionIndex) => `
+                <div class="criterionRow">
+                  <div class="criterionLabel">${escapeHtml(criterion.label)}</div>
+                  <div class="statusGroup">
+                    ${statusButton(index,criterionIndex,'C',criterion.cumplimiento)}
+                    ${statusButton(index,criterionIndex,'CP',criterion.cumplimiento)}
+                    ${statusButton(index,criterionIndex,'NC',criterion.cumplimiento)}
+                    ${statusButton(index,criterionIndex,'N/A',criterion.cumplimiento)}
+                  </div>
+                </div>
+              `).join('')}
+
+              <div class="areaExtras">
+                <div>
+                  <label>
+                    Observación del área
+                    <span class="labelHint">
+                      ${area.criterios.some(item => item.cumplimiento === 'NC') ? '(obligatoria por NC)' : '(opcional)'}
+                    </span>
+                  </label>
+                  <textarea
+                    oninput="updateAreaText(${index},'observacion',this.value)"
+                    placeholder="Situación encontrada, detalle locativo o sanitario..."
+                  >${escapeHtml(area.observacion)}</textarea>
+                </div>
+                <div>
+                  <label>Recomendación <span class="labelHint">(opcional)</span></label>
+                  <textarea
+                    oninput="updateAreaText(${index},'recomendacion',this.value)"
+                    placeholder="Acción correctiva o preventiva sugerida..."
+                  >${escapeHtml(area.recomendacion)}</textarea>
                 </div>
               </div>
-            `).join('')}
-
-            <div class="quickMark">
-              <button type="button" class="ghost" onclick="setAllAreaStatus(${index},'C')">Marcar toda el área C</button>
-              <button type="button" class="ghost" onclick="setAllAreaStatus(${index},'N/A')">Marcar toda el área N/A</button>
-            </div>
-
-            <div class="areaExtras">
-              <div>
-                <label>Observación del área <span class="labelHint">(opcional)</span></label>
-                <textarea oninput="updateAreaText(${index},'observacion',this.value)" placeholder="Situación encontrada, detalle locativo o sanitario...">${escapeHtml(area.observacion)}</textarea>
-              </div>
-              <div>
-                <label>Recomendación <span class="labelHint">(opcional)</span></label>
-                <textarea oninput="updateAreaText(${index},'recomendacion',this.value)" placeholder="Acción correctiva o preventiva sugerida...">${escapeHtml(area.recomendacion)}</textarea>
-              </div>
-            </div>
+            `}
 
             <label>Evidencia fotográfica <span class="labelHint">(opcional)</span></label>
             <input type="file" accept="image/*" capture="environment" multiple onchange="handleAreaPhotos(${index},this.files)">
@@ -815,7 +848,15 @@
     renderAreas();
   }
 
+  function toggleAreaInspection(index) {
+    const area = state.areaEvaluations[index];
+    area.inspected = area.inspected === false;
+    state.openAreas.add(index);
+    renderAreas();
+  }
+
   function setCriterionStatus(areaIndex,criterionIndex,status) {
+    state.areaEvaluations[areaIndex].inspected = true;
     state.areaEvaluations[areaIndex].criterios[criterionIndex].cumplimiento = status;
     state.openAreas.add(areaIndex);
     renderAreas();
