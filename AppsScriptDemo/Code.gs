@@ -61,6 +61,7 @@ function getInitialData() {
     empresas: readActiveRows_('Empresas'),
     areas: areas,
     tecnicos: readActiveRows_('Tecnicos'),
+    catalogoProductos: readActiveRows_('CatalogoProductos'),
     fecha: Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd'),
     logoDataUrl: getLogoDataUrl_(),
     formMeta: FORM_META
