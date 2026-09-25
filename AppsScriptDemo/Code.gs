@@ -576,6 +576,14 @@ function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, sig
     const areaTitle = body.appendParagraph(String(area.nombre || '').toUpperCase());
     areaTitle.editAsText().setBold(true).setForegroundColor(BRAND.GREEN);
 
+    if (evaluation.inspected === false) {
+      body.appendParagraph(
+        'NO INSPECCIONADA' +
+        (evaluation.skipReason ? ' - ' + evaluation.skipReason : '')
+      );
+      return;
+    }
+
     const rows = [['Condición', 'C', 'CP', 'NC', 'N/A']];
     evaluation.criterios.forEach(function (criterion) {
       rows.push([
@@ -608,8 +616,37 @@ function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, sig
     });
   });
 
+  const traps = (payload.trampas || []).filter(function (item) {
+    return String(item.numeroTrampa || '').trim() ||
+      String(item.ubicacion || '').trim() ||
+      String(item.plaga || '').trim();
+  });
+
+  if (traps.length) {
+    appendSectionTitle_(body, 'FORMATO CONTROL TRAMPAS - FO-PS-10');
+    const trapRows = [[
+      'N° de trampa',
+      'Ubicación',
+      'Plaga evidenciada',
+      'Cant. total plaga capturada',
+      'Observación'
+    ]];
+
+    traps.forEach(function (item) {
+      trapRows.push([
+        String(item.numeroTrampa || ''),
+        item.ubicacion || '',
+        item.plaga || '',
+        String(item.cantidad || ''),
+        item.observacion || ''
+      ]);
+    });
+
+    body.appendTable(trapRows);
+  }
+
   const monitoring = (payload.monitoreo || []).filter(function (item) {
-    return String(item.tipo || '').trim() ||
+    return String(item.numeroPunto || '').trim() ||
       String(item.ubicacion || '').trim() ||
       String(item.plaga || '').trim();
   });
@@ -618,7 +655,7 @@ function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, sig
       payload.monitoreoGeneral.productoQuimico ||
       payload.monitoreoGeneral.personaCargo ||
       payload.monitoreoGeneral.antidoto) {
-    appendSectionTitle_(body, 'CONTROL DE TRAMPAS / PUESTOS DE MONITOREO');
+    appendSectionTitle_(body, 'FORMATO PUESTOS DE MONITOREO - FO-PS-09');
 
     body.appendTable([
       ['Producto químico', payload.monitoreoGeneral.productoQuimico || ''],
@@ -627,10 +664,16 @@ function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, sig
     ]);
 
     if (monitoring.length) {
-      const monitorRows = [['Tipo', 'N°', 'Ubicación', 'Plaga evidenciada', 'Cantidad', 'Observación']];
+      const monitorRows = [[
+        'N°',
+        'Ubicación',
+        'Plaga evidenciada',
+        'Cantidad',
+        'Observación'
+      ]];
+
       monitoring.forEach(function (item) {
         monitorRows.push([
-          item.tipo || '',
           String(item.numeroPunto || ''),
           item.ubicacion || '',
           item.plaga || '',
@@ -638,6 +681,7 @@ function generatePdf_(payload, inspectionId, empresa, tecnico, photoRecords, sig
           item.observacion || ''
         ]);
       });
+
       body.appendTable(monitorRows);
     }
   }
