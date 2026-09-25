@@ -963,6 +963,7 @@
 
   function addProducto() {
     state.productos.push({
+      catalogId:'',
       producto:'',
       dosis:'',
       vencimiento:'',
@@ -987,6 +988,8 @@
       return;
     }
 
+    const catalog = (state.data && state.data.catalogoProductos) || [];
+
     box.innerHTML = state.productos.map((product,index) => `
       <div class="productItem">
         <div class="itemHead">
@@ -994,18 +997,68 @@
           <button type="button" class="danger" onclick="removeProducto(${index})">Eliminar</button>
         </div>
 
+        <div class="grid">
+          <div>
+            <label>Producto del catálogo</label>
+            <select onchange="selectCatalogProduct(${index},this.value)">
+              <option value="">Selecciona...</option>
+              ${catalog.map(item => `
+                <option value="${escapeHtml(item.id)}" ${String(product.catalogId)===String(item.id)?'selected':''}>
+                  ${escapeHtml(item.nombre)}
+                </option>
+              `).join('')}
+              <option value="__manual__" ${product.catalogId==='__manual__'?'selected':''}>Otro / ingreso manual</option>
+            </select>
+          </div>
+          <div>
+            <label>Producto aplicado</label>
+            <input
+              value="${escapeHtml(product.producto || '')}"
+              oninput="state.productos[${index}].producto=this.value"
+              placeholder="Nombre del producto"
+            >
+          </div>
+        </div>
+
         <div class="grid3">
-          ${inputField('Producto aplicado','producto',product.producto,index,'productos')}
           ${inputField('Dosis','dosis',product.dosis,index,'productos')}
           ${inputField('Fecha de vencimiento','vencimiento',product.vencimiento,index,'productos')}
           ${inputField('Fecha de fabricación','fabricacion',product.fabricacion,index,'productos')}
           ${inputField('Lote','lote',product.lote,index,'productos')}
           ${inputField('Método de aplicación','metodoAplicacion',product.metodoAplicacion,index,'productos')}
+          ${inputField('Registro sanitario (opcional)','registroSanitario',product.registroSanitario,index,'productos')}
         </div>
-
-        ${inputField('Registro sanitario (opcional)','registroSanitario',product.registroSanitario,index,'productos')}
       </div>
     `).join('');
+  }
+
+  function selectCatalogProduct(index,catalogId) {
+    const product = state.productos[index];
+    product.catalogId = catalogId;
+
+    if (catalogId === '__manual__' || !catalogId) {
+      if (catalogId === '__manual__') {
+        product.producto = '';
+        product.dosis = '';
+        product.metodoAplicacion = '';
+        product.registroSanitario = '';
+      }
+      renderProductos();
+      return;
+    }
+
+    const item = (state.data.catalogoProductos || []).find(row =>
+      String(row.id) === String(catalogId)
+    );
+
+    if (item) {
+      product.producto = item.nombre || '';
+      product.dosis = item.dosisDefault || '';
+      product.metodoAplicacion = item.metodoDefault || '';
+      product.registroSanitario = item.registroSanitario || '';
+    }
+
+    renderProductos();
   }
 
   function addMonitoreo() {
