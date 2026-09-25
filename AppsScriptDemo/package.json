@@ -1,0 +1,15 @@
+{
+  "name": "soluciones-radicales-mip-appscript",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "login": "clasp login",
+    "status": "clasp status",
+    "push": "clasp push",
+    "open": "clasp open",
+    "deploy": "clasp deploy"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.0.6-alpha"
+  }
+}
