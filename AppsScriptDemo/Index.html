@@ -523,6 +523,7 @@
     data:null,
     areaEvaluations:[],
     productos:[],
+    trampas:[],
     monitoreo:[],
     step:1,
     signatures:{},
@@ -621,6 +622,8 @@
       areaId:area.id,
       areaName:area.nombre,
       criterios:(area.criterios || []).map(label => ({label,cumplimiento:''})),
+      inspected:true,
+      skipReason:'',
       observacion:'',
       recomendacion:'',
       photos:[]
@@ -671,6 +674,7 @@
     }
 
     const incompleteIndex = state.areaEvaluations.findIndex(area =>
+      area.inspected !== false &&
       area.criterios.some(criterion => !criterion.cumplimiento)
     );
 
@@ -685,6 +689,28 @@
 
       requestAnimationFrame(() => {
         const element = document.getElementById('area-card-' + incompleteIndex);
+        if (element) element.scrollIntoView({behavior:'smooth',block:'center'});
+      });
+
+      return false;
+    }
+
+    const ncWithoutNote = state.areaEvaluations.findIndex(area =>
+      area.inspected !== false &&
+      area.criterios.some(criterion => criterion.cumplimiento === 'NC') &&
+      !String(area.observacion || '').trim()
+    );
+
+    if (ncWithoutNote !== -1) {
+      state.openAreas.add(ncWithoutNote);
+      renderAreas();
+      alert(
+        'El área "' + state.areaEvaluations[ncWithoutNote].areaName +
+        '" tiene una condición NC. Registra una observación antes de continuar.'
+      );
+
+      requestAnimationFrame(() => {
+        const element = document.getElementById('area-card-' + ncWithoutNote);
         if (element) element.scrollIntoView({behavior:'smooth',block:'center'});
       });
 
@@ -808,10 +834,15 @@
   }
 
   function isAreaComplete(area) {
+    if (area.inspected === false) return true;
     return area.criterios.length > 0 && area.criterios.every(item => !!item.cumplimiento);
   }
 
   function areaScore(area) {
+    if (area.inspected === false) {
+      return {earned:0,max:0,pct:null,display:'No inspeccionada'};
+    }
+
     let earned = 0;
     let applicable = 0;
 
