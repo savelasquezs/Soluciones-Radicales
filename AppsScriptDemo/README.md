@@ -9,30 +9,27 @@ Prototipo aislado para demostrar al cliente el flujo:
 - Spreadsheet: `1MW6tcc6cbDP5X9YRgW3g3vJZ8JhszCo3_C5iwswSojA`
 - Carpeta de fotos: `1PUl9iHOiFDzGj6cy6cj0vXf1VVRXBb0O`
 - Carpeta de informes: `19JXmY_kef-SIzKnIF2qg0201NL5mb57H`
+- Apps Script ID: `19KdMkSm-JReAQY16EPjiBWrpbkuWkFrbn7TZaEa66N9BZTSkmlWLKukx`
 
 El spreadsheet incluye hojas para:
 `Inspecciones`, `Clientes`, `Tecnicos`, `Hallazgos`, `Fotos`, `Productos`, `Monitoreo` y `Configuracion`.
 
-## Único paso manual inicial
+## Conexión con Apps Script
 
-Crear un proyecto vacío en https://script.google.com/ y copiar su **Script ID** desde:
+El archivo `.clasp.json` ya está creado y apunta al proyecto correcto.
 
-**Configuración del proyecto → IDs → ID de secuencia de comandos**
-
-Después, en este directorio:
+Desde la raíz del repositorio:
 
 ```bash
-npm install -g @google/clasp
-clasp login
-cp .clasp.json.example .clasp.json
+git checkout feature/apps-script-demo
+cd AppsScriptDemo
+npm install
+npx clasp login
+npx clasp push
+npx clasp open
 ```
 
-Reemplazar `PEGA_AQUI_EL_SCRIPT_ID` por el Script ID real y ejecutar:
-
-```bash
-clasp push
-clasp open
-```
+El único paso interactivo es `npx clasp login`: Google abrirá el navegador para autorizar la cuenta.
 
 ## Despliegue web
 
@@ -41,7 +38,7 @@ En Apps Script:
 1. **Implementar → Nueva implementación**
 2. Tipo: **Aplicación web**
 3. Ejecutar como: **Yo**
-4. Acceso: el nivel acordado para la demo
+4. Elegir el acceso apropiado para la demo
 5. Autorizar permisos de Sheets, Drive y Docs
 6. Abrir la URL generada desde el celular
 
