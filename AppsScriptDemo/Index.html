@@ -8,7 +8,7 @@
     :root{--brand:#0877b9;--brand2:#0b5f91;--accent:#5b8f18;--ink:#17324d;--muted:#65727b;--soft:#f5f9fb;--border:#d9e3e8;--danger:#a33}
     *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#eef6fa,#f7fafb 220px,#f3f6f7);color:var(--ink)}
     header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:3px solid var(--brand);padding:12px 16px;box-shadow:0 2px 8px #0001}
-    header b{font-size:20px;color:var(--brand2)}header small{display:block;color:var(--muted);margin-top:3px}
+    .brandHead{display:flex;align-items:center;gap:12px;max-width:920px;margin:auto}.brandLogo{width:180px;max-height:72px;object-fit:contain;display:none}.brandText b{font-size:20px;color:var(--brand2)}.brandText small{display:block;color:var(--muted);margin-top:3px}
     main{max-width:920px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(23,50,77,.07)}
     h2{font-size:18px;color:var(--brand2);margin:0 0 12px}h3{font-size:16px;margin:0 0 10px;color:var(--brand2)}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -23,14 +23,19 @@
     .itemHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700;background:#eaf5fb;color:var(--brand2)}
     .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 16px}.step{padding:9px;border-radius:999px;text-align:center;background:#e8edf0;color:var(--muted);font-size:12px;font-weight:700}.step.active{background:var(--brand);color:#fff}
     .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{padding:14px;border-radius:12px;background:var(--soft);border:1px solid var(--border);text-align:center}.kpi b{display:block;font-size:23px;color:var(--brand2)}
-    .hidden{display:none}.complete{text-align:center;padding:28px}.complete h2{font-size:24px}.complete a{display:inline-block;margin-top:12px;padding:12px 18px;background:var(--brand);color:white;border-radius:10px;text-decoration:none;font-weight:700}
-    @media(max-width:680px){.grid,.grid3,.summary{grid-template-columns:1fr}.preview{grid-template-columns:repeat(2,1fr)}.actions{flex-direction:column}.actions button{width:100%}}
+    .signatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.signatureBox{border:1px solid var(--border);border-radius:14px;padding:12px;background:#fbfdfe}.signatureCanvas{width:100%;height:180px;border:1px dashed #9fb1bc;border-radius:10px;background:#fff;touch-action:none;display:block}.signatureActions{display:flex;justify-content:flex-end;margin-top:8px}.signatureActions button{padding:8px 12px}.mailTarget{padding:11px;border-radius:10px;background:#eef7e8;border:1px solid #d6e8c7;margin-top:10px;font-size:13px}.hidden{display:none}.complete{text-align:center;padding:28px}.complete h2{font-size:24px}.complete a{display:inline-block;margin-top:12px;padding:12px 18px;background:var(--brand);color:white;border-radius:10px;text-decoration:none;font-weight:700}
+    @media(max-width:680px){.grid,.grid3,.summary,.signatureGrid{grid-template-columns:1fr}.brandHead{gap:8px}.brandLogo{width:135px}.preview{grid-template-columns:repeat(2,1fr)}.actions{flex-direction:column}.actions button{width:100%}}
   </style>
 </head>
 <body>
 <header>
-  <b>Soluciones Radicales</b>
-  <small>Inspección y Manejo Integrado de Plagas (MIP)</small>
+  <div class="brandHead">
+    <img id="brandLogo" class="brandLogo" alt="Soluciones Radicales">
+    <div class="brandText">
+      <b>Soluciones Radicales</b>
+      <small>Control integrado de plaga · Inspección MIP</small>
+    </div>
+  </div>
 </header>
 
 <main>
@@ -94,6 +99,26 @@
       </section>
 
       <section class="card">
+        <h2>Firmas</h2>
+        <div class="note">Las dos firmas quedan almacenadas con el informe y aparecen en el PDF.</div>
+        <div class="signatureGrid">
+          <div class="signatureBox">
+            <h3>Firma del técnico</h3>
+            <canvas id="firmaTecnicoCanvas" class="signatureCanvas"></canvas>
+            <div class="signatureActions"><button type="button" class="light" onclick="clearSignature('tecnico')">Limpiar firma</button></div>
+          </div>
+          <div class="signatureBox">
+            <h3>Firma del responsable del cliente</h3>
+            <label for="responsableNombre">Nombre del responsable</label>
+            <input id="responsableNombre" placeholder="Nombre de quien recibe y firma">
+            <canvas id="firmaClienteCanvas" class="signatureCanvas" style="margin-top:10px"></canvas>
+            <div class="signatureActions"><button type="button" class="light" onclick="clearSignature('cliente')">Limpiar firma</button></div>
+          </div>
+        </div>
+        <div id="mailTarget" class="mailTarget">El PDF se enviará automáticamente al correo de la empresa seleccionada.</div>
+      </section>
+
+      <section class="card">
         <h2>Observaciones generales</h2>
         <textarea id="observaciones" placeholder="Observaciones adicionales del servicio..."></textarea>
         <div style="height:12px"></div>
@@ -115,15 +140,18 @@
 </main>
 
 <script>
-  const state = { data:null, hallazgos:[], productos:[], monitoreo:[], step:1 };
+  const state = { data:null, hallazgos:[], productos:[], monitoreo:[], step:1, signatures:{} };
 
   document.addEventListener('DOMContentLoaded', () => {
+    setupSignaturePad('tecnico','firmaTecnicoCanvas');
+    setupSignaturePad('cliente','firmaClienteCanvas');
     google.script.run.withSuccessHandler(init).withFailureHandler(showError).getInitialData();
   });
 
   document.getElementById('empresa').addEventListener('change', () => {
     state.hallazgos.forEach(h => h.areaId = '');
     renderHallazgos();
+    updateMailTarget();
   });
 
   document.getElementById('inspectionForm').addEventListener('submit', submitInspection);
@@ -133,7 +161,13 @@
     fillSelect('empresa', data.empresas, 'id', 'nombre');
     fillSelect('tecnico', data.tecnicos, 'id', 'nombre');
     document.getElementById('fecha').value = data.fecha;
+    if (data.logoDataUrl) {
+      const logo=document.getElementById('brandLogo');
+      logo.src=data.logoDataUrl;
+      logo.style.display='block';
+    }
     addHallazgo();
+    updateMailTarget();
   }
 
   function fillSelect(id, rows, valueKey, labelKey) {
@@ -334,7 +368,7 @@
 
   function submitInspection(event) {
     event.preventDefault();
-    if (!validateStep1() || !validateStep2()) return;
+    if (!validateStep1() || !validateStep2() || !validateSignatures()) return;
     const payload={
       empresaId:value('empresa'),
       tecnicoId:value('tecnico'),
@@ -343,7 +377,12 @@
       hallazgos:state.hallazgos,
       productos:state.productos,
       monitoreo:state.monitoreo,
-      observacionesGenerales:value('observaciones')
+      observacionesGenerales:value('observaciones'),
+      responsableNombre:value('responsableNombre'),
+      firmas:{
+        tecnico:signaturePayload('tecnico'),
+        cliente:signaturePayload('cliente')
+      }
     };
     setBusy(true,'Guardando inspección y generando PDF...');
     google.script.run
@@ -353,13 +392,108 @@
         document.querySelector('.steps').classList.add('hidden');
         const complete=document.getElementById('complete');
         complete.classList.remove('hidden');
+        const emailText=result.emailSent
+          ? ' PDF enviado a '+result.emailTo+'.'
+          : ' El PDF fue generado, pero el correo no pudo enviarse: '+(result.emailError||'sin detalle')+'.';
         document.getElementById('completeText').textContent=
-          result.hallazgosSaved+' hallazgo(s), '+result.photosSaved+' foto(s), cumplimiento '+result.cumplimientoPct+'%.';
+          result.hallazgosSaved+' hallazgo(s), '+result.photosSaved+' foto(s), 2 firmas, cumplimiento '+result.cumplimientoPct+'%.'+emailText;
         document.getElementById('pdfLink').href=result.pdfUrl;
         window.scrollTo({top:0,behavior:'smooth'});
       })
       .withFailureHandler(error=>{setBusy(false);showError(error)})
       .saveInspection(payload);
+  }
+
+  function updateMailTarget() {
+    const box=document.getElementById('mailTarget');
+    if (!box || !state.data) return;
+    const empresa=state.data.empresas.find(e=>String(e.id)===value('empresa'));
+    box.textContent=empresa && empresa.email
+      ? 'Al finalizar, el PDF se enviará automáticamente a: '+empresa.email
+      : 'Selecciona una empresa para ver el correo de destino.';
+  }
+
+  function setupSignaturePad(key,canvasId) {
+    const canvas=document.getElementById(canvasId);
+    const ctx=canvas.getContext('2d');
+    const pad={canvas,ctx,drawing:false,hasInk:false};
+    state.signatures[key]=pad;
+
+    function sizeCanvas() {
+      const rect=canvas.getBoundingClientRect();
+      const ratio=Math.max(window.devicePixelRatio||1,1);
+      canvas.width=Math.max(1,Math.floor(rect.width*ratio));
+      canvas.height=Math.max(1,Math.floor(rect.height*ratio));
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+      ctx.lineWidth=2.2;
+      ctx.lineCap='round';
+      ctx.lineJoin='round';
+      ctx.strokeStyle='#17324d';
+    }
+
+    sizeCanvas();
+
+    function point(event) {
+      const rect=canvas.getBoundingClientRect();
+      return {x:event.clientX-rect.left,y:event.clientY-rect.top};
+    }
+
+    canvas.addEventListener('pointerdown',event=>{
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      pad.drawing=true;
+      const p=point(event);
+      ctx.beginPath();
+      ctx.moveTo(p.x,p.y);
+    });
+
+    canvas.addEventListener('pointermove',event=>{
+      if(!pad.drawing) return;
+      event.preventDefault();
+      const p=point(event);
+      ctx.lineTo(p.x,p.y);
+      ctx.stroke();
+      pad.hasInk=true;
+    });
+
+    const stop=event=>{
+      if(!pad.drawing) return;
+      pad.drawing=false;
+      try{canvas.releasePointerCapture(event.pointerId)}catch(e){}
+    };
+    canvas.addEventListener('pointerup',stop);
+    canvas.addEventListener('pointercancel',stop);
+  }
+
+  function clearSignature(key) {
+    const pad=state.signatures[key];
+    if(!pad) return;
+    const rect=pad.canvas.getBoundingClientRect();
+    pad.ctx.clearRect(0,0,rect.width,rect.height);
+    pad.hasInk=false;
+  }
+
+  function signaturePayload(key) {
+    const pad=state.signatures[key];
+    if(!pad || !pad.hasInk) return null;
+    const dataUrl=pad.canvas.toDataURL('image/png');
+    return {mimeType:'image/png',dataBase64:dataUrl.split(',')[1]};
+  }
+
+  function validateSignatures() {
+    if(!value('responsableNombre')) {
+      alert('Escribe el nombre del responsable del cliente.');
+      return false;
+    }
+    if(!state.signatures.tecnico || !state.signatures.tecnico.hasInk) {
+      alert('Falta la firma del técnico.');
+      return false;
+    }
+    if(!state.signatures.cliente || !state.signatures.cliente.hasInk) {
+      alert('Falta la firma del responsable del cliente.');
+      return false;
+    }
+    return true;
   }
 
   function value(id){return document.getElementById(id).value.trim()}
