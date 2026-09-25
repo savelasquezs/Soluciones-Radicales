@@ -11,12 +11,21 @@
 		"statusBar.background": "#84b6f4",
 		"statusBar.foreground": "#15202b",
 		"statusBarItem.hoverBackground": "#559af0",
-		"statusBarItem.remoteBackground": "#84b6f4",
+		"statusBarItem.remoteBackground": "#ea1574",
 		"statusBarItem.remoteForeground": "#15202b",
 		"titleBar.activeBackground": "#84b6f4",
 		"titleBar.activeForeground": "#15202b",
 		"titleBar.inactiveBackground": "#84b6f499",
-		"titleBar.inactiveForeground": "#15202b99"
+		"titleBar.inactiveForeground": "#15202b99",
+		"activityBar.activeBorder": "#15202b",
+		"activityBarTop.activeBackground": "#b3d2f8",
+		"activityBarTop.activeBorder": "#15202b",
+		"activityBarTop.background": "#b3d2f8",
+		"activityBarTop.foreground": "#15202b",
+		"activityBarTop.inactiveForeground": "#15202b99",
+		"commandCenter.foreground": "#15202b",
+		"statusBar.debuggingBackground": "#84b6f4",
+		"statusBar.debuggingForeground": "#15202b"
 	},
 	"vue3snippets.enable-compile-vue-file-on-did-save-code": false
 }

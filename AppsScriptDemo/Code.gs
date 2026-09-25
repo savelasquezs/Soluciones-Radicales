@@ -38,6 +38,7 @@ const PERIMETER_CRITERIA = Object.freeze([
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover')
     .setTitle('Soluciones Radicales | Inspección MIP')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
