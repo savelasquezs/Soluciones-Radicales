@@ -1,61 +1,63 @@
 # Demo MIP en Google Apps Script
 
-Prototipo aislado para demostrar al cliente el flujo:
+Prototipo funcional para demostrar al cliente el flujo:
 
-**Técnico → inspección → evidencia fotográfica → Google Sheets/Drive → PDF automático**
+**Empresa → técnico → inspección por áreas → evidencias → productos/monitoreo → Sheets/Drive → PDF automático**
 
-## Recursos ya creados
+## Recursos
 
 - Spreadsheet: `1MW6tcc6cbDP5X9YRgW3g3vJZ8JhszCo3_C5iwswSojA`
 - Carpeta de fotos: `1PUl9iHOiFDzGj6cy6cj0vXf1VVRXBb0O`
 - Carpeta de informes: `19JXmY_kef-SIzKnIF2qg0201NL5mb57H`
 - Apps Script ID: `19KdMkSm-JReAQY16EPjiBWrpbkuWkFrbn7TZaEa66N9BZTSkmlWLKukx`
 
-El spreadsheet incluye hojas para:
-`Inspecciones`, `Clientes`, `Tecnicos`, `Hallazgos`, `Fotos`, `Productos`, `Monitoreo` y `Configuracion`.
+## Versión 2
 
-## Conexión con Apps Script
+La demo maneja empresas y áreas como entidades separadas.
 
-El archivo `.clasp.json` ya está creado y apunta al proyecto correcto.
+- Cada empresa tiene su propio catálogo de áreas.
+- Se pueden crear nuevas áreas desde la misma Web App.
+- Una inspección puede tener múltiples hallazgos.
+- Cada hallazgo puede pertenecer a un área distinta y tener fotografías propias.
+- Se calcula automáticamente el porcentaje general de cumplimiento.
+- Se pueden registrar productos aplicados.
+- Se pueden registrar trampas y puestos de monitoreo.
+- Se genera un PDF final con toda la información.
+
+Hojas principales:
+
+`Empresas`, `Areas`, `Inspecciones`, `Tecnicos`, `Hallazgos`, `Fotos`, `Productos`, `Monitoreo` y `Configuracion`.
+
+La hoja `Clientes` se conserva para compatibilidad con la versión 1 de la demo.
+
+## Sincronizar cambios
 
 Desde la raíz del repositorio:
 
 ```bash
-git checkout feature/apps-script-demo
+git switch feature/apps-script-demo
+git pull
 cd AppsScriptDemo
 npm install
 npx clasp login
 npx clasp push
-npx clasp open
 ```
 
-El único paso interactivo es `npx clasp login`: Google abrirá el navegador para autorizar la cuenta.
+## Crear una versión desplegable
 
-## Despliegue web
+```bash
+npx clasp version "Demo MIP v2"
+```
 
-En Apps Script:
+Usa el número devuelto:
 
-1. **Implementar → Nueva implementación**
-2. Tipo: **Aplicación web**
-3. Ejecutar como: **Yo**
-4. Elegir el acceso apropiado para la demo
-5. Autorizar permisos de Sheets, Drive y Docs
-6. Abrir la URL generada desde el celular
-
-## Qué hace la demo
-
-- Carga clientes y técnicos desde Google Sheets.
-- Captura un hallazgo MIP.
-- Permite tomar/subir hasta 8 fotos.
-- Comprime las fotos en el navegador a un máximo de 1600 px y JPEG 72%.
-- Guarda evidencias en Drive.
-- Registra datos y URLs en Sheets.
-- Genera automáticamente un PDF con el resumen y las fotografías.
+```bash
+npx clasp deploy -V NUMERO -d "Demo MIP v2"
+npx clasp deployments
+```
 
 ## Rama
 
-Trabajo preparado en:
-
 `feature/apps-script-demo`
 
-No afecta el sistema actual de API/Frontend del repositorio.
+La demo está aislada del API/Frontend histórico del repositorio.
