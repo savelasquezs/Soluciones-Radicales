@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root{--brand:#0877b9;--brand2:#0b5f91;--accent:#5b8f18;--ink:#17324d;--muted:#65727b;--soft:#f5f9fb;--border:#d9e3e8}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#eef6fa,#f7fafb 220px,#f3f6f7);color:var(--ink)}
+    header{position:sticky;top:0;z-index:2;background:#fff;border-bottom:3px solid var(--brand);padding:13px 16px;box-shadow:0 2px 8px #0001}
+    header b{font-size:19px;color:var(--brand2)}header small{display:block;color:var(--muted);margin-top:3px}
+    main{max-width:850px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(23,50,77,.07)}
+    h2{font-size:18px;color:var(--brand2);margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-weight:700;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd7de;border-radius:9px;font-size:15px;background:#fff}
+    textarea{min-height:82px;resize:vertical}button{width:100%;border:0;border-radius:10px;padding:13px 16px;font-weight:700;font-size:15px;cursor:pointer;background:var(--brand);color:#fff}
+    button:disabled{opacity:.55;cursor:not-allowed}.note{font-size:12px;color:var(--muted);margin-top:7px}.status{margin-top:12px;padding:11px;border-radius:10px;background:var(--soft);display:none}
+    .success{border:1px solid #b9d99e;background:#f1f8ea}.error{border:1px solid #efb2b2;background:#fff0f0;color:#8a2222}
+    .preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.preview img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+    @media(max-width:620px){.grid{grid-template-columns:1fr}.preview{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<header>
+  <b>Soluciones Radicales</b>
+  <small>Demo de inspección y manejo integrado de plagas</small>
+</header>
+
+<main>
+  <form id="inspectionForm">
+    <section class="card">
+      <h2>Datos del servicio</h2>
+      <div class="grid">
+        <div><label for="cliente">Cliente</label><select id="cliente" required></select></div>
+        <div><label for="tecnico">Técnico</label><select id="tecnico" required></select></div>
+        <div><label for="fecha">Fecha</label><input id="fecha" type="date" required></div>
+        <div><label for="solicitud">Solicitud de servicio</label><input id="solicitud" placeholder="Ej. SS-MIP-0001"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Hallazgo</h2>
+      <div class="grid">
+        <div>
+          <label for="area">Área</label>
+          <select id="area" required>
+            <option value="">Selecciona...</option>
+            <option>Recepción</option><option>Oficinas</option><option>Área de lavado</option>
+            <option>Refrigeración</option><option>Dosificación</option><option>Producción</option>
+            <option>Crecimiento</option><option>Hornos</option><option>Enfriamiento</option>
+            <option>Bodega</option><option>Despacho</option><option>Archivo</option>
+            <option>Área materia prima</option><option>Baños</option><option>Cocineta</option>
+            <option>LYD</option><option>Mantenimiento</option><option>Perimetral</option>
+          </select>
+        </div>
+        <div>
+          <label for="categoria">Categoría</label>
+          <select id="categoria" required>
+            <option value="">Selecciona...</option>
+            <option>Instalación de barreras físicas</option>
+            <option>Disposición adecuada de residuos sólidos y líquidos</option>
+            <option>Mantenimiento higiénico</option>
+            <option>Mantenimiento locativo interno y externo</option>
+          </select>
+        </div>
+        <div>
+          <label for="cumplimiento">Cumplimiento</label>
+          <select id="cumplimiento" required>
+            <option value="">Selecciona...</option>
+            <option value="C">C - Cumple</option>
+            <option value="CP">CP - Cumple parcialmente</option>
+            <option value="NC">NC - No cumple</option>
+            <option value="N/A">N/A - No aplica</option>
+          </select>
+        </div>
+      </div>
+      <label for="descripcion">Descripción del hallazgo</label>
+      <textarea id="descripcion" placeholder="Describe lo encontrado..."></textarea>
+      <label for="recomendacion">Recomendación</label>
+      <textarea id="recomendacion" placeholder="Acción preventiva o correctiva sugerida..."></textarea>
+    </section>
+
+    <section class="card">
+      <h2>Evidencia fotográfica</h2>
+      <input id="photos" type="file" accept="image/*" capture="environment" multiple>
+      <div class="note">Máximo 8 fotos. Se comprimen en el celular antes de subirlas.</div>
+      <div id="preview" class="preview"></div>
+    </section>
+
+    <section class="card">
+      <h2>Observaciones generales</h2>
+      <textarea id="observaciones" placeholder="Observaciones adicionales del servicio..."></textarea>
+      <div style="height:12px"></div>
+      <button id="submitBtn" type="submit">Finalizar inspección y generar PDF</button>
+      <div id="status" class="status"></div>
+    </section>
+  </form>
+</main>
+
+<script>
+  const state = { photos: [] };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    google.script.run
+      .withSuccessHandler(init)
+      .withFailureHandler(showError)
+      .getInitialData();
+  });
+
+  document.getElementById('photos').addEventListener('change', async (event) => {
+    const files = Array.from(event.target.files || []).slice(0, 8);
+    setBusy(true, 'Comprimiendo fotos...');
+    try {
+      state.photos = [];
+      for (const file of files) {
+        state.photos.push(await compressImage(file));
+      }
+      renderPreview();
+      hideStatus();
+    } catch (e) {
+      showError(e);
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  document.getElementById('inspectionForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const payload = {
+      clienteId: value('cliente'),
+      tecnicoId: value('tecnico'),
+      fecha: value('fecha'),
+      solicitudServicio: value('solicitud'),
+      area: value('area'),
+      categoria: value('categoria'),
+      cumplimiento: value('cumplimiento'),
+      descripcion: value('descripcion'),
+      recomendacion: value('recomendacion'),
+      observacionesGenerales: value('observaciones'),
+      photos: state.photos
+    };
+
+    setBusy(true, 'Guardando inspección y generando PDF...');
+
+    google.script.run
+      .withSuccessHandler((result) => {
+        setBusy(false);
+        const status = document.getElementById('status');
+        status.className = 'status success';
+        status.style.display = 'block';
+        status.innerHTML =
+          '<b>Inspección guardada.</b><br>' +
+          result.photosSaved + ' foto(s) almacenada(s).<br>' +
+          '<a href="' + result.pdfUrl + '" target="_blank">Abrir PDF generado</a>';
+      })
+      .withFailureHandler((error) => {
+        setBusy(false);
+        showError(error);
+      })
+      .saveInspection(payload);
+  });
+
+  function init(data) {
+    fillSelect('cliente', data.clientes, 'id', 'nombre');
+    fillSelect('tecnico', data.tecnicos, 'id', 'nombre');
+    document.getElementById('fecha').value = data.fecha;
+  }
+
+  function fillSelect(id, rows, valueKey, labelKey) {
+    const select = document.getElementById(id);
+    select.innerHTML = '<option value="">Selecciona...</option>';
+    rows.forEach(row => {
+      const option = document.createElement('option');
+      option.value = row[valueKey];
+      option.textContent = row[labelKey];
+      select.appendChild(option);
+    });
+  }
+
+  function value(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function renderPreview() {
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    state.photos.forEach(photo => {
+      const img = document.createElement('img');
+      img.src = 'data:' + photo.mimeType + ';base64,' + photo.dataBase64;
+      preview.appendChild(img);
+    });
+  }
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const maxSide = 1600;
+          let width = img.width;
+          let height = img.height;
+          const scale = Math.min(1, maxSide / Math.max(width, height));
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          resolve({
+            name: file.name.replace(/\.[^.]+$/, '') + '.jpg',
+            mimeType: 'image/jpeg',
+            width,
+            height,
+            dataBase64: dataUrl.split(',')[1]
+          });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setBusy(busy, message) {
+    const button = document.getElementById('submitBtn');
+    button.disabled = busy;
+    button.textContent = busy ? (message || 'Procesando...') : 'Finalizar inspección y generar PDF';
+    if (busy && message) {
+      const status = document.getElementById('status');
+      status.className = 'status';
+      status.style.display = 'block';
+      status.textContent = message;
+    }
+  }
+
+  function hideStatus() {
+    document.getElementById('status').style.display = 'none';
+  }
+
+  function showError(error) {
+    const status = document.getElementById('status');
+    status.className = 'status error';
+    status.style.display = 'block';
+    status.textContent = 'Error: ' + (error && error.message ? error.message : error);
+  }
+</script>
+</body>
+</html>
