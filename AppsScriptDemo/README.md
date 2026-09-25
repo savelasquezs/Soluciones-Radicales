@@ -69,7 +69,7 @@ La demo está aislada del API/Frontend histórico del repositorio.
 ## Correos de prueba por empresa
 
 - Comercializadora Palacio G S.A.S → `santyvan974@gmail.com`
-- Bello Oro Pan S.A.S → `santiago.velasquez022@pascualbravo.edu.co`
+- Bello Oro Pan S.A.S → `santyvano@outlook.com`
 
 El correo se toma del registro de la empresa seleccionada; no está fijo en el código.
 
