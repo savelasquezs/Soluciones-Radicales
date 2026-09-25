@@ -81,3 +81,42 @@ La paleta aplicada conserva los tonos existentes en el material fuente:
 - Azul principal: `#0877b9`
 - Azul oscuro: `#0b5f91`
 - Verde: `#5b8f18`
+
+
+## Flujo de demo alineado con los formatos físicos
+
+La muestra quedó reorganizada para seguir el flujo documental existente:
+
+1. **FO-PS-02 - Prestación del servicio**
+   - Encabezado de cliente, dirección, contacto, técnico, fecha y solicitud.
+   - Productos aplicados antes de la matriz locativa.
+   - Catálogo demostrativo de productos con autocompletado de dosis y método.
+   - Datos del cliente editables para la visita sin modificar automáticamente la ficha maestra.
+
+2. **Condiciones locativas**
+   - Todas las áreas de la empresa se cargan automáticamente.
+   - Cada área conserva la matriz C / CP / NC / N/A.
+   - C = 1,38; CP = 0,69; NC = 0; N/A se excluye del cálculo.
+   - Se puede crear una nueva área desde la aplicación.
+   - Un área puede marcarse como “No inspeccionada”; queda registrada pero no afecta el cumplimiento.
+   - Cuando exista al menos un NC en un área, la observación es obligatoria.
+   - Evidencias fotográficas y recomendaciones siguen disponibles por área.
+
+3. **FO-PS-10 - Control de trampas**
+   - Registro separado de número, ubicación, plaga evidenciada, cantidad capturada y observación.
+
+4. **FO-PS-09 - Puestos de monitoreo**
+   - Registro separado de producto químico, persona a cargo y antídoto.
+   - Puntos con número, ubicación, plaga, cantidad y observación.
+
+5. **Cierre**
+   - Una firma del técnico y una firma del responsable cubren el servicio completo.
+   - PDF con la misma organización lógica de los formatos.
+   - Envío automático al correo del cliente configurado para esa visita.
+
+### Hojas adicionales de la demo
+
+- `CatalogoProductos`
+- `Trampas`
+
+La versión continúa siendo responsive y orientada al uso desde celular.
