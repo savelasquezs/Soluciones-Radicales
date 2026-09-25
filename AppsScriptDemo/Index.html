@@ -5,165 +5,135 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    :root{--brand:#0877b9;--brand2:#0b5f91;--accent:#5b8f18;--ink:#17324d;--muted:#65727b;--soft:#f5f9fb;--border:#d9e3e8}
+    :root{--brand:#0877b9;--brand2:#0b5f91;--accent:#5b8f18;--ink:#17324d;--muted:#65727b;--soft:#f5f9fb;--border:#d9e3e8;--danger:#a33}
     *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(180deg,#eef6fa,#f7fafb 220px,#f3f6f7);color:var(--ink)}
-    header{position:sticky;top:0;z-index:2;background:#fff;border-bottom:3px solid var(--brand);padding:13px 16px;box-shadow:0 2px 8px #0001}
-    header b{font-size:19px;color:var(--brand2)}header small{display:block;color:var(--muted);margin-top:3px}
-    main{max-width:850px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(23,50,77,.07)}
-    h2{font-size:18px;color:var(--brand2);margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:3px solid var(--brand);padding:12px 16px;box-shadow:0 2px 8px #0001}
+    header b{font-size:20px;color:var(--brand2)}header small{display:block;color:var(--muted);margin-top:3px}
+    main{max-width:920px;margin:auto;padding:14px}.card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(23,50,77,.07)}
+    h2{font-size:18px;color:var(--brand2);margin:0 0 12px}h3{font-size:16px;margin:0 0 10px;color:var(--brand2)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     label{display:block;font-weight:700;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd7de;border-radius:9px;font-size:15px;background:#fff}
-    textarea{min-height:82px;resize:vertical}button{width:100%;border:0;border-radius:10px;padding:13px 16px;font-weight:700;font-size:15px;cursor:pointer;background:var(--brand);color:#fff}
-    button:disabled{opacity:.55;cursor:not-allowed}.note{font-size:12px;color:var(--muted);margin-top:7px}.status{margin-top:12px;padding:11px;border-radius:10px;background:var(--soft);display:none}
+    textarea{min-height:78px;resize:vertical}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:14px;cursor:pointer}
+    .primary{background:var(--brand);color:#fff}.green{background:var(--accent);color:#fff}.light{background:#eaf4f9;color:var(--brand2)}.danger{background:#fff0f0;color:var(--danger);border:1px solid #f0caca}
+    button:disabled{opacity:.55;cursor:not-allowed}.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{flex:1;min-width:150px}
+    .note{font-size:12px;color:var(--muted);margin-top:7px}.status{margin-top:12px;padding:11px;border-radius:10px;background:var(--soft);display:none}
     .success{border:1px solid #b9d99e;background:#f1f8ea}.error{border:1px solid #efb2b2;background:#fff0f0;color:#8a2222}
-    .preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.preview img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
-    @media(max-width:620px){.grid{grid-template-columns:1fr}.preview{grid-template-columns:repeat(2,1fr)}}
+    .preview{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.preview img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+    .item{border:1px solid var(--border);border-left:5px solid var(--brand);border-radius:14px;padding:14px;margin:12px 0;background:#fbfdfe}
+    .itemHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700;background:#eaf5fb;color:var(--brand2)}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 16px}.step{padding:9px;border-radius:999px;text-align:center;background:#e8edf0;color:var(--muted);font-size:12px;font-weight:700}.step.active{background:var(--brand);color:#fff}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{padding:14px;border-radius:12px;background:var(--soft);border:1px solid var(--border);text-align:center}.kpi b{display:block;font-size:23px;color:var(--brand2)}
+    .hidden{display:none}.complete{text-align:center;padding:28px}.complete h2{font-size:24px}.complete a{display:inline-block;margin-top:12px;padding:12px 18px;background:var(--brand);color:white;border-radius:10px;text-decoration:none;font-weight:700}
+    @media(max-width:680px){.grid,.grid3,.summary{grid-template-columns:1fr}.preview{grid-template-columns:repeat(2,1fr)}.actions{flex-direction:column}.actions button{width:100%}}
   </style>
 </head>
 <body>
 <header>
   <b>Soluciones Radicales</b>
-  <small>Demo de inspección y manejo integrado de plagas</small>
+  <small>Inspección y Manejo Integrado de Plagas (MIP)</small>
 </header>
 
 <main>
+  <div class="steps">
+    <div id="stepBadge1" class="step active">1. Servicio</div>
+    <div id="stepBadge2" class="step">2. Inspección</div>
+    <div id="stepBadge3" class="step">3. Complementos</div>
+  </div>
+
   <form id="inspectionForm">
-    <section class="card">
-      <h2>Datos del servicio</h2>
-      <div class="grid">
-        <div><label for="cliente">Cliente</label><select id="cliente" required></select></div>
-        <div><label for="tecnico">Técnico</label><select id="tecnico" required></select></div>
-        <div><label for="fecha">Fecha</label><input id="fecha" type="date" required></div>
-        <div><label for="solicitud">Solicitud de servicio</label><input id="solicitud" placeholder="Ej. SS-MIP-0001"></div>
+    <div id="step1">
+      <section class="card">
+        <h2>Datos del servicio</h2>
+        <div class="grid">
+          <div><label for="empresa">Empresa</label><select id="empresa" required></select></div>
+          <div><label for="tecnico">Técnico</label><select id="tecnico" required></select></div>
+          <div><label for="fecha">Fecha</label><input id="fecha" type="date" required></div>
+          <div><label for="solicitud">Solicitud de servicio</label><input id="solicitud" placeholder="Ej. SS-MIP-0001"></div>
+        </div>
+        <div class="note">Cada empresa mantiene su propio listado de áreas.</div>
+      </section>
+      <div class="actions"><button type="button" class="primary" onclick="goToStep(2)">Continuar a inspección</button></div>
+    </div>
+
+    <div id="step2" class="hidden">
+      <section class="card">
+        <div class="itemHead">
+          <div>
+            <h2 style="margin-bottom:4px">Hallazgos por área</h2>
+            <div class="note">Puedes registrar varias áreas y varios hallazgos en la misma visita.</div>
+          </div>
+          <button type="button" class="light" onclick="createArea()">+ Nueva área</button>
+        </div>
+        <div id="hallazgos"></div>
+        <button type="button" class="green" onclick="addHallazgo()">+ Agregar hallazgo</button>
+      </section>
+      <section class="card">
+        <h2>Resumen de cumplimiento</h2>
+        <div class="summary">
+          <div class="kpi"><b id="complianceValue">100%</b>Cumplimiento</div>
+          <div class="kpi"><b id="findingCount">0</b>Hallazgos</div>
+          <div class="kpi"><b id="photoCount">0</b>Fotos</div>
+        </div>
+      </section>
+      <div class="actions">
+        <button type="button" class="light" onclick="goToStep(1)">Atrás</button>
+        <button type="button" class="primary" onclick="goToStep(3)">Continuar</button>
       </div>
-    </section>
+    </div>
 
-    <section class="card">
-      <h2>Hallazgo</h2>
-      <div class="grid">
-        <div>
-          <label for="area">Área</label>
-          <select id="area" required>
-            <option value="">Selecciona...</option>
-            <option>Recepción</option><option>Oficinas</option><option>Área de lavado</option>
-            <option>Refrigeración</option><option>Dosificación</option><option>Producción</option>
-            <option>Crecimiento</option><option>Hornos</option><option>Enfriamiento</option>
-            <option>Bodega</option><option>Despacho</option><option>Archivo</option>
-            <option>Área materia prima</option><option>Baños</option><option>Cocineta</option>
-            <option>LYD</option><option>Mantenimiento</option><option>Perimetral</option>
-          </select>
-        </div>
-        <div>
-          <label for="categoria">Categoría</label>
-          <select id="categoria" required>
-            <option value="">Selecciona...</option>
-            <option>Instalación de barreras físicas</option>
-            <option>Disposición adecuada de residuos sólidos y líquidos</option>
-            <option>Mantenimiento higiénico</option>
-            <option>Mantenimiento locativo interno y externo</option>
-          </select>
-        </div>
-        <div>
-          <label for="cumplimiento">Cumplimiento</label>
-          <select id="cumplimiento" required>
-            <option value="">Selecciona...</option>
-            <option value="C">C - Cumple</option>
-            <option value="CP">CP - Cumple parcialmente</option>
-            <option value="NC">NC - No cumple</option>
-            <option value="N/A">N/A - No aplica</option>
-          </select>
-        </div>
-      </div>
-      <label for="descripcion">Descripción del hallazgo</label>
-      <textarea id="descripcion" placeholder="Describe lo encontrado..."></textarea>
-      <label for="recomendacion">Recomendación</label>
-      <textarea id="recomendacion" placeholder="Acción preventiva o correctiva sugerida..."></textarea>
-    </section>
+    <div id="step3" class="hidden">
+      <section class="card">
+        <div class="itemHead"><h2>Productos aplicados</h2><button type="button" class="light" onclick="addProducto()">+ Producto</button></div>
+        <div id="productos"></div>
+        <div class="note">Opcional. Permite registrar producto, dosis, lote, vencimiento y método.</div>
+      </section>
 
-    <section class="card">
-      <h2>Evidencia fotográfica</h2>
-      <input id="photos" type="file" accept="image/*" capture="environment" multiple>
-      <div class="note">Máximo 8 fotos. Se comprimen en el celular antes de subirlas.</div>
-      <div id="preview" class="preview"></div>
-    </section>
+      <section class="card">
+        <div class="itemHead"><h2>Trampas y puestos de monitoreo</h2><button type="button" class="light" onclick="addMonitoreo()">+ Punto</button></div>
+        <div id="monitoreo"></div>
+      </section>
 
-    <section class="card">
-      <h2>Observaciones generales</h2>
-      <textarea id="observaciones" placeholder="Observaciones adicionales del servicio..."></textarea>
-      <div style="height:12px"></div>
-      <button id="submitBtn" type="submit">Finalizar inspección y generar PDF</button>
-      <div id="status" class="status"></div>
-    </section>
+      <section class="card">
+        <h2>Observaciones generales</h2>
+        <textarea id="observaciones" placeholder="Observaciones adicionales del servicio..."></textarea>
+        <div style="height:12px"></div>
+        <button id="submitBtn" class="primary" style="width:100%" type="submit">Finalizar inspección y generar PDF</button>
+        <div id="status" class="status"></div>
+      </section>
+
+      <div class="actions"><button type="button" class="light" onclick="goToStep(2)">Atrás</button></div>
+    </div>
   </form>
+
+  <section id="complete" class="card complete hidden">
+    <h2>Informe generado correctamente</h2>
+    <p id="completeText"></p>
+    <a id="pdfLink" href="#" target="_blank">Abrir PDF</a>
+    <div style="height:14px"></div>
+    <button class="light" onclick="location.reload()">Crear otra inspección</button>
+  </section>
 </main>
 
 <script>
-  const state = { photos: [] };
+  const state = { data:null, hallazgos:[], productos:[], monitoreo:[], step:1 };
 
   document.addEventListener('DOMContentLoaded', () => {
-    google.script.run
-      .withSuccessHandler(init)
-      .withFailureHandler(showError)
-      .getInitialData();
+    google.script.run.withSuccessHandler(init).withFailureHandler(showError).getInitialData();
   });
 
-  document.getElementById('photos').addEventListener('change', async (event) => {
-    const files = Array.from(event.target.files || []).slice(0, 8);
-    setBusy(true, 'Comprimiendo fotos...');
-    try {
-      state.photos = [];
-      for (const file of files) {
-        state.photos.push(await compressImage(file));
-      }
-      renderPreview();
-      hideStatus();
-    } catch (e) {
-      showError(e);
-    } finally {
-      setBusy(false);
-    }
+  document.getElementById('empresa').addEventListener('change', () => {
+    state.hallazgos.forEach(h => h.areaId = '');
+    renderHallazgos();
   });
 
-  document.getElementById('inspectionForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const payload = {
-      clienteId: value('cliente'),
-      tecnicoId: value('tecnico'),
-      fecha: value('fecha'),
-      solicitudServicio: value('solicitud'),
-      area: value('area'),
-      categoria: value('categoria'),
-      cumplimiento: value('cumplimiento'),
-      descripcion: value('descripcion'),
-      recomendacion: value('recomendacion'),
-      observacionesGenerales: value('observaciones'),
-      photos: state.photos
-    };
-
-    setBusy(true, 'Guardando inspección y generando PDF...');
-
-    google.script.run
-      .withSuccessHandler((result) => {
-        setBusy(false);
-        const status = document.getElementById('status');
-        status.className = 'status success';
-        status.style.display = 'block';
-        status.innerHTML =
-          '<b>Inspección guardada.</b><br>' +
-          result.photosSaved + ' foto(s) almacenada(s).<br>' +
-          '<a href="' + result.pdfUrl + '" target="_blank">Abrir PDF generado</a>';
-      })
-      .withFailureHandler((error) => {
-        setBusy(false);
-        showError(error);
-      })
-      .saveInspection(payload);
-  });
+  document.getElementById('inspectionForm').addEventListener('submit', submitInspection);
 
   function init(data) {
-    fillSelect('cliente', data.clientes, 'id', 'nombre');
+    state.data = data;
+    fillSelect('empresa', data.empresas, 'id', 'nombre');
     fillSelect('tecnico', data.tecnicos, 'id', 'nombre');
     document.getElementById('fecha').value = data.fecha;
+    addHallazgo();
   }
 
   function fillSelect(id, rows, valueKey, labelKey) {
@@ -177,76 +147,267 @@
     });
   }
 
-  function value(id) {
-    return document.getElementById(id).value.trim();
+  function goToStep(step) {
+    if (step === 2 && !validateStep1()) return;
+    if (step === 3 && !validateStep2()) return;
+    state.step = step;
+    [1,2,3].forEach(n => {
+      document.getElementById('step' + n).classList.toggle('hidden', n !== step);
+      document.getElementById('stepBadge' + n).classList.toggle('active', n === step);
+    });
+    window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  function renderPreview() {
-    const preview = document.getElementById('preview');
-    preview.innerHTML = '';
-    state.photos.forEach(photo => {
-      const img = document.createElement('img');
-      img.src = 'data:' + photo.mimeType + ';base64,' + photo.dataBase64;
-      preview.appendChild(img);
-    });
+  function validateStep1() {
+    if (!value('empresa') || !value('tecnico') || !value('fecha')) {
+      alert('Selecciona empresa, técnico y fecha.');
+      return false;
+    }
+    return true;
   }
+
+  function validateStep2() {
+    if (!state.hallazgos.length) {
+      alert('Agrega al menos un hallazgo.');
+      return false;
+    }
+    for (let i=0;i<state.hallazgos.length;i++) {
+      const h=state.hallazgos[i];
+      if (!h.areaId || !h.categoria || !h.cumplimiento) {
+        alert('Completa área, categoría y cumplimiento en el hallazgo ' + (i+1) + '.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function addHallazgo() {
+    state.hallazgos.push({areaId:'',categoria:'',cumplimiento:'',descripcion:'',recomendacion:'',photos:[]});
+    renderHallazgos();
+  }
+
+  function removeHallazgo(index) {
+    if (state.hallazgos.length === 1) return alert('Debe existir al menos un hallazgo.');
+    state.hallazgos.splice(index,1);
+    renderHallazgos();
+  }
+
+  function updateHallazgo(index,key,val) {
+    state.hallazgos[index][key]=val;
+    updateSummary();
+  }
+
+  function areasForCompany() {
+    const empresaId=value('empresa');
+    return (state.data ? state.data.areas : [])
+      .filter(a => String(a.empresaId)===empresaId)
+      .sort((a,b)=>Number(a.orden||0)-Number(b.orden||0));
+  }
+
+  function renderHallazgos() {
+    const container=document.getElementById('hallazgos');
+    const areas=areasForCompany();
+    container.innerHTML=state.hallazgos.map((h,i)=>`
+      <div class="item">
+        <div class="itemHead">
+          <h3>Hallazgo ${i+1}</h3>
+          <button type="button" class="danger" onclick="removeHallazgo(${i})">Eliminar</button>
+        </div>
+        <div class="grid">
+          <div>
+            <label>Área</label>
+            <select onchange="updateHallazgo(${i},'areaId',this.value)">
+              <option value="">Selecciona...</option>
+              ${areas.map(a=>`<option value="${escapeHtml(a.id)}" ${String(h.areaId)===String(a.id)?'selected':''}>${escapeHtml(a.nombre)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Categoría</label>
+            <select onchange="updateHallazgo(${i},'categoria',this.value)">
+              <option value="">Selecciona...</option>
+              ${['Instalación de barreras físicas','Disposición adecuada de residuos sólidos y líquidos','Mantenimiento higiénico','Mantenimiento locativo interno y externo'].map(x=>`<option ${h.categoria===x?'selected':''}>${x}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Cumplimiento</label>
+            <select onchange="updateHallazgo(${i},'cumplimiento',this.value)">
+              <option value="">Selecciona...</option>
+              <option value="C" ${h.cumplimiento==='C'?'selected':''}>C - Cumple</option>
+              <option value="CP" ${h.cumplimiento==='CP'?'selected':''}>CP - Cumple parcialmente</option>
+              <option value="NC" ${h.cumplimiento==='NC'?'selected':''}>NC - No cumple</option>
+              <option value="N/A" ${h.cumplimiento==='N/A'?'selected':''}>N/A - No aplica</option>
+            </select>
+          </div>
+        </div>
+        <label>Descripción</label>
+        <textarea onchange="updateHallazgo(${i},'descripcion',this.value)" placeholder="Describe lo encontrado...">${escapeHtml(h.descripcion)}</textarea>
+        <label>Recomendación</label>
+        <textarea onchange="updateHallazgo(${i},'recomendacion',this.value)" placeholder="Acción preventiva o correctiva...">${escapeHtml(h.recomendacion)}</textarea>
+        <label>Evidencia fotográfica</label>
+        <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos(${i},this.files)">
+        <div class="note">Hasta 6 fotos por hallazgo; se comprimen antes de subirlas.</div>
+        <div class="preview">${h.photos.map(p=>`<img src="data:${p.mimeType};base64,${p.dataBase64}">`).join('')}</div>
+      </div>`).join('');
+    updateSummary();
+  }
+
+  function createArea() {
+    const empresaId=value('empresa');
+    if (!empresaId) return alert('Selecciona primero una empresa.');
+    const nombre=prompt('Nombre de la nueva área:');
+    if (!nombre || !nombre.trim()) return;
+    google.script.run
+      .withSuccessHandler(area=>{
+        state.data.areas.push(area);
+        renderHallazgos();
+      })
+      .withFailureHandler(showError)
+      .addArea(empresaId,nombre.trim());
+  }
+
+  async function handlePhotos(index,fileList) {
+    const files=Array.from(fileList||[]).slice(0,6);
+    setBusy(true,'Comprimiendo fotografías...');
+    try{
+      const photos=[];
+      for(const file of files) photos.push(await compressImage(file));
+      state.hallazgos[index].photos=photos;
+      renderHallazgos();
+      hideStatus();
+    }catch(e){showError(e)}finally{setBusy(false)}
+  }
+
+  function addProducto() {
+    state.productos.push({producto:'',dosis:'',lote:'',vencimiento:'',fabricacion:'',metodoAplicacion:'',registroSanitario:''});
+    renderProductos();
+  }
+
+  function renderProductos() {
+    document.getElementById('productos').innerHTML=state.productos.map((p,i)=>`
+      <div class="item">
+        <div class="itemHead"><span class="badge">Producto ${i+1}</span><button type="button" class="danger" onclick="state.productos.splice(${i},1);renderProductos()">Eliminar</button></div>
+        <div class="grid3">
+          ${field('Producto','producto',p.producto,i,'producto')}
+          ${field('Dosis','dosis',p.dosis,i,'producto')}
+          ${field('Lote','lote',p.lote,i,'producto')}
+          ${field('Vencimiento','vencimiento',p.vencimiento,i,'producto')}
+          ${field('Fabricación','fabricacion',p.fabricacion,i,'producto')}
+          ${field('Método de aplicación','metodoAplicacion',p.metodoAplicacion,i,'producto')}
+        </div>
+        ${field('Registro sanitario','registroSanitario',p.registroSanitario,i,'producto')}
+      </div>`).join('');
+  }
+
+  function addMonitoreo() {
+    state.monitoreo.push({tipo:'',numeroPunto:'',ubicacion:'',plaga:'',cantidad:'',observacion:''});
+    renderMonitoreo();
+  }
+
+  function renderMonitoreo() {
+    document.getElementById('monitoreo').innerHTML=state.monitoreo.map((m,i)=>`
+      <div class="item">
+        <div class="itemHead"><span class="badge">Punto ${i+1}</span><button type="button" class="danger" onclick="state.monitoreo.splice(${i},1);renderMonitoreo()">Eliminar</button></div>
+        <div class="grid3">
+          ${field('Tipo','tipo',m.tipo,i,'monitoreo')}
+          ${field('N°','numeroPunto',m.numeroPunto,i,'monitoreo')}
+          ${field('Ubicación','ubicacion',m.ubicacion,i,'monitoreo')}
+          ${field('Plaga','plaga',m.plaga,i,'monitoreo')}
+          ${field('Cantidad','cantidad',m.cantidad,i,'monitoreo')}
+        </div>
+        ${field('Observación','observacion',m.observacion,i,'monitoreo')}
+      </div>`).join('');
+  }
+
+  function field(label,key,val,index,group) {
+    return `<div><label>${label}</label><input value="${escapeHtml(val||'')}" onchange="state.${group}[${index}]['${key}']=this.value"></div>`;
+  }
+
+  function updateSummary() {
+    const scored=state.hallazgos.map(h=>h.cumplimiento).filter(x=>x==='C'||x==='CP'||x==='NC');
+    const vals=scored.map(x=>x==='C'?100:x==='CP'?50:0);
+    const pct=vals.length?Math.round((vals.reduce((a,b)=>a+b,0)/vals.length)*10)/10:100;
+    const photos=state.hallazgos.reduce((sum,h)=>sum+(h.photos||[]).length,0);
+    document.getElementById('complianceValue').textContent=pct+'%';
+    document.getElementById('findingCount').textContent=state.hallazgos.length;
+    document.getElementById('photoCount').textContent=photos;
+  }
+
+  function submitInspection(event) {
+    event.preventDefault();
+    if (!validateStep1() || !validateStep2()) return;
+    const payload={
+      empresaId:value('empresa'),
+      tecnicoId:value('tecnico'),
+      fecha:value('fecha'),
+      solicitudServicio:value('solicitud'),
+      hallazgos:state.hallazgos,
+      productos:state.productos,
+      monitoreo:state.monitoreo,
+      observacionesGenerales:value('observaciones')
+    };
+    setBusy(true,'Guardando inspección y generando PDF...');
+    google.script.run
+      .withSuccessHandler(result=>{
+        setBusy(false);
+        document.getElementById('inspectionForm').classList.add('hidden');
+        document.querySelector('.steps').classList.add('hidden');
+        const complete=document.getElementById('complete');
+        complete.classList.remove('hidden');
+        document.getElementById('completeText').textContent=
+          result.hallazgosSaved+' hallazgo(s), '+result.photosSaved+' foto(s), cumplimiento '+result.cumplimientoPct+'%.';
+        document.getElementById('pdfLink').href=result.pdfUrl;
+        window.scrollTo({top:0,behavior:'smooth'});
+      })
+      .withFailureHandler(error=>{setBusy(false);showError(error)})
+      .saveInspection(payload);
+  }
+
+  function value(id){return document.getElementById(id).value.trim()}
 
   function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = reject;
-      reader.onload = () => {
-        const img = new Image();
-        img.onerror = reject;
-        img.onload = () => {
-          const maxSide = 1600;
-          let width = img.width;
-          let height = img.height;
-          const scale = Math.min(1, maxSide / Math.max(width, height));
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
-          resolve({
-            name: file.name.replace(/\.[^.]+$/, '') + '.jpg',
-            mimeType: 'image/jpeg',
-            width,
-            height,
-            dataBase64: dataUrl.split(',')[1]
-          });
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onerror=reject;
+      reader.onload=()=>{
+        const img=new Image();
+        img.onerror=reject;
+        img.onload=()=>{
+          const maxSide=1400;
+          let width=img.width,height=img.height;
+          const scale=Math.min(1,maxSide/Math.max(width,height));
+          width=Math.round(width*scale);height=Math.round(height*scale);
+          const canvas=document.createElement('canvas');
+          canvas.width=width;canvas.height=height;
+          canvas.getContext('2d').drawImage(img,0,0,width,height);
+          const dataUrl=canvas.toDataURL('image/jpeg',0.70);
+          resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',mimeType:'image/jpeg',width,height,dataBase64:dataUrl.split(',')[1]});
         };
-        img.src = reader.result;
+        img.src=reader.result;
       };
       reader.readAsDataURL(file);
     });
   }
 
-  function setBusy(busy, message) {
-    const button = document.getElementById('submitBtn');
-    button.disabled = busy;
-    button.textContent = busy ? (message || 'Procesando...') : 'Finalizar inspección y generar PDF';
-    if (busy && message) {
-      const status = document.getElementById('status');
-      status.className = 'status';
-      status.style.display = 'block';
-      status.textContent = message;
+  function setBusy(busy,message) {
+    const button=document.getElementById('submitBtn');
+    if(button){button.disabled=busy;button.textContent=busy?(message||'Procesando...'):'Finalizar inspección y generar PDF'}
+    if(busy&&message){
+      const status=document.getElementById('status');
+      status.className='status';status.style.display='block';status.textContent=message;
     }
   }
 
-  function hideStatus() {
-    document.getElementById('status').style.display = 'none';
-  }
+  function hideStatus(){const s=document.getElementById('status');if(s)s.style.display='none'}
 
   function showError(error) {
-    const status = document.getElementById('status');
-    status.className = 'status error';
-    status.style.display = 'block';
-    status.textContent = 'Error: ' + (error && error.message ? error.message : error);
+    const message=(error&&error.message)?error.message:String(error);
+    const status=document.getElementById('status');
+    if(status){status.className='status error';status.style.display='block';status.textContent='Error: '+message}
+    else alert('Error: '+message);
+  }
+
+  function escapeHtml(value) {
+    return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 </script>
 </body>
