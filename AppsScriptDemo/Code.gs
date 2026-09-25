@@ -20,6 +20,14 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+function authorizeEmail() {
+  const remaining = MailApp.getRemainingDailyQuota();
+  return {
+    ok: true,
+    remainingDailyQuota: remaining
+  };
+}
+
 function getInitialData() {
   return {
     empresas: readActiveRows_('Empresas'),
