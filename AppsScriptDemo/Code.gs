@@ -339,8 +339,14 @@ function validatePayload_(payload) {
 
   let totalPhotos = 0;
 
-  payload.areaEvaluations.forEach(function (evaluation, areaIndex) {
+  payload.areaEvaluations.forEach(function (evaluation) {
     const area = getAreaForCompany_(payload.empresaId, evaluation.areaId);
+
+    if (evaluation.inspected === false) {
+      totalPhotos += (evaluation.photos || []).length;
+      return;
+    }
+
     const expected = criteriaForAreaName_(area.nombre);
 
     if (!Array.isArray(evaluation.criterios) ||
@@ -357,6 +363,17 @@ function validatePayload_(payload) {
         );
       }
     });
+
+    const hasNonCompliance = evaluation.criterios.some(function (criterion) {
+      return criterion.cumplimiento === 'NC';
+    });
+
+    if (hasNonCompliance && !String(evaluation.observacion || '').trim()) {
+      throw new Error(
+        'Área ' + area.nombre +
+        ': registra una observación cuando exista una condición NC.'
+      );
+    }
 
     totalPhotos += (evaluation.photos || []).length;
   });
@@ -382,6 +399,7 @@ function calculateCompliance_(areaEvaluations) {
   const values = [];
 
   (areaEvaluations || []).forEach(function (evaluation) {
+    if (evaluation.inspected === false) return;
     (evaluation.criterios || []).forEach(function (criterion) {
       if (criterion.cumplimiento === 'C') values.push(100);
       if (criterion.cumplimiento === 'CP') values.push(50);
