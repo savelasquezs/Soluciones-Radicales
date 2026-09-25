@@ -1,2 +1,9 @@
 .clasp.json
+.claspignore
 README.md
+package.json
+package-lock.json
+node_modules/**
+node_modules/
+.git/**
+.gitignore
