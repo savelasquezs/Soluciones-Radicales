@@ -121,7 +121,7 @@
       margin-top:10px;font-size:13px;line-height:1.4;overflow-wrap:anywhere;
     }
 
-    .productItem,.monitorItem{
+    .productItem,.monitorItem,.trapItem{
       border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0;background:#fbfdfe;
     }
     .itemHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
@@ -143,6 +143,8 @@
       overflow:hidden;box-shadow:0 3px 12px rgba(23,50,77,.04);
     }
     .areaCard.complete{border-color:#b8d8ad}
+    .areaCard.skipped{border-color:#c8ced4;background:#fafbfc}
+    .areaCard.skipped .areaScore{background:#f1f3f5;color:#616971}
     .areaHeader{
       display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;
       padding:13px 14px;background:#fbfdfe;
@@ -176,6 +178,7 @@
     .statusBtn.active-NA{background:#f1f3f5;border-color:#c8ced4;color:var(--na)}
     .quickMark{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
     .quickMark button{min-height:39px;padding:7px 11px;font-size:12px}
+    .skipBox{margin:10px 0;padding:12px;border:1px dashed #c8ced4;border-radius:10px;background:#f7f8f9}
     .areaExtras{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
     .preview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
     .preview img{
@@ -430,9 +433,19 @@
 
     <div id="step3" class="hidden">
       <section class="card">
-        <span class="eyebrow">Formatos FO-PS-10 / FO-PS-09</span>
+        <span class="eyebrow">Formato FO-PS-10</span>
         <div class="sectionTitle">
-          <div><h2>Control de trampas y puestos de monitoreo</h2></div>
+          <div><h2>Control de trampas</h2></div>
+          <button type="button" class="light" onclick="addTrampa()">+ Agregar trampa</button>
+        </div>
+        <div class="note">Registra número de trampa, ubicación, plaga evidenciada y cantidad capturada.</div>
+        <div id="trampas"></div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow">Formato FO-PS-09</span>
+        <div class="sectionTitle">
+          <div><h2>Puestos de monitoreo</h2></div>
           <button type="button" class="light" onclick="addMonitoreo()">+ Agregar punto</button>
         </div>
 
