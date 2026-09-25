@@ -238,7 +238,7 @@ function saveInspection(payload) {
     });
 
     (payload.monitoreo || []).forEach(function (item) {
-      if (!String(item.tipo || '').trim() &&
+      if (!String(item.numeroPunto || '').trim() &&
           !String(item.ubicacion || '').trim() &&
           !String(item.plaga || '').trim()) return;
 
