@@ -563,6 +563,8 @@
     }
 
     addProducto();
+    renderTrampas();
+    renderMonitoreo();
     updateSummary();
   }
 
@@ -1061,9 +1063,59 @@
     renderProductos();
   }
 
+  function addTrampa() {
+    state.trampas.push({
+      numeroTrampa:'',
+      ubicacion:'',
+      plaga:'',
+      cantidad:'',
+      observacion:''
+    });
+    renderTrampas();
+  }
+
+  function removeTrampa(index) {
+    state.trampas.splice(index,1);
+    renderTrampas();
+  }
+
+  function renderTrampas() {
+    const box = document.getElementById('trampas');
+    if (!box) return;
+
+    if (!state.trampas.length) {
+      box.innerHTML = '<div class="note">No hay trampas registradas para esta visita.</div>';
+      return;
+    }
+
+    box.innerHTML = state.trampas.map((item,index) => `
+      <div class="trapItem">
+        <div class="itemHead">
+          <span class="badge">Trampa ${index + 1}</span>
+          <button type="button" class="danger" onclick="removeTrampa(${index})">Eliminar</button>
+        </div>
+
+        <div class="grid3">
+          ${inputField('N° de trampa','numeroTrampa',item.numeroTrampa,index,'trampas')}
+          ${inputField('Ubicación','ubicacion',item.ubicacion,index,'trampas')}
+          <div>
+            <label>Plaga evidenciada</label>
+            <select onchange="state.trampas[${index}].plaga=this.value">
+              <option value="">Selecciona...</option>
+              ${['Polilla','Mosca doméstica','Mosca de fruta','Zancudo','Cucarrones','Otros'].map(value =>
+                `<option value="${value}" ${item.plaga===value?'selected':''}>${value}</option>`
+              ).join('')}
+            </select>
+          </div>
+          ${inputField('Cant. total capturada','cantidad',item.cantidad,index,'trampas')}
+          ${inputField('Observación','observacion',item.observacion,index,'trampas')}
+        </div>
+      </div>
+    `).join('');
+  }
+
   function addMonitoreo() {
     state.monitoreo.push({
-      tipo:'',
       numeroPunto:'',
       ubicacion:'',
       plaga:'',
@@ -1082,38 +1134,30 @@
     const box = document.getElementById('monitoreo');
 
     if (!state.monitoreo.length) {
-      box.innerHTML = '<div class="note">No hay puntos de monitoreo registrados.</div>';
+      box.innerHTML = '<div class="note">No hay puestos de monitoreo registrados para esta visita.</div>';
       return;
     }
 
     box.innerHTML = state.monitoreo.map((item,index) => `
       <div class="monitorItem">
         <div class="itemHead">
-          <span class="badge">Punto ${index + 1}</span>
+          <span class="badge">Puesto ${index + 1}</span>
           <button type="button" class="danger" onclick="removeMonitoreo(${index})">Eliminar</button>
         </div>
 
         <div class="grid3">
-          <div>
-            <label>Tipo</label>
-            <select onchange="state.monitoreo[${index}].tipo=this.value">
-              <option value="">Selecciona...</option>
-              <option value="Trampa" ${item.tipo==='Trampa'?'selected':''}>Trampa</option>
-              <option value="Puesto de monitoreo" ${item.tipo==='Puesto de monitoreo'?'selected':''}>Puesto de monitoreo</option>
-            </select>
-          </div>
-          ${inputField('N°','numeroPunto',item.numeroPunto,index,'monitoreo')}
+          ${inputField('N° de punto','numeroPunto',item.numeroPunto,index,'monitoreo')}
           ${inputField('Ubicación','ubicacion',item.ubicacion,index,'monitoreo')}
           <div>
             <label>Plaga evidenciada</label>
             <select onchange="state.monitoreo[${index}].plaga=this.value">
               <option value="">Selecciona...</option>
-              ${['Polilla','Mosca doméstica','Mosca de fruta','Zancudo','Cucarrones','Cucaracha','Roedor','Otros'].map(value =>
+              ${['Cucaracha','Roedor','Otros'].map(value =>
                 `<option value="${value}" ${item.plaga===value?'selected':''}>${value}</option>`
               ).join('')}
             </select>
           </div>
-          ${inputField('Cantidad total','cantidad',item.cantidad,index,'monitoreo')}
+          ${inputField('Cantidad','cantidad',item.cantidad,index,'monitoreo')}
           ${inputField('Observación','observacion',item.observacion,index,'monitoreo')}
         </div>
       </div>
@@ -1133,7 +1177,9 @@
   }
 
   function updateSummary() {
-    const allCriteria = state.areaEvaluations.flatMap(area => area.criterios);
+    const allCriteria = state.areaEvaluations
+      .filter(area => area.inspected !== false)
+      .flatMap(area => area.criterios);
     const scored = allCriteria.filter(item =>
       item.cumplimiento === 'C' ||
       item.cumplimiento === 'CP' ||
@@ -1191,6 +1237,7 @@
       elaboradoPor:value('elaboradoPor'),
       productos:state.productos,
       areaEvaluations:state.areaEvaluations,
+      trampas:state.trampas,
       monitoreoGeneral:{
         productoQuimico:value('productoQuimico'),
         personaCargo:value('personaCargo'),
